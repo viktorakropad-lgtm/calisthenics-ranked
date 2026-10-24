@@ -14,7 +14,7 @@
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <style>html,body{margin:0;background:#0b0d17}</style>
-<script>window.APP_VERSION = "0.2-364e17";</script>
+<script>window.APP_VERSION = "0.2-64c232";</script>
 </head>
 <body>
 <style>
@@ -363,6 +363,14 @@ textarea.field { min-height: 0; font-size: 14px; line-height: 1.35; resize: vert
 .acc { display: grid; gap: 2px; margin: 0 0 10px; }
 .acc .nm { font-family: var(--f-display); font-weight: 800; font-size: 30px; letter-spacing: .03em; }
 .acc .id { color: var(--text-3); font-size: 15px; }
+.welcome.auth form { gap: 12px; }
+.pwrow { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; }
+.chk { display: flex; gap: 12px; align-items: flex-start; font-size: 15px; line-height: 1.35; color: var(--text-2); }
+.chk input { flex: none; width: 24px; height: 24px; margin-top: 1px; accent-color: var(--accent); }
+.authlinks { display: flex; justify-content: space-between; gap: 12px; width: 100%; flex-wrap: wrap; }
+.legalline { font-size: 14px; line-height: 1.4; margin: 6px 0 0; text-align: center; }
+.legalline .link, .chk .link { font-size: inherit; display: inline; padding: 0; min-height: 0; color: var(--accent); }
+.checkbox-card { width: 100%; box-sizing: border-box; text-align: left; padding: 16px; border-radius: 16px; border: 1px solid var(--line); background: var(--surface-2); }
 .cl { margin: 14px 0 6px; padding: 14px; border-radius: 16px; border: 1px solid var(--line); background: var(--surface-2); }
 .cl .cl-h { font-family: var(--f-display); font-weight: 700; font-size: 20px; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 6px; }
 .cl form { display: grid; gap: 6px; }
@@ -2156,7 +2164,7 @@ function toast(msg) {
 const TABS = [
   { id: 'train', label: 'S\'entraîner', ic: 'train' }, { id: 'ranked', label: 'Ranked', ic: 'ranked' }, { id: 'trophies', label: 'Trophées', ic: 'trophies' }
 ];
-const IMMERSIVE = new Set(['welcome', 'intake', 'exercise', 'promo']);
+const IMMERSIVE = new Set(['welcome', 'auth', 'intake', 'exercise', 'promo']);
 const tabOf = r => (r === 'promo' ? 'ranked' : r === 'family' || r === 'exercise' ? 'train' : r);
 function go(route, opts) {
   stopMq();
@@ -2184,7 +2192,7 @@ const infoBtn = kind => `<button class="ibtn" type="button" id="btn-info" data-a
 const avatarBtn = () => `<button class="ibtn avatar" type="button" id="btn-profile" data-act="profile" aria-label="Profil et réglages">${icon('user')}</button>`;
 const tabsHtml = (pre) => TABS.map(t => `<button class="tab" type="button" data-act="nav" data-route="${t.id}" id="${pre}-${t.id}"${t.id === tabOf(ui.route) ? ' aria-current="page"' : ''}>${icon(t.ic)}<span>${t.label}</span></button>`).join('');
 function topHtml() {
-  if (ui.route === 'intake' || ui.route === 'welcome') return '';
+  if (ui.route === 'intake' || ui.route === 'welcome' || ui.route === 'auth') return '';
   if (ui.route === 'exercise' || ui.route === 'promo') return '';
   const left = ui.route === 'ranked' || ui.route === 'trophies' ? '' : lvlChip();
   const kind = ui.route === 'ranked' ? 'ranked' : ui.route === 'trophies' ? 'trophies' : ui.route === 'family' ? 'family' : 'train';
@@ -2211,6 +2219,7 @@ function render(opts) {
 function view() {
   switch (ui.route) {
     case 'welcome': return welcomeView();
+    case 'auth': return authView();
     case 'intake': return intakeView();
     case 'family': return familyView();
     case 'exercise': return exerciseView();
@@ -2229,6 +2238,7 @@ function afterRender() {
   if (ui.route === 'exercise' && ui.mqTab === 'move') startMq(); else stopMq();
   if (ui.route === 'intake') { const b = $('#intake-first'); if (b) b.focus({ preventScroll: true }); }
   if (ui.route === 'welcome') { const i = $('#pseudo'); if (i) i.focus({ preventScroll: true }); }
+  if (ui.route === 'auth') { const i = $('#au-pseudo') || $('#au-email') || $('#au-password'); if (i && !i.value) i.focus({ preventScroll: true }); }
   if (ui.route === 'ranked' && typeof cloudLoadLb === 'function') cloudLoadLb();
 }
 
@@ -2666,6 +2676,8 @@ const Account = (() => {
   }
   function create(name) { const c = check(name); if (!c.ok) return c; acc = { v: 1, id: acc ? acc.id : newId(), name: c.name, created: acc ? acc.created : Date.now() }; persist(); return c; }
   function get() { return acc; }
+  /* compte en ligne : l'identifiant public et le pseudo viennent du serveur (source de vérité) */
+  function setFromCloud(id, name) { acc = { v: 1, id: String(id), name: String(name), created: acc ? acc.created : Date.now() }; persist(); }
   function wipe() { acc = null; try { localStorage.removeItem(KEY); } catch (e) { /* sans effet */ } }
 
   /* sauvegarde: texte unique (compte + progression) a copier et coller sur un autre telephone */
@@ -2686,7 +2698,7 @@ const Account = (() => {
     } catch (e) { return null; }
   }
   function restore(o) { acc = { v: 1, id: o.account.id, name: o.account.name, created: o.account.created || Date.now() }; persist(); }
-  return { get, create, check, wipe, pack, unpack, restore };
+  return { get, create, check, wipe, pack, unpack, restore, setFromCloud };
 })();
 
 const accName = () => (Account.get() ? Account.get().name : 'Toi');
@@ -2730,6 +2742,7 @@ function backupSheet() {
 function accSubmit() {
   const form = $('#acc-form'); if (!form) return;
   const mode = form.dataset.mode, err = $('#acc-err');
+  if (typeof Cloud !== 'undefined' && mode === 'rename') { cloudRename($('#pseudo').value, err); return; } // compte en ligne : le serveur décide
   const c = Account.create($('#pseudo').value);
   if (!c.ok) { err.textContent = c.msg; err.hidden = false; return; }
   if (typeof cloudSyncSoon === 'function') cloudSyncSoon();
@@ -4093,10 +4106,11 @@ function camAct(a, el) {
 }
 
 /* ============================================================
-   cloud.js : compte en ligne (Supabase) pour la version installee.
-   Connexion par code a 6 chiffres envoye par email, profil public (pseudo, ELO declare),
-   sauvegarde privee, classement. Appels HTTP directs (pas de bibliotheque).
-   La cle ci-dessous est une cle PUBLIQUE (publishable): la securite repose sur les regles RLS des tables.
+   cloud.js : compte en ligne (Supabase Auth + base) pour la version installee.
+   Email + mot de passe, profil cree par le serveur (pseudo unique, identifiant public), sauvegarde privee,
+   classement, suppression du compte, droits achetes (lecture seule).
+   Appels HTTP directs (pas de bibliotheque). La cle ci-dessous est PUBLIQUE (publishable): la securite repose sur
+   les regles RLS et les droits de colonnes de la base (voir docs/accounts.md).
    Absent de la version artifact (fetch interdit).
    ============================================================ */
 const Cloud = (() => {
@@ -4105,8 +4119,9 @@ const Cloud = (() => {
   const SKEY = 'cali-session-v1';
   let sess = null;
   try { const s = JSON.parse(localStorage.getItem(SKEY) || 'null'); if (s && s.access_token && s.refresh_token) sess = s; } catch (e) { sess = null; }
-  const out = { lbRows: null, lbAt: 0, lastSync: 0, lastError: '' };
+  const out = { lbRows: null, lbAt: 0, lastSync: 0, lastError: '', profile: null };
   let timer = 0;
+  const appUrl = () => location.origin + location.pathname;
 
   function store(s) {
     sess = s;
@@ -4114,7 +4129,7 @@ const Cloud = (() => {
   }
   function fail(r, j) {
     const e = new Error((j && (j.msg || j.message || j.error_description || j.error)) || ('Erreur ' + r.status));
-    e.status = r.status; e.code = j && (j.code || j.error_code) ? String(j.code || j.error_code) : '';
+    e.status = r.status; e.code = j && (j.error_code || j.code) ? String(j.error_code || j.code) : '';
     return e;
   }
   async function raw(path, o) {
@@ -4139,7 +4154,7 @@ const Cloud = (() => {
       keep(j);
       return sess.access_token;
     } catch (e) {
-      if (e.status === 400 || e.status === 401 || e.status === 403) store(null);
+      if (e.status === 400 || e.status === 401 || e.status === 403) store(null); // session révoquée: retour à l'écran de connexion
       throw e;
     }
   }
@@ -4152,60 +4167,60 @@ const Cloud = (() => {
   const user = () => (sess ? sess.user : null);
   const loggedIn = () => !!sess;
 
-  async function sendCode(email) {
-    // redirect_to : adresse de l'appli, pour que le lien de l'email y revienne (doit être autorisée dans Supabase, URL Configuration)
-    const back = encodeURIComponent(location.origin + location.pathname);
-    await raw('/auth/v1/otp?redirect_to=' + back, { method: 'POST', body: { email, create_user: true } });
+  /* ---------- compte ---------- */
+  async function handleAvailable(h) { return (await raw('/rest/v1/rpc/handle_available', { method: 'POST', body: { h } })) === true; }
+  /* inscription: renvoie {session:true} (connecté tout de suite) ou {session:false} (email de confirmation envoyé) */
+  async function signUp(email, password, pseudo) {
+    const j = await raw('/auth/v1/signup?redirect_to=' + encodeURIComponent(appUrl()), { method: 'POST', body: { email, password, data: { pseudo } } });
+    if (j && j.access_token && j.user) { keep(j); return { session: true }; }
+    return { session: false, repeated: !!(j && j.user && Array.isArray(j.user.identities) && j.user.identities.length === 0) || !!(j && Array.isArray(j.identities) && j.identities.length === 0) };
   }
-  /* Retour du lien de l'email : l'adresse contient #access_token=...&refresh_token=... On ouvre la session et on nettoie l'adresse. */
+  async function signIn(email, password) {
+    const j = await raw('/auth/v1/token?grant_type=password', { method: 'POST', body: { email, password } });
+    keep(j);
+    return sess.user;
+  }
+  async function recover(email) { await raw('/auth/v1/recover?redirect_to=' + encodeURIComponent(appUrl()), { method: 'POST', body: { email } }); }
+  async function updatePassword(password) { await api('/auth/v1/user', { method: 'PUT', body: { password } }); }
+  async function logout() {
+    try { if (sess) await raw('/auth/v1/logout', { method: 'POST', token: sess.access_token }); } catch (e) { /* déconnexion locale quand même */ }
+    store(null); out.lastSync = 0; out.profile = null;
+  }
+  async function deleteAccount() {
+    await api('/rest/v1/rpc/delete_my_account', { method: 'POST', body: {} });
+    store(null); out.profile = null;
+  }
+  /* Retour d'un lien d'email (confirmation d'inscription, mot de passe oublié) : l'adresse porte #access_token=...&type=...
+     On ouvre la session, on nettoie l'adresse, et on dit de quel type de lien il s'agissait. */
   async function consumeHash() {
     const h = location.hash || '';
+    const clean = () => { try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* ignore */ } };
     if (h.indexOf('access_token=') < 0) {
-      if (h.indexOf('error_description=') >= 0) { const m = /error_description=([^&]+)/.exec(h); try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* ignore */ } return { error: m ? decodeURIComponent(m[1].replace(/\+/g, ' ')) : 'Lien invalide' }; }
+      if (h.indexOf('error_description=') >= 0) { const m = /error_description=([^&]+)/.exec(h); clean(); return { error: m ? decodeURIComponent(m[1].replace(/\+/g, ' ')) : 'Lien invalide' }; }
       return null;
     }
     const p = new URLSearchParams(h.slice(1));
-    const at = p.get('access_token'), rt = p.get('refresh_token');
-    try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* ignore */ }
+    const at = p.get('access_token'), rt = p.get('refresh_token'), type = p.get('type') || '';
+    clean();
     if (!at || !rt) return { error: 'Lien incomplet' };
     const u = await raw('/auth/v1/user', { token: at });
     const exp = Date.now() + (parseInt(p.get('expires_in') || '3600', 10)) * 1000;
     store({ access_token: at, refresh_token: rt, expires: exp, user: { id: u.id, email: u.email } });
-    return { ok: true };
-  }
-  /* codeOrLink : un code à chiffres reçu par email, OU le lien complet de l'email (collé depuis « Copier le lien »).
-     Le lien contient ?token=<jeton haché>&type=signup|magiclink|email : on l'échange contre une session sans l'ouvrir
-     (donc sans passer par le navigateur de Gmail, qui garde ses propres données). */
-  async function verify(email, codeOrLink) {
-    const txt = String(codeOrLink || '').trim();
-    let j = null, lastErr = null;
-    const tryVerify = async function (body) {
-      try { j = await raw('/auth/v1/verify', { method: 'POST', body }); return true; }
-      catch (e) { lastErr = e; if (e.status === 400 || e.status === 401 || e.status === 403 || e.status === 422) return false; throw e; }
-    };
-    if (/^https?:\/\//i.test(txt)) {
-      let u; try { u = new URL(txt); } catch (e) { const er = new Error('Lien invalide'); er.status = 400; throw er; }
-      const token = u.searchParams.get('token') || u.searchParams.get('token_hash'), type = u.searchParams.get('type');
-      if (!token) { const er = new Error('Ce lien ne contient pas de jeton: copie bien le lien du bouton de l\'email.'); er.status = 400; throw er; }
-      const types = [type, 'signup', 'magiclink', 'email', 'recovery', 'invite'].filter(function (t, i, a) { return t && a.indexOf(t) === i; });
-      for (let k = 0; k < types.length && !j; k++) await tryVerify({ type: types[k], token_hash: token });
-    } else {
-      if (!await tryVerify({ type: 'email', email, token: txt })) await tryVerify({ type: 'signup', email, token: txt });
-    }
-    if (!j) throw lastErr || new Error('Code incorrect');
-    keep(j);
-    return sess.user;
-  }
-  async function logout() {
-    try { if (sess) await raw('/auth/v1/logout', { method: 'POST', token: sess.access_token }); } catch (e) { /* deconnexion locale quand meme */ }
-    store(null); out.lastSync = 0;
+    return { ok: true, type };
   }
 
-  async function pushProfile(p) {
-    await api('/rest/v1/profiles?on_conflict=id', {
-      method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
-      body: { id: sess.user.id, handle: p.handle, public_id: p.public_id, elo_global: p.elo_global, rank_id: p.rank_id, level: p.level, updated_at: new Date().toISOString() }
-    });
+  /* ---------- profil, classement, sauvegarde, droits ---------- */
+  async function getProfile() {
+    const r = await api('/rest/v1/profiles?id=eq.' + sess.user.id + '&select=handle,public_id,elo_global,rank_id,level');
+    out.profile = r && r[0] ? r[0] : null;
+    return out.profile;
+  }
+  async function setHandle(handle) {
+    await api('/rest/v1/profiles?id=eq.' + sess.user.id, { method: 'PATCH', headers: { Prefer: 'return=minimal' }, body: { handle, updated_at: new Date().toISOString() } });
+    if (out.profile) out.profile.handle = handle;
+  }
+  async function pushStats(p) {
+    await api('/rest/v1/profiles?id=eq.' + sess.user.id, { method: 'PATCH', headers: { Prefer: 'return=minimal' }, body: { elo_global: p.elo_global, rank_id: p.rank_id, level: p.level, updated_at: new Date().toISOString() } });
   }
   async function pushBackup(data) {
     await api('/rest/v1/backups?on_conflict=user_id', {
@@ -4222,102 +4237,201 @@ const Cloud = (() => {
     out.lbRows = r || []; out.lbAt = Date.now();
     return out.lbRows;
   }
+  /* droits achetés (écrits par le serveur seulement) : [{product, source, expires_at}] */
+  async function entitlements() { return (await api('/rest/v1/entitlements?select=product,source,expires_at')) || []; }
   function schedule(fn, ms) { clearTimeout(timer); timer = setTimeout(fn, ms || 3000); }
 
-  return Object.assign(out, { user, loggedIn, sendCode, consumeHash, verify, logout, pushProfile, pushBackup, pullBackup, leaderboard, schedule });
+  return Object.assign(out, { user, loggedIn, handleAvailable, signUp, signIn, recover, updatePassword, logout, deleteAccount, consumeHash, getProfile, setHandle, pushStats, pushBackup, pullBackup, leaderboard, entitlements, schedule });
 })();
 
 /* ============================================================
-   ui_cloud.js : menu "Compte en ligne" du profil, synchro, classement reel.
-   Appele depuis ui_c.js (profileSheet, act) et ui_a.js (afterRender), seulement si Cloud existe.
+   ui_cloud.js : ecran de connexion obligatoire (creer un compte / se connecter / mot de passe oublie),
+   profil en ligne, synchro, classement reel, conditions. Version installee seulement (Cloud existe).
    ============================================================ */
-ui.cloud = { step: 'email', email: '', busy: false, msg: '', bad: false };
+ui.auth = { mode: 'login', busy: false, msg: '', bad: false, email: '', password: '', pseudo: '', terms: false, kind: '' };
+ui.cloud = { busy: false, msg: '', bad: false, confirmDelete: false };
 
+const authMsg = (m, bad) => { ui.auth.msg = m; ui.auth.bad = !!bad; };
 const cloudMsg = (m, bad) => { ui.cloud.msg = m; ui.cloud.bad = !!bad; };
-function cloudErr(e) {
-  const m = String((e && e.message) || e || '');
+
+function authErr(e) {
+  const m = String((e && e.message) || e || ''), c = (e && e.code) || '';
   if (!navigator.onLine || /failed to fetch|networkerror|load failed/i.test(m)) return 'Pas de connexion internet.';
-  if (e && e.status === 429 || /rate limit|too many|security purposes/i.test(m)) return 'Trop de demandes : attends une minute.';
-  if (/expired|invalid|incorrect/i.test(m)) return 'Code ou lien refusé (déjà utilisé ou expiré). Demande un nouvel email.';
-  if (e && (e.code === '23505' || /duplicate|unique/i.test(m))) return 'Ce pseudo ou cet identifiant est déjà pris. Change de pseudo dans le menu Profil.';
-  if (/sending|smtp|email/i.test(m)) return 'L\'email n\'a pas pu partir. Réessaie plus tard.';
+  if (c === 'invalid_credentials' || /invalid login|invalid credentials/i.test(m)) return 'Email ou mot de passe incorrect.';
+  if (c === 'email_not_confirmed' || /not confirmed/i.test(m)) return 'Confirme d\'abord ton email : ouvre le message que nous t\'avons envoyé et touche le lien.';
+  if (c === 'user_already_exists' || /already registered|already exists/i.test(m)) return 'Un compte existe déjà avec cet email. Connecte-toi, ou touche « Mot de passe oublié ».';
+  if (c === 'weak_password' || /password should|weak/i.test(m)) return 'Mot de passe trop faible : 8 caractères minimum, évite les mots de passe trop courants.';
+  if (c === 'over_email_send_rate_limit' || e && e.status === 429 || /rate limit|too many|security purposes/i.test(m)) return 'Trop de tentatives ou d\'emails envoyés. Réessaie dans quelques minutes.';
+  if (c === 'email_address_invalid' || /invalid email|email address.*invalid/i.test(m)) return 'Cette adresse email n\'est pas acceptée.';
+  if (c === 'signup_disabled') return 'Les inscriptions sont fermées pour le moment.';
+  if (c === 'unexpected_failure' && /sending|smtp|email/i.test(m) || /error sending|smtp/i.test(m)) return 'L\'email de confirmation n\'a pas pu partir. Réessaie plus tard.';
+  if (c === 'same_password' || /different from the old/i.test(m)) return 'Choisis un mot de passe différent de l\'ancien.';
+  if (e && e.status === 23505 || /duplicate|unique/i.test(m)) return 'Ce pseudo est déjà pris.';
   return m || 'Erreur inconnue.';
 }
+const cloudErr = authErr;
+
+/* ---------- ecran d'accueil: connexion obligatoire ---------- */
+const AU_TITLE = { login: 'Connexion', signup: 'Créer un compte', forgot: 'Mot de passe oublié', recovery: 'Nouveau mot de passe', check: 'Vérifie tes emails' };
+function authView() {
+  const A = ui.auth, m = A.mode;
+  const msg = A.msg ? `<div class="notice${A.bad ? ' bad' : ''}" id="au-msg" role="alert" style="text-align:left">${esc(A.msg)}</div>` : '<div id="au-msg"></div>';
+  const f = (id, label, type, extra) => `<div><label class="lab" for="au-${id}">${label}</label><input class="field" id="au-${id}" name="${id}" type="${type}" value="${esc(A[id] || '')}" ${extra || ''}></div>`;
+  const pw = (id, label, ac) => `<div><label class="lab" for="au-${id}">${label}</label><div class="pwrow"><input class="field" id="au-${id}" name="${id}" type="password" value="${esc(A[id] || '')}" autocomplete="${ac}" autocapitalize="off" spellcheck="false"><button type="button" class="btn sm" data-act="au-show" aria-label="Afficher ou masquer le mot de passe">Voir</button></div></div>`;
+  const legal = `<p class="dim legalline">En continuant, tu acceptes les <button type="button" class="link" data-act="open-legal" data-kind="terms">conditions</button> et la <button type="button" class="link" data-act="open-legal" data-kind="privacy">politique de confidentialité</button>.</p>`;
+  let body = '';
+  const go_ = (label) => `<button class="btn primary block" type="submit" id="btn-au-go"${A.busy ? ' disabled' : ''}>${A.busy ? 'Patiente…' : label}</button>`;
+  if (m === 'login') {
+    body = `<form id="auth-form" data-mode="login" novalidate>${f('email', 'Email', 'email', 'inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false" placeholder="toi@exemple.com"')}${pw('password', 'Mot de passe', 'current-password')}${msg}${go_('Se connecter')}</form>
+      <div class="authlinks"><button type="button" class="link" data-act="au-mode" data-m="forgot">Mot de passe oublié ?</button><button type="button" class="link" data-act="au-mode" data-m="signup">Créer un compte</button></div>`;
+  } else if (m === 'signup') {
+    body = `<form id="auth-form" data-mode="signup" novalidate>${f('pseudo', 'Pseudo (affiché dans le classement)', 'text', 'maxlength="16" autocomplete="nickname" autocapitalize="words" spellcheck="false" placeholder="3 à 16 caractères"')}${f('email', 'Email', 'email', 'inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false" placeholder="toi@exemple.com"')}${pw('password', 'Mot de passe (8 caractères minimum)', 'new-password')}
+      <label class="chk"><input type="checkbox" id="au-terms"${A.terms ? ' checked' : ''}><span>J'ai 15 ans ou plus et j'accepte les <button type="button" class="link" data-act="open-legal" data-kind="terms">conditions</button> et la <button type="button" class="link" data-act="open-legal" data-kind="privacy">politique de confidentialité</button>.</span></label>${msg}${go_('Créer mon compte')}</form>
+      <div class="authlinks"><button type="button" class="link" data-act="au-mode" data-m="login">J'ai déjà un compte</button></div>`;
+  } else if (m === 'forgot') {
+    body = `<form id="auth-form" data-mode="forgot" novalidate><p class="muted" style="margin:0">Entre ton email : nous t'envoyons un lien pour choisir un nouveau mot de passe.</p>${f('email', 'Email', 'email', 'inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false" placeholder="toi@exemple.com"')}${msg}${go_('Envoyer le lien')}</form>
+      <div class="authlinks"><button type="button" class="link" data-act="au-mode" data-m="login">Retour à la connexion</button></div>`;
+  } else if (m === 'recovery') {
+    body = `<form id="auth-form" data-mode="recovery" novalidate><p class="muted" style="margin:0">Choisis un nouveau mot de passe (8 caractères minimum).</p>${pw('password', 'Nouveau mot de passe', 'new-password')}${msg}${go_('Enregistrer')}</form>`;
+  } else {
+    const reset = A.kind === 'reset';
+    body = `<div class="checkbox-card"><p style="margin:0 0 6px;font-size:19px">${reset ? 'Si un compte existe pour' : 'Un email vient de partir vers'} <b>${esc(A.email)}</b>.</p>
+      <p class="muted" style="margin:0">${reset ? 'Ouvre-le et touche le lien pour choisir un nouveau mot de passe.' : 'Ouvre-le et touche le bouton de confirmation. Reviens ensuite ici et connecte-toi avec ton mot de passe.'} Pense aux courriers indésirables.</p></div>
+      <button class="btn primary block" type="button" data-act="au-mode" data-m="login">Se connecter</button>`;
+  }
+  return `<section class="welcome auth"><div class="emb">${emblem('rookie', 120)}</div><h1>${AU_TITLE[m]}</h1>
+    ${m === 'login' || m === 'signup' ? '<p class="muted" style="margin:0">Ton niveau, ta progression et ton classement sont liés à ton compte.</p>' : ''}${body}${m === 'login' || m === 'signup' ? '' : legal}</section>`;
+}
+
+async function authSubmit() {
+  const A = ui.auth; if (A.busy) return;
+  const form = $('#auth-form'); if (!form) return;
+  const mode = form.dataset.mode;
+  // valeurs lues dans les champs (au cas où l'autoremplissage n'a pas déclenché d'événement)
+  ['email', 'password', 'pseudo'].forEach(k => { const el = $('#au-' + k); if (el) A[k] = el.value; });
+  const t = $('#au-terms'); if (t) A.terms = t.checked;
+  const email = (A.email || '').trim().toLowerCase();
+  const bad = (m) => { authMsg(m, true); render(); };
+  if (mode !== 'recovery' && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return bad('Email invalide.');
+  if ((mode === 'login' || mode === 'signup' || mode === 'recovery') && !A.password) return bad('Entre ton mot de passe.');
+  if ((mode === 'signup' || mode === 'recovery') && A.password.length < 8) return bad('Mot de passe : 8 caractères minimum.');
+  if (mode === 'signup' && email && A.password.toLowerCase() === email) return bad('Choisis un mot de passe différent de ton email.');
+  if (mode === 'signup') {
+    const c = Account.check(A.pseudo);
+    if (!c.ok) return bad('Pseudo : ' + c.msg.charAt(0).toLowerCase() + c.msg.slice(1));
+    A.pseudo = c.name;
+    if (!A.terms) return bad('Coche la case pour accepter les conditions.');
+  }
+  A.busy = true; authMsg('', false); render();
+  try {
+    if (mode === 'login') { await Cloud.signIn(email, A.password); await afterAuth(); return; }
+    if (mode === 'signup') {
+      if (!(await Cloud.handleAvailable(A.pseudo))) { A.busy = false; return bad('Ce pseudo est déjà pris : choisis-en un autre.'); }
+      const r = await Cloud.signUp(email, A.password, A.pseudo);
+      if (r.session) { await afterAuth(); return; }
+      if (r.repeated) { A.busy = false; A.mode = 'login'; A.email = email; return bad('Un compte existe déjà avec cet email. Connecte-toi, ou touche « Mot de passe oublié ».'); }
+      A.busy = false; A.mode = 'check'; A.kind = 'signup'; A.email = email; A.password = ''; authMsg('', false); render(); return;
+    }
+    if (mode === 'forgot') { await Cloud.recover(email); A.busy = false; A.mode = 'check'; A.kind = 'reset'; A.email = email; authMsg('', false); render(); return; }
+    if (mode === 'recovery') { await Cloud.updatePassword(A.password); A.password = ''; toast('Mot de passe enregistré'); await afterAuth(); return; }
+  } catch (e) { A.busy = false; authMsg(authErr(e), true); render(); }
+}
+
+/* apres une connexion reussie : profil serveur -> compte local, progression, route */
+async function afterAuth() {
+  const A = ui.auth;
+  let p = null;
+  for (let i = 0; i < 3 && !p; i++) { try { p = await Cloud.getProfile(); } catch (e) { if (i === 2) { A.busy = false; authMsg(authErr(e), true); render(); return; } } if (!p) await new Promise(r => setTimeout(r, 600)); }
+  if (p) Account.setFromCloud(p.public_id, p.handle);
+  const uid = Cloud.user().id;
+  if (S.owner && S.owner !== uid) { wipeStore(); S = Core.newFreshState(nowMs()); ui.pr = null; ui.result = null; ui.trophyLv = null; ui.intake = { step: 0, a: {} }; }
+  if (!S.onboarded) {
+    try {
+      const b = await Cloud.pullBackup();
+      const o = b && b.data && b.data.state ? Account.unpack('CALI1.' + btoa(unescape(encodeURIComponent(JSON.stringify({ app: 'cali-ranked', v: 1, account: { id: 'AAAA-2222', name: 'Joueur' }, state: b.data.state }))))) : null;
+      if (o) { S = o.state; }
+    } catch (e) { /* hors ligne ou aucune sauvegarde : on commence ici */ }
+  }
+  S.owner = uid;
+  save();
+  ui.auth = { mode: 'login', busy: false, msg: '', bad: false, email: '', password: '', pseudo: '', terms: false, kind: '' };
+  go(S.onboarded ? 'train' : 'intake');
+  cloudSyncSoon();
+}
+
+/* ---------- profil: compte en ligne ---------- */
 function cloudSection() {
-  if (typeof Cloud === 'undefined') return '';
-  const C = ui.cloud, m = C.msg ? `<div class="notice${C.bad ? ' bad' : ''}" id="cl-msg" role="status" style="margin-top:8px">${esc(C.msg)}</div>` : '<div id="cl-msg"></div>';
-  const head = '<div class="cl-h">Compte en ligne</div>';
-  if (Cloud.loggedIn()) {
-    const last = Cloud.lastSync ? 'Dernière synchro : ' + new Date(Cloud.lastSync).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : 'Pas encore synchronisé.';
-    return `<div class="cl">${head}<div class="muted" style="margin:0 0 6px">Connecté : <b id="cl-mail">${esc(Cloud.user().email)}</b></div><div class="dim" style="font-size:14px;margin-bottom:8px">${esc(last)} Ton pseudo et ton ELO apparaissent dans le classement.</div>
-      <div class="acts"><button class="btn primary" type="button" id="btn-cl-sync" data-act="cl-sync"${C.busy ? ' disabled' : ''}>Synchroniser maintenant</button>
-      <button class="btn" type="button" id="btn-cl-restore" data-act="cl-restore"${C.busy ? ' disabled' : ''}>Restaurer depuis le compte</button>
-      <button class="btn" type="button" id="btn-cl-out" data-act="cl-out">Se déconnecter</button></div>${m}</div>`;
-  }
-  if (C.step === 'code') {
-    return `<div class="cl">${head}<form id="cl-form" data-step="code" novalidate><label class="lab" for="cl-code">Email envoyé à ${esc(C.email)}</label>
-      <div class="dim" style="font-size:14px;margin:0 0 6px">1. Ouvre l'email. 2. S'il y a un code, saisis-le ici. Sinon, <b>maintiens ton doigt sur le bouton</b> de l'email, touche « Copier le lien », puis colle-le ici.</div>
-      <input class="field" id="cl-code" autocomplete="one-time-code" autocapitalize="off" spellcheck="false" placeholder="Code ou lien collé">
-      <div class="row" style="margin-top:8px"><button class="btn primary" type="submit" id="btn-cl-go"${C.busy ? ' disabled' : ''}>Valider</button><button class="btn" type="button" data-act="cl-back">Changer d'email</button></div></form>${m}</div>`;
-  }
-  return `<div class="cl">${head}<div class="dim" style="font-size:14px;margin-bottom:6px">Connecte-toi pour apparaître dans le classement et sauvegarder ta progression.</div>
-    <form id="cl-form" data-step="email" novalidate><label class="lab" for="cl-email">Email</label>
-    <input class="field" id="cl-email" type="email" inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false" placeholder="toi@exemple.com" value="${esc(C.email)}">
-    <button class="btn primary block" type="submit" id="btn-cl-go" style="margin-top:8px"${C.busy ? ' disabled' : ''}>Recevoir un code</button></form>${m}</div>`;
+  if (typeof Cloud === 'undefined' || !Cloud.loggedIn()) return '';
+  const C = ui.cloud, u = Cloud.user();
+  const msg = C.msg ? `<div class="notice${C.bad ? ' bad' : ''}" id="cl-msg" role="status" style="margin-top:8px">${esc(C.msg)}</div>` : '<div id="cl-msg"></div>';
+  const last = Cloud.lastSync ? 'Dernière synchro : ' + new Date(Cloud.lastSync).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : 'Synchronisation automatique active.';
+  const del = C.confirmDelete
+    ? `<div class="notice bad" role="alert" style="margin-top:10px">Supprimer définitivement ton compte, ta progression et ton classement ? Cette action est irréversible.</div>
+       <div class="row" style="margin-top:8px"><button class="btn danger" type="button" id="btn-cl-del-yes" data-act="cl-del-yes"${C.busy ? ' disabled' : ''}>Oui, tout supprimer</button><button class="btn" type="button" data-act="cl-del-no">Annuler</button></div>`
+    : `<button class="btn danger" type="button" id="btn-cl-del" data-act="cl-del">Supprimer mon compte</button>`;
+  return `<div class="cl"><div class="cl-h">Compte</div><div class="muted" style="margin:0 0 4px">Connecté : <b id="cl-mail">${esc(u.email)}</b></div><div class="dim" style="font-size:14px;margin-bottom:8px">${esc(last)}</div>
+    <div class="acts"><button class="btn" type="button" id="btn-cl-sync" data-act="cl-sync"${C.busy ? ' disabled' : ''}>Synchroniser maintenant</button>
+    <button class="btn" type="button" id="btn-cl-out" data-act="cl-out"${C.busy ? ' disabled' : ''}>Se déconnecter</button>${del}</div>${msg}
+    <div class="legalline dim"><button type="button" class="link" data-act="open-legal" data-kind="terms">Conditions</button> · <button type="button" class="link" data-act="open-legal" data-kind="privacy">Confidentialité</button></div></div>`;
 }
 function cloudRefresh() { if (ui.sheet && ui.sheet.type === 'profile') renderSheet(); }
 
-async function cloudSubmit() {
-  const C = ui.cloud; if (C.busy) return;
-  const form = $('#cl-form'); if (!form) return;
-  C.busy = true;
-  try {
-    if (form.dataset.step === 'email') {
-      const email = $('#cl-email').value.trim().toLowerCase();
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { cloudMsg('Email invalide.', true); C.busy = false; cloudRefresh(); return; }
-      C.email = email; cloudMsg('Envoi du code…'); cloudRefresh();
-      await Cloud.sendCode(email);
-      C.step = 'code'; cloudMsg('Email envoyé. Saisis le code qu\'il contient. Si tu ne vois qu\'un lien, touche-le : tu reviendras ici connecté.');
-    } else {
-      const code = $('#cl-code').value.trim().replace(/\s+/g, '');
-      if (!/^\d{6,10}$/.test(code) && !/^https?:\/\//i.test(code)) { cloudMsg('Saisis le code à chiffres de l\'email, ou colle le lien copié.', true); C.busy = false; cloudRefresh(); return; }
-      cloudMsg('Vérification…'); cloudRefresh();
-      await Cloud.verify(C.email, code);
-      C.step = 'email'; cloudMsg('Connecté.');
-      C.busy = false; cloudRefresh();
-      await cloudSync(true);
-      return;
-    }
-  } catch (e) { cloudMsg(cloudErr(e), true); }
-  C.busy = false; cloudRefresh();
-}
 async function cloudSync(verbose) {
-  if (typeof Cloud === 'undefined' || !Cloud.loggedIn() || !S || !S.onboarded || !Account.get()) return;
-  const C = ui.cloud, a = Account.get();
+  if (typeof Cloud === 'undefined' || !Cloud.loggedIn() || !S || !S.onboarded) return;
+  const C = ui.cloud;
   if (verbose) { C.busy = true; cloudMsg('Synchronisation…'); cloudRefresh(); }
   try {
     D = Core.derive(S, nowMs());
-    await Cloud.pushProfile({ handle: a.name, public_id: a.id, elo_global: D.global == null ? null : Math.max(0, Math.min(3600, Math.round(D.global))), rank_id: S.earned, level: Troph.level(S) });
-    await Cloud.pushBackup({ app: 'cali-ranked', v: 1, account: a, state: S });
+    await Cloud.pushStats({ elo_global: D.global == null ? null : Math.max(0, Math.min(3600, Math.round(D.global))), rank_id: S.earned, level: Troph.level(S) });
+    await Cloud.pushBackup({ app: 'cali-ranked', v: 1, state: S });
     Cloud.lastSync = Date.now(); Cloud.lastError = '';
     if (verbose) cloudMsg('Synchronisé.');
     Cloud.lbAt = 0;
-  } catch (e) { Cloud.lastError = cloudErr(e); if (verbose) cloudMsg(Cloud.lastError, true); }
+  } catch (e) { Cloud.lastError = authErr(e); if (verbose) cloudMsg(Cloud.lastError, true); if (!Cloud.loggedIn()) { go('auth'); return; } }
   C.busy = false; if (verbose) cloudRefresh();
 }
 function cloudSyncSoon() { if (typeof Cloud !== 'undefined' && Cloud.loggedIn()) Cloud.schedule(() => cloudSync(false), 4000); }
-async function cloudRestore() {
-  const C = ui.cloud; C.busy = true; cloudMsg('Recherche de ta sauvegarde…'); cloudRefresh();
+
+async function cloudRename(raw, errEl) {
+  const c = Account.check(raw);
+  const fail = m => { if (errEl) { errEl.textContent = m; errEl.hidden = false; } };
+  if (!c.ok) return fail(c.msg);
+  const cur = Account.get();
   try {
-    const b = await Cloud.pullBackup();
-    const o = b && Account.unpack('CALI1.' + btoa(unescape(encodeURIComponent(JSON.stringify(b.data)))));
-    if (!o) cloudMsg('Aucune sauvegarde valide sur ce compte.', true);
-    else { Account.restore(o); S = o.state; save(); ui.pr = null; ui.result = null; ui.trophyLv = null; ui.sheet = null; C.busy = false; go('train'); toast('Progression restaurée'); return; }
-  } catch (e) { cloudMsg(cloudErr(e), true); }
-  C.busy = false; cloudRefresh();
+    if (!cur || cur.name.toLowerCase() !== c.name.toLowerCase()) {
+      if (!(await Cloud.handleAvailable(c.name))) return fail('Ce pseudo est déjà pris.');
+      await Cloud.setHandle(c.name);
+    } else await Cloud.setHandle(c.name);
+    Account.setFromCloud(cur ? cur.id : Cloud.profile.public_id, c.name);
+    ui.renaming = false; renderSheet(); render(); toast('Pseudo enregistré');
+  } catch (e) { fail(authErr(e)); }
 }
+
+async function cloudLogout() {
+  const C = ui.cloud; C.busy = true; cloudMsg('Sauvegarde puis déconnexion…'); cloudRefresh();
+  try { await cloudSync(false); } catch (e) { /* tant pis */ }
+  await Cloud.logout();
+  wipeStore(); S = Core.newFreshState(nowMs()); Account.wipe();
+  ui.sheet = null; ui.pr = null; ui.result = null; ui.trophyLv = null; ui.live = null; ui.intake = { step: 0, a: {} };
+  C.busy = false; cloudMsg('', false); C.confirmDelete = false;
+  ui.auth.mode = 'login'; authMsg('', false);
+  go('auth');
+}
+async function cloudDelete() {
+  const C = ui.cloud; C.busy = true; cloudRefresh();
+  try {
+    await Cloud.deleteAccount();
+    wipeStore(); S = Core.newFreshState(nowMs()); Account.wipe();
+    ui.sheet = null; ui.pr = null; ui.result = null; ui.trophyLv = null; ui.live = null; ui.intake = { step: 0, a: {} };
+    C.busy = false; C.confirmDelete = false; cloudMsg('', false);
+    ui.auth = { mode: 'signup', busy: false, msg: 'Ton compte a été supprimé.', bad: false, email: '', password: '', pseudo: '', terms: false, kind: '' };
+    go('auth');
+  } catch (e) { C.busy = false; cloudMsg(authErr(e), true); cloudRefresh(); }
+}
+
+/* ---------- classement ---------- */
 async function cloudLoadLb() {
-  if (typeof Cloud === 'undefined' || ui.route !== 'ranked') return;
+  if (typeof Cloud === 'undefined' || ui.route !== 'ranked' || !Cloud.loggedIn()) return;
   if (Cloud.lbRows && Date.now() - Cloud.lbAt < 60000) return;
   if (cloudLoadLb.busy) return;
   cloudLoadLb.busy = true;
@@ -4325,24 +4439,63 @@ async function cloudLoadLb() {
   cloudLoadLb.busy = false;
   const l = $('#lb-list'); if (l && ui.route === 'ranked') { l.innerHTML = leaderboard(); const lab = $('#lb-label'); if (lab) lab.textContent = lbLabel(); }
 }
-function cloudAct(a) {
+
+/* ---------- conditions et confidentialite (BROUILLON : a faire valider par un juriste avant publication) ---------- */
+const LEGAL = {
+  terms: ['Conditions d\'utilisation', [
+    'Calisthenics Ranked te propose un classement, des niveaux et des conseils pour t\'entraîner au poids du corps.',
+    'L\'appli ne remplace pas un avis médical ni un coach. Entraîne-toi dans la limite de tes capacités. Si tu ressens une douleur de tendon ou d\'articulation à 6 sur 10 ou plus, arrête.',
+    'Tu as au moins 15 ans. Tu choisis un pseudo qui ne porte atteinte à personne : nous pouvons le modifier ou suspendre un compte en cas d\'abus ou de triche.',
+    'Le comptage par caméra est une aide : il peut se tromper. Le classement ne garantit pas l\'exactitude d\'une performance.',
+    'Tu peux supprimer ton compte à tout moment dans Profil.',
+    'Achats et abonnements : les conditions seront précisées avant toute vente. [À COMPLÉTER]',
+    '[BROUILLON À FAIRE VALIDER PAR UN JURISTE AVANT LA PUBLICATION : éditeur, contact, droit applicable.]'
+  ]],
+  privacy: ['Politique de confidentialité', [
+    'Données enregistrées : email, pseudo, identifiant public, résultats d\'exercices, niveau, progression et date de dernière synchronisation.',
+    'Aucune vidéo ni image n\'est envoyée ni enregistrée : l\'IA qui compte tes répétitions tourne sur ton téléphone.',
+    'Visibles par les autres joueurs : ton pseudo, ton niveau et ton ELO dans le classement. Ton email reste privé.',
+    'Finalités : faire fonctionner ton compte, sauvegarder ta progression, afficher le classement. Pas de publicité, pas de revente de données.',
+    'Hébergement : base de données Supabase (région Europe, Francfort) ; site hébergé par GitHub Pages.',
+    'Durée : tant que ton compte existe. « Supprimer mon compte » dans Profil efface tes données immédiatement.',
+    'Tes droits (accès, rectification, effacement, portabilité) : écris à [CONTACT À RENSEIGNER].',
+    '[BROUILLON À FAIRE VALIDER PAR UN JURISTE AVANT LA PUBLICATION.]'
+  ]]
+};
+function legalSheet(kind) {
+  const L = LEGAL[kind] || LEGAL.terms;
+  return `<h2 id="sheet-t">${esc(L[0])}</h2><ul class="lines">${L[1].map(l => `<li>${esc(l)}</li>`).join('')}</ul>
+    <div class="acts"><button class="btn focus-first" type="button" data-act="sheet-close">Fermer</button></div>`;
+}
+
+/* ---------- actions et evenements ---------- */
+function cloudAct(a, el) {
   switch (a) {
-    case 'cl-back': ui.cloud.step = 'email'; cloudMsg(''); cloudRefresh(); return true;
+    case 'au-mode': ui.auth.mode = el.dataset.m; ui.auth.busy = false; authMsg('', false); render({ top: true }); return true;
+    case 'au-show': { const i = el.parentNode.querySelector('input'); if (i) { const show = i.type === 'password'; i.type = show ? 'text' : 'password'; el.textContent = show ? 'Masquer' : 'Voir'; } return true; }
+    case 'open-legal': openSheet({ type: 'legal', kind: el.dataset.kind }); return true;
     case 'cl-sync': cloudSync(true); return true;
-    case 'cl-restore': cloudRestore(); return true;
-    case 'cl-out': Cloud.logout().then(() => { cloudMsg('Déconnecté.'); cloudRefresh(); }); return true;
+    case 'cl-out': cloudLogout(); return true;
+    case 'cl-del': ui.cloud.confirmDelete = true; cloudRefresh(); return true;
+    case 'cl-del-no': ui.cloud.confirmDelete = false; cloudRefresh(); return true;
+    case 'cl-del-yes': cloudDelete(); return true;
     default: return false;
   }
 }
-document.addEventListener('submit', e => { if (e.target && e.target.id === 'cl-form') { e.preventDefault(); cloudSubmit(); } });
+document.addEventListener('submit', e => { if (e.target && e.target.id === 'auth-form') { e.preventDefault(); authSubmit(); } });
+document.addEventListener('input', e => {
+  const t = e.target;
+  if (t && t.id && t.id.indexOf('au-') === 0) { const k = t.id.slice(3); ui.auth[k] = t.type === 'checkbox' ? t.checked : t.value; }
+});
 
-/* retour d'un lien reçu par email : session ouverte à partir de l'adresse, puis synchro */
+/* retour d'un lien d'email (confirmation, mot de passe oublie) */
 if (typeof Cloud !== 'undefined' && /access_token=|error_description=/.test(location.hash || '')) {
   Cloud.consumeHash().then(r => {
     if (!r) return;
-    if (r.ok) { toast('Connecté'); cloudMsg('Connecté.'); setTimeout(() => { cloudSync(true); }, 600); }
-    else { cloudMsg(cloudErr(new Error(r.error)), true); toast('Connexion impossible : ' + r.error); }
-  }).catch(e => { cloudMsg(cloudErr(e), true); });
+    if (r.error) { ui.auth.mode = 'login'; authMsg('Lien invalide ou expiré : ' + r.error, true); go('auth'); return; }
+    if (r.type === 'recovery') { ui.auth.mode = 'recovery'; authMsg('', false); go('auth'); return; }
+    toast('Email confirmé'); setTimeout(() => { afterAuth(); }, 300);
+  }).catch(e => { ui.auth.mode = 'login'; authMsg(authErr(e), true); go('auth'); });
 }
 
 /* ============================================================
@@ -4430,6 +4583,7 @@ function sheetContent() {
     case 'med': return medSheet();
     case 'profile': return profileSheet();
     case 'backup': return backupSheet();
+    case 'legal': return legalSheet(s.kind);
     default: return '';
   }
 }
@@ -4533,7 +4687,7 @@ function act(a, el) {
     case 'iq-back': ui.intake.step = Math.max(0, ui.intake.step - 1); render({ top: true }); break;
     case 'iq-cancel': go('train'); break;
     case 'intake-go': go('train'); break;
-    default: if (!accAct(a) && !(typeof cloudAct === 'function' && cloudAct(a)) && typeof camAct === 'function') camAct(a, el); break;
+    default: if (!accAct(a) && !(typeof cloudAct === 'function' && cloudAct(a, el)) && typeof camAct === 'function') camAct(a, el); break;
   }
 }
 document.addEventListener('click', e => {
@@ -4571,7 +4725,11 @@ function boot() {
     const ev = Core.normalize(S, nowMs());
     if (ev) save();
   }
-  if (!Account.get()) ui.route = 'welcome';
+  if (typeof Cloud !== 'undefined') {
+    // version installée : compte en ligne obligatoire (une session enregistrée suffit, même hors ligne)
+    if (!Cloud.loggedIn()) ui.route = 'auth';
+    else if (!Account.get() || S.owner !== Cloud.user().id) { render(); afterAuth(); return; }
+  } else if (!Account.get()) ui.route = 'welcome';
   render();
 }
 /* acces pour les tests dans le navigateur */
