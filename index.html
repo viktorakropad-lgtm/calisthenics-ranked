@@ -14,7 +14,7 @@
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <style>html,body{margin:0;background:#0b0d17}</style>
-<script>window.APP_VERSION = "0.2-39765f";</script>
+<script>window.APP_VERSION = "0.2-364e17";</script>
 </head>
 <body>
 <style>
@@ -2797,14 +2797,15 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
       autoCalib: true        // adapte le seuil "bras tendus" à ce que la caméra mesure vraiment chez toi
     },
     pushup: {
-      down: 115,             // coude en bas : angle sous lequel la pompe est assez profonde (l'IA mesure ~100° pour un vrai 90°)
+      down: 118,             // coude en bas : angle sous lequel la pompe est assez profonde (l'IA mesure ~100° pour un vrai 90°)
       up: 150,               // bras tendus : angle au-dessus duquel on est "en haut"
       attempt: 140,          // sous cet angle, on compte une tentative (même rejetée)
       hyst: 10,              // hystérésis (sortie de la zone haute à up - hyst)
       reversal: 22,          // remontée puis nouvelle descente sans verrouiller = "pas tendu"
       bodyTol: 25,           // écart maximal à la ligne droite épaule-hanche-cheville (°), seulement si hanches et chevilles visibles
       shoulderDropMax: 0.9,  // épaule - poignet (vertical) / longueur du bras, au plus bas
-      useShoulderHeight: false
+      useShoulderHeight: false,
+      minIncl: 35            // torse incliné de moins de 35° par rapport à la verticale = debout : on ne compte pas (hanches très affaissées : ~40°)
     },
     pullup: {
       down: 120,             // coude plié en haut
@@ -2815,6 +2816,7 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
       chinMargin: 0.15,      // marge menton / ligne des poignets (en longueurs de bras)
       kipSwing: 0.45,        // amplitude horizontale des hanches tolérée (en longueurs de tronc)
       kipSpeed: 2.4,         // vitesse horizontale des hanches tolérée (tronc / seconde)
+      legSwing: 0.7,         // amplitude horizontale des jambes (chevilles ou genoux) tolérée (en longueurs de tronc)
       rejectKip: true
     },
     squat: {
@@ -2822,16 +2824,18 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
       up: 155,               // debout
       attempt: 140,
       hyst: 10,
-      reversal: 30
+      reversal: 30,
+      maxIncl: 70            // torse incliné de plus de 70° par rapport à la verticale = couché : on ne compte pas
     },
     dip: {
-      down: 110,
+      down: 113,
       up: 150,
       attempt: 135,
       hyst: 10,
       reversal: 30,
       shrugRatio: 0.6,       // distance oreille-épaule sous 60 % de la référence = épaules haussées
-      view: 'side'           // 'side' (profil) ou 'front' (face)
+      view: 'side',          // 'side' (profil) ou 'front' (face)
+      maxIncl: 60            // torse incliné de plus de 60° par rapport à la verticale = couché : on ne compte pas
     },
     hold: {
       bodyTol: 18,           // écart toléré de la ligne du corps (± °)
@@ -3035,6 +3039,30 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
     return { x: mean(cand.map(function (p) { return p.x; })), y: mean(cand.map(function (p) { return p.y; })) };
   }
 
+  /* Inclinaison du torse (milieu des épaules vers milieu des hanches) par rapport à la verticale de l'image :
+     0° = debout, 90° = à l'horizontale (couché, position de pompe). null = pas mesurable (hanches non vues, torse pointé vers la caméra).
+     On utilise les landmarks monde (3D) quand ils existent : de face, le torse d'une personne en pompe est écrasé en 2D. */
+  function torsoIncl(f, minV, use3D) {
+    const sh = [], hp = [];
+    ['L', 'R'].forEach(function (s) {
+      const m = SIDES[s];
+      if (visOf(f.lm[m.sh]) >= minV && visOf(f.lm[m.hip]) >= minV) { sh.push(m.sh); hp.push(m.hip); }
+    });
+    if (!sh.length) return null;
+    let v;
+    if (use3D && f.wl && sh.every(function (i) { return f.wl[i]; }) && hp.every(function (i) { return f.wl[i]; })) {
+      const avg = function (arr, k) { return mean(arr.map(function (i) { return f.wl[i][k]; })); };
+      v = { x: avg(sh, 'x') - avg(hp, 'x'), y: avg(sh, 'y') - avg(hp, 'y'), z: avg(sh, 'z') - avg(hp, 'z') };
+    } else {
+      const avg = function (arr, k) { return mean(arr.map(function (i) { return pt(f, i)[k]; })); };
+      v = { x: avg(sh, 'x') - avg(hp, 'x'), y: avg(sh, 'y') - avg(hp, 'y'), z: 0 };
+      if (Math.hypot(v.x, v.y) < 0.05) return null;
+    }
+    const n = Math.hypot(v.x, v.y, v.z);
+    if (n < 1e-6) return null;
+    return Math.acos(clamp(Math.abs(v.y) / n, 0, 1)) * 180 / Math.PI; // valeur absolue : insensible au sens de l'axe y
+  }
+
   function analyze(exercise, f, cfg, ctx) {
     const spec = NEEDS[exercise];
     const minV = cfg.common.minVisibility;
@@ -3214,6 +3242,21 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
     return {
       params: engineParams(c, cfg.common),
       labels: LABELS.std,
+      // position : on ne compte que si la personne n'est pas flagrante debout (torse proche de la verticale)
+      gate: function (f) {
+        const i = torsoIncl(f, cfg.common.minVisibility, cfg.common.use3D);
+        if (i !== null && i < c.minIncl) return { all: true, msg: 'Je te vois debout: mets-toi en position de pompe (corps à l\'horizontale).' };
+        // accroupi / squat : torse pas couché ET genoux franchement pliés (en pompe sur les pieds, les jambes restent tendues)
+        if (i !== null && i < 75) {
+          const ks = [];
+          ['L', 'R'].forEach(function (s) {
+            const m = SIDES[s];
+            if (visOf(f.lm[m.hip]) >= cfg.common.minVisibility && visOf(f.lm[m.knee]) >= cfg.common.minVisibility && visOf(f.lm[m.ank]) >= cfg.common.minVisibility) ks.push(jointAngle(f, m.hip, m.knee, m.ank, cfg.common.use3D));
+          });
+          if (ks.length && mean(ks) < 130) return { all: true, msg: 'Je te vois accroupi: mets-toi en position de pompe.' };
+        }
+        return null;
+      },
       measure: function (f, an) {
         // angle du coude : moyenne des côtés bien vus (de face ou de trois quarts, les deux bras comptent)
         const a = mean(an.sides.map(function (s) { const m = SIDES[s]; return jointAngle(f, m.sh, m.el, m.wr, cfg.common.use3D); }));
@@ -3271,6 +3314,16 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
     return {
       params: engineParams(c, cfg.common),
       labels: LABELS.pullup,
+      // on ne démarre une traction que suspendu à la barre : poignets nettement au-dessus des épaules (pas bras ballants)
+      gate: function (f, an, phase) {
+        if (phase !== 'init' && phase !== 'extended') return null;
+        const vals = an.sides.map(function (s) {
+          const m = SIDES[s], S = pt(f, m.sh), E = pt(f, m.el), W = pt(f, m.wr), arm = dist(S, E) + dist(E, W);
+          return arm > 1e-6 ? (S.y - W.y) / arm : 1;
+        });
+        if (mean(vals) < 0.2) return { all: false, msg: 'Attrape la barre: tes poignets doivent être au-dessus de tes épaules.' };
+        return null;
+      },
       measure: function (f, an) {
         const angs = [], wy = [], arm = [], shx = [], shy = [];
         an.sides.forEach(function (s) {
@@ -3283,19 +3336,26 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
         const chinOver = an.head ? an.head.y <= wristY + c.chinMargin * armLen : null; // null = tête non visible : on se fie aux coudes
         // hanches (si visibles) : pour détecter le balancement
         const hips = [LM.L_HIP, LM.R_HIP].filter(function (i) { return visOf(f.lm[i]) >= cfg.common.minVisibility; }).map(function (i) { return pt(f, i); });
-        let hxn = null;
+        let hxn = null, lxn = null;
         if (hips.length) {
           const hx = mean(hips.map(function (p) { return p.x; })), hy = mean(hips.map(function (p) { return p.y; }));
           const torso = Math.hypot(hx - mean(shx), hy - mean(shy));
-          if (torso > 0.03) hxn = hx / torso;
+          if (torso > 0.03) {
+            hxn = hx / torso;
+            // jambes (chevilles, sinon genoux) : un grand élan des jambes est du kipping même si les hanches bougent peu
+            const legIdx = [LM.L_ANK, LM.R_ANK].filter(function (i) { return visOf(f.lm[i]) >= cfg.common.minVisibility; });
+            const legs = (legIdx.length ? legIdx : [LM.L_KNEE, LM.R_KNEE].filter(function (i) { return visOf(f.lm[i]) >= cfg.common.minVisibility; })).map(function (i) { return pt(f, i); });
+            if (legs.length) lxn = mean(legs.map(function (p) { return p.x; })) / torso;
+          }
         }
-        return { a: a, extra: { chinOver: chinOver, hxn: hxn, headY: an.head ? an.head.y : null, wristY: wristY } };
+        return { a: a, extra: { chinOver: chinOver, hxn: hxn, lxn: lxn, headY: an.head ? an.head.y : null, wristY: wristY } };
       },
       hooks: {
-        newRep: function () { hipBuf.length = 0; return { chinOver: false, chinKnown: false, hxMin: Infinity, hxMax: -Infinity, kipVel: 0 }; },
+        newRep: function () { hipBuf.length = 0; return { chinOver: false, chinKnown: false, hxMin: Infinity, hxMax: -Infinity, lxMin: Infinity, lxMax: -Infinity, kipVel: 0 }; },
         track: function (rep, t, a, e) {
           if (e.chinOver !== null) rep.chinKnown = true;
           if (e.chinOver) rep.chinOver = true;
+          if (e.lxn !== null) { rep.lxMin = Math.min(rep.lxMin, e.lxn); rep.lxMax = Math.max(rep.lxMax, e.lxn); }
           if (e.hxn !== null) {
             rep.hxMin = Math.min(rep.hxMin, e.hxn); rep.hxMax = Math.max(rep.hxMax, e.hxn);
             hipBuf.push({ t: t, x: e.hxn });
@@ -3309,8 +3369,11 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
           if (r.chinKnown && !r.chinOver) out.push({ code: 'chin', text: 'Menton pas passé au-dessus de la barre' });
           else if (r.minA > c.down) out.push({ code: 'pull', text: 'Coudes pas assez fléchis en haut (' + round(r.minA) + '°)' });
           const swing = isFinite(r.hxMin) ? r.hxMax - r.hxMin : 0;
+          const legSwing = isFinite(r.lxMin) ? r.lxMax - r.lxMin : 0;
           if (c.rejectKip && (swing > c.kipSwing || r.kipVel > c.kipSpeed)) {
             out.push({ code: 'kip', text: 'Un peu de balancement des hanches (kipping): essaie de rester gainé, sans élan' });
+          } else if (c.rejectKip && legSwing > c.legSwing) {
+            out.push({ code: 'kip', text: 'Gros à-coup des jambes (kipping): garde les jambes immobiles, sans élan' });
           }
           return out;
         },
@@ -3336,6 +3399,11 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
     return {
       params: engineParams(c, cfg.common),
       labels: LABELS.std,
+      gate: function (f) {
+        const i = torsoIncl(f, cfg.common.minVisibility, cfg.common.use3D);
+        if (i !== null && i > c.maxIncl) return { all: true, msg: 'Je te vois couché: tiens-toi debout pour les squats.' };
+        return null;
+      },
       measure: function (f, an) {
         const m = SIDES[an.sides[0]];
         const raw = mean(an.sides.map(function (s) { const q = SIDES[s]; return jointAngle(f, q.hip, q.knee, q.ank, cfg.common.use3D); }));
@@ -3374,6 +3442,11 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
     return {
       params: engineParams(c, cfg.common),
       labels: LABELS.std,
+      gate: function (f) {
+        const i = torsoIncl(f, cfg.common.minVisibility, cfg.common.use3D);
+        if (i !== null && i > c.maxIncl) return { all: true, msg: 'Je te vois couché: monte en appui sur les barres pour les dips.' };
+        return null;
+      },
       measure: function (f, an) {
         const angs = [], gaps = [];
         an.sides.forEach(function (s) {
@@ -3492,6 +3565,7 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
     else { adapter = ADAPTERS[exercise](cfg); engine = createBendEngine(adapter.params, adapter.hooks); }
     let firstT = null, lastT = null, lastVisT = null, visibleFrames = 0, totalFrames = 0;
     const calib = { frames: 0, maxSeen: 0, done: false };
+    let gateRun = 0;
 
     function fillCommon(out) {
       if (isHold) {
@@ -3539,6 +3613,22 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
       if (!isFinite(m.a)) {
         out.message = 'Mesure impossible sur cette image'; out.feedback = out.message; out.tone = 'warn'; out.visible = false;
         fillCommon(out); return out;
+      }
+      // position : si la personne est flagrante hors position (debout pour des pompes, couchée pour des squats, bras ballants
+      // pour des tractions), on ne compte pas. En cas de doute (hanches non vues, torse pointé vers la caméra), on compte.
+      if (adapter.gate) {
+        const gt = adapter.gate(f, an, engine.phase());
+        if (gt) {
+          gateRun++;
+          if (gateRun >= 3) {
+            if (gt.all && engine.phase() !== 'init') engine.abort();
+            out.metrics = { a: m.a, extra: m.extra };
+            out.metricsText = adapter.metricsText(m);
+            fillCommon(out);
+            out.feedback = gt.msg; out.tone = 'warn'; out.gated = true;
+            return out;
+          }
+        } else gateRun = 0;
       }
       // calibrage automatique : si la position "bras tendus" n'est jamais atteinte (caméra de face, 3D bruitée),
       // on abaisse le seuil "haut" au maximum réellement mesuré, sans jamais descendre sous "bas + 25°"
@@ -4063,12 +4153,46 @@ const Cloud = (() => {
   const loggedIn = () => !!sess;
 
   async function sendCode(email) {
-    await raw('/auth/v1/otp', { method: 'POST', body: { email, create_user: true } });
+    // redirect_to : adresse de l'appli, pour que le lien de l'email y revienne (doit être autorisée dans Supabase, URL Configuration)
+    const back = encodeURIComponent(location.origin + location.pathname);
+    await raw('/auth/v1/otp?redirect_to=' + back, { method: 'POST', body: { email, create_user: true } });
   }
-  async function verify(email, code) {
-    let j;
-    try { j = await raw('/auth/v1/verify', { method: 'POST', body: { type: 'email', email, token: code } }); }
-    catch (e) { if (e.status === 400 || e.status === 401 || e.status === 403 || e.status === 422) j = await raw('/auth/v1/verify', { method: 'POST', body: { type: 'signup', email, token: code } }); else throw e; }
+  /* Retour du lien de l'email : l'adresse contient #access_token=...&refresh_token=... On ouvre la session et on nettoie l'adresse. */
+  async function consumeHash() {
+    const h = location.hash || '';
+    if (h.indexOf('access_token=') < 0) {
+      if (h.indexOf('error_description=') >= 0) { const m = /error_description=([^&]+)/.exec(h); try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* ignore */ } return { error: m ? decodeURIComponent(m[1].replace(/\+/g, ' ')) : 'Lien invalide' }; }
+      return null;
+    }
+    const p = new URLSearchParams(h.slice(1));
+    const at = p.get('access_token'), rt = p.get('refresh_token');
+    try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* ignore */ }
+    if (!at || !rt) return { error: 'Lien incomplet' };
+    const u = await raw('/auth/v1/user', { token: at });
+    const exp = Date.now() + (parseInt(p.get('expires_in') || '3600', 10)) * 1000;
+    store({ access_token: at, refresh_token: rt, expires: exp, user: { id: u.id, email: u.email } });
+    return { ok: true };
+  }
+  /* codeOrLink : un code à chiffres reçu par email, OU le lien complet de l'email (collé depuis « Copier le lien »).
+     Le lien contient ?token=<jeton haché>&type=signup|magiclink|email : on l'échange contre une session sans l'ouvrir
+     (donc sans passer par le navigateur de Gmail, qui garde ses propres données). */
+  async function verify(email, codeOrLink) {
+    const txt = String(codeOrLink || '').trim();
+    let j = null, lastErr = null;
+    const tryVerify = async function (body) {
+      try { j = await raw('/auth/v1/verify', { method: 'POST', body }); return true; }
+      catch (e) { lastErr = e; if (e.status === 400 || e.status === 401 || e.status === 403 || e.status === 422) return false; throw e; }
+    };
+    if (/^https?:\/\//i.test(txt)) {
+      let u; try { u = new URL(txt); } catch (e) { const er = new Error('Lien invalide'); er.status = 400; throw er; }
+      const token = u.searchParams.get('token') || u.searchParams.get('token_hash'), type = u.searchParams.get('type');
+      if (!token) { const er = new Error('Ce lien ne contient pas de jeton: copie bien le lien du bouton de l\'email.'); er.status = 400; throw er; }
+      const types = [type, 'signup', 'magiclink', 'email', 'recovery', 'invite'].filter(function (t, i, a) { return t && a.indexOf(t) === i; });
+      for (let k = 0; k < types.length && !j; k++) await tryVerify({ type: types[k], token_hash: token });
+    } else {
+      if (!await tryVerify({ type: 'email', email, token: txt })) await tryVerify({ type: 'signup', email, token: txt });
+    }
+    if (!j) throw lastErr || new Error('Code incorrect');
     keep(j);
     return sess.user;
   }
@@ -4100,7 +4224,7 @@ const Cloud = (() => {
   }
   function schedule(fn, ms) { clearTimeout(timer); timer = setTimeout(fn, ms || 3000); }
 
-  return Object.assign(out, { user, loggedIn, sendCode, verify, logout, pushProfile, pushBackup, pullBackup, leaderboard, schedule });
+  return Object.assign(out, { user, loggedIn, sendCode, consumeHash, verify, logout, pushProfile, pushBackup, pullBackup, leaderboard, schedule });
 })();
 
 /* ============================================================
@@ -4114,7 +4238,7 @@ function cloudErr(e) {
   const m = String((e && e.message) || e || '');
   if (!navigator.onLine || /failed to fetch|networkerror|load failed/i.test(m)) return 'Pas de connexion internet.';
   if (e && e.status === 429 || /rate limit|too many|security purposes/i.test(m)) return 'Trop de demandes : attends une minute.';
-  if (/expired|invalid/i.test(m)) return 'Code incorrect ou expiré. Demande un nouveau code.';
+  if (/expired|invalid|incorrect/i.test(m)) return 'Code ou lien refusé (déjà utilisé ou expiré). Demande un nouvel email.';
   if (e && (e.code === '23505' || /duplicate|unique/i.test(m))) return 'Ce pseudo ou cet identifiant est déjà pris. Change de pseudo dans le menu Profil.';
   if (/sending|smtp|email/i.test(m)) return 'L\'email n\'a pas pu partir. Réessaie plus tard.';
   return m || 'Erreur inconnue.';
@@ -4131,8 +4255,9 @@ function cloudSection() {
       <button class="btn" type="button" id="btn-cl-out" data-act="cl-out">Se déconnecter</button></div>${m}</div>`;
   }
   if (C.step === 'code') {
-    return `<div class="cl">${head}<form id="cl-form" data-step="code" novalidate><label class="lab" for="cl-code">Code reçu à ${esc(C.email)}</label>
-      <input class="field" id="cl-code" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="Code">
+    return `<div class="cl">${head}<form id="cl-form" data-step="code" novalidate><label class="lab" for="cl-code">Email envoyé à ${esc(C.email)}</label>
+      <div class="dim" style="font-size:14px;margin:0 0 6px">1. Ouvre l'email. 2. S'il y a un code, saisis-le ici. Sinon, <b>maintiens ton doigt sur le bouton</b> de l'email, touche « Copier le lien », puis colle-le ici.</div>
+      <input class="field" id="cl-code" autocomplete="one-time-code" autocapitalize="off" spellcheck="false" placeholder="Code ou lien collé">
       <div class="row" style="margin-top:8px"><button class="btn primary" type="submit" id="btn-cl-go"${C.busy ? ' disabled' : ''}>Valider</button><button class="btn" type="button" data-act="cl-back">Changer d'email</button></div></form>${m}</div>`;
   }
   return `<div class="cl">${head}<div class="dim" style="font-size:14px;margin-bottom:6px">Connecte-toi pour apparaître dans le classement et sauvegarder ta progression.</div>
@@ -4152,10 +4277,10 @@ async function cloudSubmit() {
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { cloudMsg('Email invalide.', true); C.busy = false; cloudRefresh(); return; }
       C.email = email; cloudMsg('Envoi du code…'); cloudRefresh();
       await Cloud.sendCode(email);
-      C.step = 'code'; cloudMsg('Code envoyé. Regarde ta boîte mail (et les indésirables).');
+      C.step = 'code'; cloudMsg('Email envoyé. Saisis le code qu\'il contient. Si tu ne vois qu\'un lien, touche-le : tu reviendras ici connecté.');
     } else {
-      const code = $('#cl-code').value.replace(/\s+/g, '');
-      if (!/^\d{6,10}$/.test(code)) { cloudMsg('Le code a 6 chiffres ou plus.', true); C.busy = false; cloudRefresh(); return; }
+      const code = $('#cl-code').value.trim().replace(/\s+/g, '');
+      if (!/^\d{6,10}$/.test(code) && !/^https?:\/\//i.test(code)) { cloudMsg('Saisis le code à chiffres de l\'email, ou colle le lien copié.', true); C.busy = false; cloudRefresh(); return; }
       cloudMsg('Vérification…'); cloudRefresh();
       await Cloud.verify(C.email, code);
       C.step = 'email'; cloudMsg('Connecté.');
@@ -4210,6 +4335,15 @@ function cloudAct(a) {
   }
 }
 document.addEventListener('submit', e => { if (e.target && e.target.id === 'cl-form') { e.preventDefault(); cloudSubmit(); } });
+
+/* retour d'un lien reçu par email : session ouverte à partir de l'adresse, puis synchro */
+if (typeof Cloud !== 'undefined' && /access_token=|error_description=/.test(location.hash || '')) {
+  Cloud.consumeHash().then(r => {
+    if (!r) return;
+    if (r.ok) { toast('Connecté'); cloudMsg('Connecté.'); setTimeout(() => { cloudSync(true); }, 600); }
+    else { cloudMsg(cloudErr(new Error(r.error)), true); toast('Connexion impossible : ' + r.error); }
+  }).catch(e => { cloudMsg(cloudErr(e), true); });
+}
 
 /* ============================================================
    ui_c.js : trophees (roue), profil, questionnaire, feuilles, evenements, demarrage
