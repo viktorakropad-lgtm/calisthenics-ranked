@@ -1,5 +1,5 @@
 /* Service worker : l'appli marche hors ligne apres la premiere ouverture. */
-const CACHE = 'ranked-5f1a6c5ef9';
+const CACHE = 'ranked-c46a246f6a';
 const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => {

@@ -2781,60 +2781,74 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
   /* ------------------------------------------------------------------ */
   /* 1. CONFIGURATION (tous les seuils au même endroit)                  */
   /* ------------------------------------------------------------------ */
+  /* Profil "souple" (par défaut, version 0.2) : la caméra d'un téléphone et l'IA de pose sont imprécises, surtout de face
+     ou de trois quarts. On ne demande que les articulations nécessaires pour compter, on mesure les angles en 3D, et les
+     seuils sont plus larges. Le profil STRICT (réglages d'origine, version 0.1) reste disponible pour les tests classés. */
   const DEFAULT_CONFIG = {
     common: {
-      minVisibility: 0.5,    // en dessous, l'articulation est considérée comme "non vue"
+      minVisibility: 0.3,    // en dessous, l'articulation est considérée comme "non vue"
       smoothMinCutoff: 1.5,  // filtre One-Euro : plus bas = plus lisse (Hz)
       smoothBeta: 10,        // filtre One-Euro : réactivité aux mouvements rapides
-      minRepMs: 400,         // une répétition plus courte est considérée comme du bruit
-      minPhaseMs: 120,       // durée minimale de la descente et de la montée
-      gapResetMs: 1500,      // si le corps disparaît plus longtemps, la répétition en cours est abandonnée
-      use3D: false           // angles calculés avec les landmarks monde (expérimental)
+      minRepMs: 350,         // une répétition plus courte est considérée comme du bruit
+      minPhaseMs: 100,       // durée minimale de la descente et de la montée
+      gapResetMs: 2000,      // si le corps disparaît plus longtemps, la répétition en cours est abandonnée
+      use3D: true,           // angles calculés avec les landmarks monde (valables de face, de profil, de trois quarts)
+      autoCalib: true        // adapte le seuil "bras tendus" à ce que la caméra mesure vraiment chez toi
     },
     pushup: {
-      down: 90,              // coude en bas : angle sous lequel la pompe est assez profonde
-      up: 160,               // bras tendus : angle au-dessus duquel on est "en haut"
-      attempt: 125,          // sous cet angle, on compte une tentative (même rejetée)
+      down: 100,             // coude en bas : angle sous lequel la pompe est assez profonde
+      up: 150,               // bras tendus : angle au-dessus duquel on est "en haut"
+      attempt: 130,          // sous cet angle, on compte une tentative (même rejetée)
       hyst: 10,              // hystérésis (sortie de la zone haute à up - hyst)
       reversal: 30,          // remontée puis nouvelle descente sans verrouiller = "pas tendu"
-      bodyTol: 15,           // écart maximal à la ligne droite épaule-hanche-cheville (°)
-      shoulderDropMax: 0.7,  // épaule - poignet (vertical) / longueur du bras, au plus bas
-      useShoulderHeight: true
+      bodyTol: 25,           // écart maximal à la ligne droite épaule-hanche-cheville (°), seulement si hanches et chevilles visibles
+      shoulderDropMax: 0.9,  // épaule - poignet (vertical) / longueur du bras, au plus bas
+      useShoulderHeight: false
     },
     pullup: {
-      down: 110,             // coude plié en haut
-      up: 155,               // bras presque tendus en bas (suspension)
+      down: 120,             // coude plié en haut
+      up: 145,               // bras presque tendus en bas (suspension)
       attempt: 135,
       hyst: 10,
       reversal: 30,
-      chinMargin: 0.0,       // marge menton / ligne des poignets (en longueurs de bras)
-      kipSwing: 0.30,        // amplitude horizontale des hanches tolérée (en longueurs de tronc)
-      kipSpeed: 1.6,         // vitesse horizontale des hanches tolérée (tronc / seconde)
+      chinMargin: 0.15,      // marge menton / ligne des poignets (en longueurs de bras)
+      kipSwing: 0.45,        // amplitude horizontale des hanches tolérée (en longueurs de tronc)
+      kipSpeed: 2.4,         // vitesse horizontale des hanches tolérée (tronc / seconde)
       rejectKip: true
     },
     squat: {
-      down: 100,             // genou : angle hanche-genou-cheville en bas
-      up: 165,               // debout
-      attempt: 135,
+      down: 110,             // genou : angle hanche-genou-cheville en bas
+      up: 155,               // debout
+      attempt: 140,
       hyst: 10,
       reversal: 30
     },
     dip: {
-      down: 90,
-      up: 160,
-      attempt: 125,
+      down: 100,
+      up: 150,
+      attempt: 130,
       hyst: 10,
       reversal: 30,
-      shrugRatio: 0.7,       // distance oreille-épaule sous 70 % de la référence = épaules haussées
+      shrugRatio: 0.6,       // distance oreille-épaule sous 60 % de la référence = épaules haussées
       view: 'side'           // 'side' (profil) ou 'front' (face)
     },
     hold: {
-      bodyTol: 10,           // écart toléré de la ligne du corps (± °)
-      axisTol: 30,           // écart toléré de l'orientation générale (horizontale / verticale)
-      graceMs: 600,          // délai de grâce avant d'arrêter le chrono
+      bodyTol: 18,           // écart toléré de la ligne du corps (± °)
+      axisTol: 40,           // écart toléré de l'orientation générale (horizontale / verticale)
+      graceMs: 800,          // délai de grâce avant d'arrêter le chrono
       startMs: 300,          // la position doit être valide pendant ce temps avant de démarrer
       minHoldMs: 1000        // une tenue plus courte n'est pas enregistrée
     }
+  };
+
+  /* Profil STRICT (réglages d'origine). À passer comme userCfg pour les séries classées exigeantes. */
+  const STRICT = {
+    common: { minVisibility: 0.5, minRepMs: 400, minPhaseMs: 120, gapResetMs: 1500, use3D: false, autoCalib: false },
+    pushup: { down: 90, up: 160, attempt: 125, bodyTol: 15, shoulderDropMax: 0.7, useShoulderHeight: true },
+    pullup: { down: 110, up: 155, attempt: 135, chinMargin: 0.0, kipSwing: 0.30, kipSpeed: 1.6 },
+    squat: { down: 100, up: 165, attempt: 135 },
+    dip: { down: 90, up: 160, attempt: 125, shrugRatio: 0.7 },
+    hold: { bodyTol: 10, axisTol: 30, graceMs: 600 }
   };
 
   /* Description des réglages affichés dans le panneau "Réglages" */
@@ -2891,11 +2905,14 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
     hold_handstand: { label: 'Tenue : poirier', kind: 'hold', view: 'side', orient: 'tall' }
   };
 
+  /* joints = articulations NÉCESSAIRES pour compter ; optional = utilisées pour vérifier la forme si elles sont visibles
+     (sinon la vérification est simplement sautée) ; multi = on moyenne les deux côtés quand les deux sont bien vus
+     (de face ou de trois quarts) ; head: 'optional' = tête utile pour le menton, sans bloquer le comptage. */
   const NEEDS = {
-    pushup: { mode: 'best', joints: ['sh', 'el', 'wr', 'hip', 'ank'], hint: 'recule ou tourne-toi de profil' },
-    pullup: { mode: 'mean', joints: ['sh', 'el', 'wr'], head: true, hint: 'recule un peu et place-toi de face (ou de dos)' },
-    squat: { mode: 'best', joints: ['hip', 'knee', 'ank'], hint: 'recule ou tourne-toi de profil' },
-    dip: { mode: 'best', joints: ['sh', 'el', 'wr', 'hip'], hint: 'recule ou tourne-toi de profil' },
+    pushup: { mode: 'best', multi: true, joints: ['sh', 'el', 'wr'], optional: ['hip', 'ank'], hint: 'recule un peu pour que tes bras soient dans l\'image' },
+    pullup: { mode: 'mean', joints: ['sh', 'el', 'wr'], head: 'optional', hint: 'recule un peu pour que tes bras soient dans l\'image' },
+    squat: { mode: 'best', multi: true, joints: ['hip', 'knee', 'ank'], hint: 'recule pour que tes jambes soient dans l\'image' },
+    dip: { mode: 'best', multi: true, joints: ['sh', 'el', 'wr'], optional: ['hip'], hint: 'recule un peu pour que tes bras soient dans l\'image' },
     hold_plank: { mode: 'best', joints: ['sh', 'hip', 'ank'], hint: 'recule ou tourne-toi de profil' },
     hold_handstand: { mode: 'best', joints: ['sh', 'wr', 'hip', 'ank'], hint: 'recule pour te montrer en entier, de profil' }
   };
@@ -3029,14 +3046,28 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
       sides = ['L', 'R'].filter(function (s) { return sv[s].ok; });
       if (!sides.length) missing = bestInfo.miss.slice();
     } else {
-      if (sv.L.ok && sv.R.ok) sides = [(ctx.side === 'L' || ctx.side === 'R') ? ctx.side : bestInfo.side];
+      if (sv.L.ok && sv.R.ok) {
+        const lo = Math.min(sv.L.avg, sv.R.avg), hi = Math.max(sv.L.avg, sv.R.avg);
+        // les deux côtés sont bien vus (de face, trois quarts) : on moyenne ; sinon on garde le meilleur côté
+        if (spec.multi && lo >= 0.5 && lo >= 0.7 * hi) sides = ['L', 'R'];
+        else sides = [(ctx.side === 'L' || ctx.side === 'R') ? ctx.side : bestInfo.side];
+      }
       else if (sv.L.ok) sides = ['L'];
       else if (sv.R.ok) sides = ['R'];
       else missing = bestInfo.miss.slice();
-      if (sides.length) ctx.side = sides[0];
+      if (sides.length) ctx.side = sides[0] === 'L' || sides[0] === 'R' ? sides[0] : ctx.side;
     }
     let head = null;
-    if (spec.head && sides.length) { head = headPoint(f, minV); if (!head) missing.push('head'); }
+    if (spec.head && sides.length) { head = headPoint(f, minV); if (!head && spec.head !== 'optional') missing.push('head'); }
+    // articulations de contrôle de la forme (hanches, chevilles) : utilisées seulement si un côté les montre toutes
+    let optSide = null;
+    if (spec.optional && sides.length) {
+      const order = sides.length === 2 ? [ctx.side || 'L', ctx.side === 'R' ? 'L' : 'R'] : sides.concat(sides[0] === 'L' ? ['R'] : ['L']);
+      for (let i = 0; i < order.length; i++) {
+        const info = sideInfo(f, order[i], spec.optional, minV);
+        if (info.ok) { optSide = order[i]; break; }
+      }
+    }
     const shown = mode === 'mean' ? ['L', 'R'] : [sides.length ? sides[0] : bestInfo.side];
     const needed = [];
     shown.forEach(function (s) {
@@ -3046,7 +3077,7 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
       });
     });
     const q = mean(needed.map(function (n) { return visOf(f.lm[n.idx]); }));
-    return { ok: sides.length > 0 && missing.length === 0, sides: sides, missing: missing, head: head, quality: q, needed: needed };
+    return { ok: sides.length > 0 && missing.length === 0, sides: sides, missing: missing, head: head, optSide: optSide, quality: q, needed: needed };
   }
 
   function missingMessage(exercise, missing) {
@@ -3091,7 +3122,7 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
       if (r.minA > p.attempt) { res.glitches++; return; } // simple rebond en haut : ignoré (ni valide, ni rejeté)
       if (dur < p.minRepMs || (r.tMin - r.tStart) < p.minPhaseMs || (t - r.tMin) < p.minPhaseMs) { if (!lockoutFail) { res.glitches++; return; } }
       let reasons = hooks.evaluate(r, p) || [];
-      if (lockoutFail) reasons = [{ code: 'lockout', text: hooks.lockoutText(r) }].concat(reasons);
+      if (lockoutFail) reasons = [{ code: 'lockout', text: hooks.lockoutText(r, p) }].concat(reasons);
       r.reasons = reasons; r.valid = reasons.length === 0;
       r.durMs = dur; r.downMs = r.tMin - r.tStart; r.upMs = t - r.tMin;
       if (r.valid) res.valid++; else res.rejected++;
@@ -3183,17 +3214,24 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
       params: engineParams(c, cfg.common),
       labels: LABELS.std,
       measure: function (f, an) {
-        const m = SIDES[an.sides[0]];
-        const a = jointAngle(f, m.sh, m.el, m.wr, cfg.common.use3D);
-        const S = pt(f, m.sh), E = pt(f, m.el), W = pt(f, m.wr), H = pt(f, m.hip), A = pt(f, m.ank);
-        const dev = 180 - angleDeg(S, H, A);
-        const armLen = dist(S, E) + dist(E, W);
-        return { a: a, extra: { dev: dev, sag: sagSign(S, H, A), drop: armLen > 1e-6 ? (W.y - S.y) / armLen : 1 } };
+        // angle du coude : moyenne des côtés bien vus (de face ou de trois quarts, les deux bras comptent)
+        const a = mean(an.sides.map(function (s) { const m = SIDES[s]; return jointAngle(f, m.sh, m.el, m.wr, cfg.common.use3D); }));
+        const m0 = SIDES[an.sides[0]];
+        const S0 = pt(f, m0.sh), E0 = pt(f, m0.el), W0 = pt(f, m0.wr);
+        const armLen = dist(S0, E0) + dist(E0, W0);
+        const extra = { dev: null, sag: 1, drop: armLen > 1e-6 ? (W0.y - S0.y) / armLen : 1 };
+        // forme du corps : seulement si les hanches et les chevilles sont visibles
+        if (an.optSide) {
+          const m = SIDES[an.optSide];
+          const S = pt(f, m.sh), H = pt(f, m.hip), A = pt(f, m.ank);
+          extra.dev = 180 - angleDeg(S, H, A); extra.sag = sagSign(S, H, A);
+        }
+        return { a: a, extra: extra };
       },
       hooks: {
         newRep: function () { return { maxDev: 0, devSign: 1, minDrop: Infinity }; },
         track: function (rep, t, a, e) {
-          if (e.dev > rep.maxDev) { rep.maxDev = e.dev; rep.devSign = e.sag; }
+          if (e.dev !== null && e.dev > rep.maxDev) { rep.maxDev = e.dev; rep.devSign = e.sag; }
           if (e.drop < rep.minDrop) rep.minDrop = e.drop;
         },
         evaluate: function (r, p) {
@@ -3207,10 +3245,10 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
           }
           return out;
         },
-        lockoutText: function (r) { return 'Bras pas verrouillés en haut (max ' + round(r.maxAtEnd) + '°, objectif ' + c.up + '°)'; }
+        lockoutText: function (r, p) { return 'Bras pas verrouillés en haut (max ' + round(r.maxAtEnd) + '°, objectif ' + round(p.up) + '°)'; }
       },
       feedback: function (phase, m) {
-        if (phase !== 'init' && m.extra.dev > c.bodyTol) {
+        if (phase !== 'init' && m.extra.dev !== null && m.extra.dev > c.bodyTol) {
           return m.extra.sag > 0 ? ['Hanches qui s\'affaissent: serre les abdos et les fesses', 'warn'] : ['Fesses trop hautes: aligne les hanches', 'warn'];
         }
         switch (phase) {
@@ -3221,7 +3259,7 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
           default: return ['Tends complètement les bras', 'info'];
         }
       },
-      metricsText: function (m) { return 'Coude ' + round(m.a) + '° · ligne du corps ' + round(m.extra.dev) + '°'; }
+      metricsText: function (m) { return 'Coude ' + round(m.a) + '°' + (m.extra.dev !== null ? ' · ligne du corps ' + round(m.extra.dev) + '°' : ' · corps non visible (forme non contrôlée)'); }
     };
   };
 
@@ -3241,7 +3279,7 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
           wy.push(W.y); arm.push(dist(S, E) + dist(E, W)); shx.push(S.x); shy.push(S.y);
         });
         const a = mean(angs), wristY = mean(wy), armLen = mean(arm);
-        const chinOver = an.head.y <= wristY + c.chinMargin * armLen;
+        const chinOver = an.head ? an.head.y <= wristY + c.chinMargin * armLen : null; // null = tête non visible : on se fie aux coudes
         // hanches (si visibles) : pour détecter le balancement
         const hips = [LM.L_HIP, LM.R_HIP].filter(function (i) { return visOf(f.lm[i]) >= cfg.common.minVisibility; }).map(function (i) { return pt(f, i); });
         let hxn = null;
@@ -3250,11 +3288,12 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
           const torso = Math.hypot(hx - mean(shx), hy - mean(shy));
           if (torso > 0.03) hxn = hx / torso;
         }
-        return { a: a, extra: { chinOver: chinOver, hxn: hxn, headY: an.head.y, wristY: wristY } };
+        return { a: a, extra: { chinOver: chinOver, hxn: hxn, headY: an.head ? an.head.y : null, wristY: wristY } };
       },
       hooks: {
-        newRep: function () { hipBuf.length = 0; return { chinOver: false, hxMin: Infinity, hxMax: -Infinity, kipVel: 0 }; },
+        newRep: function () { hipBuf.length = 0; return { chinOver: false, chinKnown: false, hxMin: Infinity, hxMax: -Infinity, kipVel: 0 }; },
         track: function (rep, t, a, e) {
+          if (e.chinOver !== null) rep.chinKnown = true;
           if (e.chinOver) rep.chinOver = true;
           if (e.hxn !== null) {
             rep.hxMin = Math.min(rep.hxMin, e.hxn); rep.hxMax = Math.max(rep.hxMax, e.hxn);
@@ -3266,7 +3305,7 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
         },
         evaluate: function (r, p) {
           const out = [];
-          if (!r.chinOver) out.push({ code: 'chin', text: 'Menton pas passé au-dessus de la barre' });
+          if (r.chinKnown && !r.chinOver) out.push({ code: 'chin', text: 'Menton pas passé au-dessus de la barre' });
           else if (r.minA > c.down) out.push({ code: 'pull', text: 'Coudes pas assez fléchis en haut (' + round(r.minA) + '°)' });
           const swing = isFinite(r.hxMin) ? r.hxMax - r.hxMin : 0;
           if (c.rejectKip && (swing > c.kipSwing || r.kipVel > c.kipSpeed)) {
@@ -3277,7 +3316,7 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
         lockoutText: function (r) { return 'Bras pas tendus en bas: redescends en suspension complète (' + round(r.maxAtEnd) + '°)'; }
       },
       feedback: function (phase, m) {
-        const chin = m.extra.chinOver;
+        const chin = m.extra.chinOver !== false; // tête non visible : pas de reproche sur le menton
         switch (phase) {
           case 'init': return ['Suspends-toi, bras tendus, pour commencer', 'info'];
           case 'extended': return ['Prêt: tire-toi vers la barre', 'info'];
@@ -3286,7 +3325,7 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
           default: return ['Redescends jusqu\'à avoir les bras tendus', 'info'];
         }
       },
-      metricsText: function (m) { return 'Coude ' + round(m.a) + '° · menton ' + (m.extra.chinOver ? 'au-dessus' : 'sous') + ' la barre'; }
+      metricsText: function (m) { return 'Coude ' + round(m.a) + '°' + (m.extra.chinOver === null ? ' · tête non visible' : ' · menton ' + (m.extra.chinOver ? 'au-dessus' : 'sous') + ' la barre'); }
     };
   };
 
@@ -3298,7 +3337,7 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
       labels: LABELS.std,
       measure: function (f, an) {
         const m = SIDES[an.sides[0]];
-        const raw = jointAngle(f, m.hip, m.knee, m.ank, cfg.common.use3D);
+        const raw = mean(an.sides.map(function (s) { const q = SIDES[s]; return jointAngle(f, q.hip, q.knee, q.ank, cfg.common.use3D); }));
         const H = pt(f, m.hip), K = pt(f, m.knee);
         const parallel = H.y >= K.y; // hanche au niveau du genou ou plus bas
         const a = parallel ? Math.min(raw, c.down - 1) : raw;
@@ -3339,9 +3378,11 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
         an.sides.forEach(function (s) {
           const m = SIDES[s];
           angs.push(jointAngle(f, m.sh, m.el, m.wr, cfg.common.use3D));
-          const S = pt(f, m.sh), H = pt(f, m.hip);
-          const torso = dist(S, H);
-          if (visOf(f.lm[m.ear]) >= cfg.common.minVisibility && torso > 0.03) gaps.push((S.y - pt(f, m.ear).y) / torso);
+          // contrôle des épaules haussées : seulement si l'oreille ET la hanche sont visibles
+          if (visOf(f.lm[m.ear]) >= cfg.common.minVisibility && visOf(f.lm[m.hip]) >= cfg.common.minVisibility) {
+            const S = pt(f, m.sh), H = pt(f, m.hip), torso = dist(S, H);
+            if (torso > 0.03) gaps.push((S.y - pt(f, m.ear).y) / torso);
+          }
         });
         return { a: mean(angs), extra: { gap: gaps.length ? mean(gaps) : null } };
       },
@@ -3449,6 +3490,7 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
     if (isHold) hold = createHoldTracker(cfg.hold);
     else { adapter = ADAPTERS[exercise](cfg); engine = createBendEngine(adapter.params, adapter.hooks); }
     let firstT = null, lastT = null, lastVisT = null, visibleFrames = 0, totalFrames = 0;
+    const calib = { frames: 0, maxSeen: 0, done: false };
 
     function fillCommon(out) {
       if (isHold) {
@@ -3497,7 +3539,23 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
         out.message = 'Mesure impossible sur cette image'; out.feedback = out.message; out.tone = 'warn'; out.visible = false;
         fillCommon(out); return out;
       }
+      // calibrage automatique : si la position "bras tendus" n'est jamais atteinte (caméra de face, 3D bruitée),
+      // on abaisse le seuil "haut" au maximum réellement mesuré, sans jamais descendre sous "bas + 35°"
+      let calibrated = null;
+      if (cfg.common.autoCalib && !calib.done) {
+        const p = adapter.params;
+        if (engine.phase() !== 'init') calib.done = true;
+        else {
+          calib.frames++; calib.maxSeen = Math.max(calib.maxSeen, m.a);
+          if (calib.frames >= 75 && calib.maxSeen < p.up && calib.maxSeen >= p.down + 35) {
+            const newUp = Math.max(p.down + 35, calib.maxSeen - 6);
+            p.up = newUp; p.attempt = Math.min(p.attempt, newUp - 10);
+            calib.done = true; calibrated = round(newUp);
+          }
+        }
+      }
       out.events = engine.step(t, m.a, m.extra);
+      if (calibrated !== null) { out.calibrated = calibrated; out.events.push({ type: 'calib', up: calibrated }); }
       if (adapter.after) adapter.after(engine.phase(), m);
       out.metrics = { a: m.a, extra: m.extra };
       out.metricsText = adapter.metricsText(m);
@@ -3551,7 +3609,7 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
   }
 
   return {
-    DEFAULT_CONFIG: DEFAULT_CONFIG, SETTINGS_UI: SETTINGS_UI, LM: LM, SIDES: SIDES, EXERCISES: EXERCISES, NEEDS: NEEDS,
+    DEFAULT_CONFIG: DEFAULT_CONFIG, STRICT: STRICT, SETTINGS_UI: SETTINGS_UI, LM: LM, SIDES: SIDES, EXERCISES: EXERCISES, NEEDS: NEEDS,
     mergeConfig: mergeConfig, angleDeg: angleDeg, OneEuro: OneEuro, createSmoother: createSmoother,
     framingStatus: framingStatus, missingMessage: missingMessage, reasonLabel: reasonLabel,
     createCounter: createCounter, runSequence: runSequence, createHoldTracker: createHoldTracker
@@ -3571,7 +3629,7 @@ const LiveCam = (() => {
     gainage: 'hold_plank', handstand_mur: 'hold_handstand', handstand_libre: 'hold_handstand'
   };
   const GUIDE = {
-    pushup: ['Pose le téléphone au sol, à environ 2 m, face à ton flanc : tu es de profil.', 'Tout le corps doit être dans l\'image, de la tête aux pieds.', 'Bonne lumière devant toi, pas de fenêtre derrière.'],
+    pushup: ['Pose le téléphone au sol, à environ 2 m. De profil, de trois quarts ou de face : montre bien tes bras.', 'Le mieux : tout le corps dans l\'image. Même sans les jambes, je compte avec tes bras.', 'Bonne lumière devant toi, pas de fenêtre derrière.'],
     pullup: ['Pose le téléphone à hauteur de poitrine, à 2 à 3 m, face à toi.', 'La barre, tes bras et ta tête doivent être visibles.', 'Bonne lumière, fond pas trop chargé.'],
     squat: ['Pose le téléphone à hauteur de hanche, à environ 2 m, de profil.', 'Tout le corps visible, des épaules aux chevilles.', 'Vêtements ajustés pour bien voir les genoux.'],
     dip: ['Pose le téléphone à environ 2 m, à hauteur des barres, de profil.', 'Épaules, coudes, poignets et hanches bien visibles.', 'Bonne lumière devant toi.'],
@@ -3579,7 +3637,8 @@ const LiveCam = (() => {
     hold_handstand: ['Pose le téléphone au sol, à environ 2 m, de profil.', 'Mains, hanches et pieds visibles.', 'Le chrono tourne tant que ton corps reste droit.']
   };
   const VISION = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14';
-  const MODEL = 'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task';
+  // modèle "full" (9 Mo) : nettement plus fiable que "lite" sur les poses couchées ou de face
+  const MODEL = 'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_full/float16/1/pose_landmarker_full.task';
   const CONN = [[11, 12], [11, 13], [13, 15], [12, 14], [14, 16], [11, 23], [12, 24], [23, 24], [23, 25], [25, 27], [24, 26], [26, 28], [27, 29], [29, 31], [28, 30], [30, 32], [0, 11], [0, 12]];
   const JOINTS = [0, 11, 12, 13, 14, 15, 16, 23, 24, 25, 26, 27, 28];
 
@@ -3631,7 +3690,7 @@ const LiveCam = (() => {
       const fileset = await mod.FilesetResolver.forVisionTasks(VISION + '/wasm');
       const make = d => mod.PoseLandmarker.createFromOptions(fileset, {
         baseOptions: { modelAssetPath: MODEL, delegate: d }, runningMode: 'VIDEO', numPoses: 1,
-        minPoseDetectionConfidence: 0.5, minPosePresenceConfidence: 0.5, minTrackingConfidence: 0.5
+        minPoseDetectionConfidence: 0.3, minPosePresenceConfidence: 0.3, minTrackingConfidence: 0.3
       });
       try { landmarker = await make('GPU'); delegate = 'GPU'; } catch (g) { landmarker = await make('CPU'); delegate = 'CPU'; }
     })();
@@ -3909,7 +3968,9 @@ function camCount(L, out) {
   out.events.forEach(ev => { if (ev.type === 'rep' && !ev.valid) { c.rejText = ev.reasons.map(r => r.text).join(' · '); c.rejUntil = now + 2600; } });
   if (c.rejText && now < c.rejUntil) liveFb(c.rejText, 'warn');
   else liveFb(out.feedback || '…', out.tone === 'ok' ? 'good' : out.tone === 'warn' ? 'warn' : '');
-  camStatus(out.label + (!L.hold && out.rejected ? ' · ' + out.rejected + (out.rejected > 1 ? ' rejetées' : ' rejetée') : ''), out.visible);
+  if (out.calibrated) { toast('Seuil « bras tendus » adapté à ' + out.calibrated + '°'); }
+  // ligne d'état : phase, rejets et angle mesuré (sert à régler le compteur)
+  camStatus(out.label + (!L.hold && out.rejected ? ' · ' + out.rejected + (out.rejected > 1 ? ' rejetées' : ' rejetée') : '') + (out.metricsText ? ' · ' + out.metricsText : ''), out.visible);
 }
 async function camFlip(L) {
   const b = $('#btn-cam-flip');
