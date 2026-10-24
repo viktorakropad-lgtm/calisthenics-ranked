@@ -14,7 +14,7 @@
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <style>html,body{margin:0;background:#0b0d17}</style>
-<script>window.APP_VERSION = "0.2-64c232";</script>
+<script>window.APP_VERSION = "0.2-9b6b1f";</script>
 </head>
 <body>
 <style>
@@ -566,6 +566,52 @@ rect.sh { fill: url(#bshade); pointer-events: none; }
   .cine .emb-big, .cine .k, .cine .rn, .cine .skip { opacity: 1; transform: none; }
 }
 
+/* ---------- niveau par exercice, programme, seance guidee ---------- */
+.rkt { display: inline-block; vertical-align: middle; margin-left: 6px; padding: 1px 9px; border-radius: 99px; font-family: var(--f-display); font-weight: 700; font-size: 14px; letter-spacing: .06em; text-transform: uppercase; color: var(--rc-hi, var(--accent)); border: 1px solid var(--rc, var(--accent)); background: color-mix(in srgb, var(--rc, var(--accent)) 16%, transparent); line-height: 1.5; }
+.lvlx { display: grid; grid-template-columns: auto 1fr; gap: 14px; align-items: center; padding: 14px; margin: 4px 0 12px; border-radius: 18px; border: 1px solid var(--rc, var(--line)); background: linear-gradient(135deg, color-mix(in srgb, var(--rc, var(--accent)) 18%, var(--surface)), var(--surface)); }
+.lvlx .emb { width: 72px; } .lvlx .emb svg { width: 100%; height: auto; }
+.lvlx .k, .pobj .k, .pnext .k { color: var(--text-3); font-size: 13.5px; letter-spacing: .08em; text-transform: uppercase; }
+.lvlx .v { font-family: var(--f-display); font-size: 25px; text-transform: uppercase; letter-spacing: .03em; margin: 2px 0 6px; }
+.lvlx .v b { color: var(--rc-hi, var(--accent)); } .lvlx .v .el { color: var(--text-2); font-size: 18px; }
+.lvlx .bar { margin-bottom: 8px; }
+.lvlx .s { color: var(--text-2); font-size: 15px; line-height: 1.35; }
+.lvlx:not([style]) { display: block; } .lvlx:not([style]) .v { font-size: 22px; }
+#ex-levels li { grid-template-columns: 34px 1fr auto; }
+#ex-levels .nm { font-weight: 600; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chipb { appearance: none; cursor: pointer; min-height: 44px; padding: 8px 16px; border-radius: 99px; border: 1.5px solid var(--line); background: var(--surface); color: var(--text); font: inherit; font-weight: 600; font-size: 16px; }
+.chipb[aria-pressed="true"] { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 18%, var(--surface)); color: var(--accent); }
+.two2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.field.xl { font-family: var(--f-display); font-size: 44px; text-align: center; min-height: 76px; }
+.opt .od { display: block; font-family: var(--f-body, inherit); font-weight: 500; font-size: 15px; letter-spacing: 0; color: var(--text-2); margin-top: 2px; text-transform: none; }
+.plan .pobj, .plan .pnext { padding: 16px; border-radius: 18px; border: 1px solid var(--line); background: var(--surface); }
+.plan .pnext { border-color: var(--accent); background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 16%, var(--surface)), var(--surface)); }
+.plan .v { font-family: var(--f-display); font-size: 34px; text-transform: uppercase; letter-spacing: .03em; line-height: 1.05; margin: 2px 0; }
+.plan .s { color: var(--text-2); font-size: 15.5px; line-height: 1.4; }
+.psec h2 { font-family: var(--f-display); font-size: 24px; text-transform: uppercase; letter-spacing: .05em; margin: 6px 0 8px; }
+.weeklist, .histlist { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.weeklist li, .histlist li { display: grid; grid-template-columns: 34px 1fr auto; align-items: center; gap: 10px; min-height: 52px; padding: 6px 10px 6px 12px; border-radius: var(--r-md); background: var(--surface); border: 1px solid var(--line-soft); }
+.histlist li { grid-template-columns: 1fr auto; }
+.weeklist .dn { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; border: 1.5px solid var(--line); font-family: var(--f-display); font-weight: 700; }
+.weeklist li.done .dn { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+.weeklist .nm, .histlist .nm { font-weight: 600; } .histlist .el { color: var(--text-3); font-size: 14px; }
+.session .sx { padding: 14px; border-radius: 18px; border: 1px solid var(--line); background: var(--surface); display: grid; gap: 6px; }
+.sx .sxh { display: grid; grid-template-columns: 64px 1fr; gap: 12px; align-items: center; }
+.sx .thumb { width: 64px; } .sx .nm { font-family: var(--f-display); font-weight: 700; font-size: 24px; text-transform: uppercase; letter-spacing: .03em; line-height: 1.1; }
+.sx .sxp { font-size: 20px; } .sx .sxp b { font-family: var(--f-display); font-size: 30px; color: var(--accent); }
+.sx .sxm, .sx .sxl { color: var(--text-2); font-size: 15px; line-height: 1.4; } .sx .sxl { color: var(--ok); }
+.sx .sxn { margin: 0; } .sx .sxw { font-size: 14px; line-height: 1.4; }
+.sets { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.setb { appearance: none; cursor: pointer; width: 52px; height: 52px; border-radius: 50%; border: 2px solid var(--line); background: var(--surface-2); color: var(--text-2); font-family: var(--f-display); font-weight: 700; font-size: 22px; }
+.setb.on { border-color: var(--accent); background: var(--accent); color: var(--bg); }
+.warm { border: 1px solid var(--line-soft); border-radius: var(--r-md); padding: 10px 14px; background: var(--surface); } .warm summary { cursor: pointer; font-weight: 700; min-height: 36px; display: flex; align-items: center; }
+.stepper { display: grid; grid-template-columns: 76px 1fr 76px; gap: 12px; align-items: center; margin: 8px 0 2px; }
+.stepper .btn { min-height: 72px; font-size: 34px; } .stepper .sv { text-align: center; font-family: var(--f-display); font-weight: 800; font-size: 78px; line-height: 1; }
+.pdone li.ok b { color: var(--ok); }
+.restbar { position: fixed; left: 0; right: 0; bottom: calc(env(safe-area-inset-bottom, 0px) + 92px); z-index: 60; width: min(calc(100% - 32px), 520px); margin: 0 auto; display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; padding: 10px 14px; border-radius: 18px; border: 1px solid var(--accent); background: var(--scrim); backdrop-filter: blur(10px); }
+.restbar .rt { display: grid; } .restbar .rt .k { color: var(--text-3); font-size: 12.5px; letter-spacing: .08em; text-transform: uppercase; } .restbar b { font-family: var(--f-display); font-size: 32px; line-height: 1; }
+.restbar .rp { height: 8px; border-radius: 6px; background: var(--surface-3); overflow: hidden; } .restbar .rp i { display: block; height: 100%; background: var(--accent); transition: width .25s linear; }
+
 </style>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600;700&display=swap">
 
@@ -583,6 +629,7 @@ rect.sh { fill: url(#bshade); pointer-events: none; }
 </div>
 <nav class="tabbar" id="tabbar" aria-label="Navigation principale"></nav>
 <div id="cta-root"></div>
+<div id="rest-root"></div>
 <div id="live-root"></div>
 <div id="sheet-wrap"></div>
 <div id="cine-root"></div>
@@ -1255,6 +1302,7 @@ const Emblems = (() => {
     user: '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.400 3.600-7 8-7s8 2.600 8 7"/>',
     eye: '<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
     camera: '<path d="M3 8h4l2-3h6l2 3h4v11H3z"/><circle cx="12" cy="13" r="3.500"/>',
+    plan: '<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 3h6v3H9zM9 11h6M9 15h6M9 19h3"/>',
     check: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
     cross: '<path d="M6 6l12 12M18 6L6 18"/>',
     warn: '<path d="M12 4 2.5 20h19z"/><path d="M12 10v5M12 17.600v.1"/>',
@@ -1563,19 +1611,26 @@ const Troph = (() => {
     const pos = f => { const i = order.indexOf(f); return lastFam ? (i - order.indexOf(lastFam) + 5) % 5 || 5 : i; };
     return list.slice().sort((a, b) => pos(a.cat) - pos(b.cat))[0];
   }
+  /* ordre des familles proposé selon l'objectif (identifiant: force, masse, skills, endurance, forme) */
   function goalOrder(S) {
-    const g = S.intake && S.intake.goal;
-    return g === 2 ? ['skills', 'pull', 'push', 'core', 'legs'] : g === 1 ? ['push', 'legs', 'pull', 'core', 'skills']
-      : g === 0 ? ['pull', 'push', 'legs', 'core', 'skills'] : ['legs', 'core', 'push', 'pull', 'skills'];
+    const g = (S.plan && S.plan.goal) || 'force';
+    return g === 'skills' ? ['skills', 'pull', 'push', 'core', 'legs'] : g === 'masse' ? ['push', 'legs', 'pull', 'core', 'skills']
+      : g === 'force' ? ['pull', 'push', 'legs', 'core', 'skills'] : ['legs', 'core', 'push', 'pull', 'skills'];
   }
 
   /* ---------- questionnaire de depart ---------- */
   const Q = {
     time: ['Jamais', 'Moins de 6 mois', '6 mois à 2 ans', 'Plus de 2 ans'],
-    pushups: [{ l: 'Moins de 10', v: 0 }, { l: '10 à 24', v: 10 }, { l: '25 à 49', v: 25 }, { l: '50 à 99', v: 50 }, { l: '100 ou plus', v: 100 }],
-    pullups: [{ l: '0', v: 0 }, { l: '1 à 4', v: 1 }, { l: '5 à 9', v: 5 }, { l: '10 à 15', v: 10 }, { l: '16 ou plus', v: 16 }],
-    goal: ['Force', 'Masse', 'Skills', 'Forme'],
-    days: ['1 ou 2', '3 ou 4', '5 ou plus']
+    goals: [
+      { id: 'force', l: 'Force', d: 'Devenir plus fort, peu de répétitions' },
+      { id: 'masse', l: 'Masse', d: 'Prendre du muscle' },
+      { id: 'skills', l: 'Skills', d: 'Handstand, planche, front lever…' },
+      { id: 'endurance', l: 'Endurance', d: 'Faire plus de répétitions' },
+      { id: 'forme', l: 'Forme', d: 'Être en forme, perdre du gras' }
+    ],
+    skills: [{ id: 'handstand', l: 'Handstand' }, { id: 'planche', l: 'Planche' }, { id: 'front_lever', l: 'Front lever' }, { id: 'muscle_up', l: 'Muscle-up' }, { id: 'human_flag', l: 'Human flag' }],
+    days: [{ l: '2 jours', v: 2 }, { l: '3 jours', v: 3 }, { l: '4 jours', v: 4 }, { l: '5 jours ou plus', v: 5 }],
+    dur: [{ l: '20 minutes', v: 20 }, { l: '40 minutes', v: 40 }, { l: '60 minutes', v: 60 }]
   };
   const START_CAP = 3;
   /** niveau le plus haut dont l'ancre est atteinte (1 si aucune ancre atteinte) */
@@ -1584,8 +1639,10 @@ const Troph = (() => {
     for (let i = 1; i < RID.length; i++) { const a = EX[exId].anchors[RID[i]]; if (typeof a === 'number' && reps >= a) lv = i + 1; }
     return lv;
   }
+  /* a.pu et a.pl sont les vrais maximums du joueur (nombres), plus des tranches */
+  const clampN = (v, hi) => Math.max(0, Math.min(hi, Math.round(Number(v) || 0)));
   function levelFromAnswers(a) {
-    const pu = Q.pushups[a.pu].v, pl = Q.pullups[a.pl].v;
+    const pu = clampN(a.pu, 300), pl = clampN(a.pl, 80);
     const lvPush = levelFromReps('pompes_strictes', pu), lvPull = levelFromReps('tractions_strictes', pl);
     const raw = Math.min(lvPush, lvPull);
     return { lvPush, lvPull, raw, level: Math.min(raw, START_CAP), capped: raw > START_CAP };
@@ -1594,14 +1651,19 @@ const Troph = (() => {
     const r = levelFromAnswers(a);
     const S = Core.newFreshState(now);
     const rank = RID[r.level - 1];
+    const pu = clampN(a.pu, 300), pl = clampN(a.pl, 80);
     const val = ex => (r.level >= 2 ? Math.ceil(Core.standardFor(ex, rank).value - 1e-9) : 0);
     Core.applyEntry(S, {
-      push: { value: Q.pushups[a.pu].v }, pull: { value: Q.pullups[a.pl].v },
+      push: { value: pu }, pull: { value: pl },
       legs: { value: val('squat_bulgare') }, core: { value: val('releves_de_jambes_tendues_suspendus') }, skills: { value: val('handstand_libre') }
     }, now);
     S.earned = rank;
     S.onboarded = true;
-    S.intake = { time: a.time, pu: a.pu, pl: a.pl, goal: a.goal, days: a.days, level: r.level, raw: r.raw };
+    const g = Q.goals[a.goal] || Q.goals[0], sk = g.id === 'skills' ? (Q.skills[a.skill] || Q.skills[0]).id : null;
+    const days = (Q.days[a.days] || Q.days[1]).v, dur = (Q.dur[a.dur] || Q.dur[1]).v;
+    S.intake = { time: a.time, pu: pu, pl: pl, goal: a.goal, days: a.days, level: r.level, raw: r.raw };
+    // le plan de coaching (objectif, skill visé, jours, durée, maximums déclarés) est modifiable ensuite dans l'onglet Programme
+    S.plan = { goal: g.id, skill: sk, days: days, dur: dur, maxes: { pu: pu, pl: pl }, hist: {}, sessions: [] };
     return S;
   }
   function firstThings(S) {
@@ -1622,6 +1684,7 @@ const Troph = (() => {
     const S = Core.newFreshState(now);
     S.onboarded = true; S.example = true; S.earned = 'argent'; S.seq = 40;
     S.intake = { example: true, level: 3, goal: 0, days: 1 };
+    S.plan = { goal: 'force', skill: null, days: 3, dur: 40, maxes: { pu: 80, pl: 18 }, hist: {}, sessions: [] };
     const DAYS = 86400000;
     EXAMPLE_ATTEMPTS.forEach(([ex, perfs], i) => {
       perfs.forEach((p, j) => {
@@ -1654,14 +1717,17 @@ const Troph = (() => {
     eq('N1: pas de trophees', BY_LEVEL[1].length, 0);
     eq('total trophees', ALL.length, Object.keys(BY_LEVEL).reduce((s, k) => s + BY_LEVEL[k].length, 0));
     // questionnaire
-    const ans = (pu, pl) => ({ time: 0, pu, pl, goal: 0, days: 1 });
+    const ans = (pu, pl) => ({ time: 0, pu, pl, goal: 0, days: 1, dur: 1 });
     const lv = (pu, pl) => levelFromAnswers(ans(pu, pl));
-    eq('jamais + <10 pompes + 0 traction -> Niveau 1', lv(0, 0).level, 1);
-    eq('25 a 49 pompes + 10 a 15 tractions -> Niveau 2 (ancres Bronze 25 / 8)', lv(2, 3).level, 2);
-    eq('50 a 99 pompes + 16+ tractions -> Niveau 3', [lv(3, 4).raw, lv(3, 4).level, lv(3, 4).capped], [3, 3, false]);
-    eq('100+ pompes + 16+ tractions: brut 4, plafonne a 3', [lv(4, 4).raw, lv(4, 4).level, lv(4, 4).capped], [4, 3, true]);
-    eq('100+ pompes + 0 traction: on prend le plus bas = 1', lv(4, 0).level, 1);
-    let S = startState(ans(2, 3), now);
+    eq('jamais + 5 pompes + 0 traction -> Niveau 1', lv(5, 0).level, 1);
+    eq('30 pompes + 12 tractions -> Niveau 2 (ancres Bronze 25 / 8)', lv(30, 12).level, 2);
+    eq('50 pompes + 16 tractions -> Niveau 3', [lv(50, 16).raw, lv(50, 16).level, lv(50, 16).capped], [3, 3, false]);
+    eq('100 pompes + 16 tractions: brut 4, plafonne a 3', [lv(100, 16).raw, lv(100, 16).level, lv(100, 16).capped], [4, 3, true]);
+    eq('100 pompes + 0 traction: on prend le plus bas = 1', lv(100, 0).level, 1);
+    eq('70 pompes + 12 tractions -> Niveau 3', lv(70, 12).level, 3);
+    let S = startState(ans(30, 12), now);
+    eq('plan de depart: objectif, jours, duree, maximums declares', [S.plan.goal, S.plan.days, S.plan.dur, S.plan.maxes.pu, S.plan.maxes.pl], ['force', 3, 40, 30, 12]);
+    eq('objectif skills: skill choisi conserve', (() => { const T = startState({ time: 0, pu: 10, pl: 2, goal: 2, skill: 3, days: 0, dur: 0 }, now); return [T.plan.goal, T.plan.skill, T.plan.days, T.plan.dur]; })(), ['skills', 'muscle_up', 2, 20]);
     eq('etat de depart: rang Bronze, ELO global classe', [S.earned, Core.derive(S, now).global != null], ['bronze', true]);
     S = startState(ans(0, 0), now);
     eq('etat de depart Niveau 1: Rookie, 3 premiers trophees proposes', [S.earned, firstThings(S).length], ['rookie', 3]);
@@ -1708,6 +1774,496 @@ const Troph = (() => {
 
   return { ITEMS, item, keyOf, SLOTS, BY_LEVEL, ALL, BY_ID, trophiesOf, unlockOf, level, isDone, doneCount, earnable, targetLevel, pending, award, levelUp,
     familyItems, suggest, Q, START_CAP, levelFromReps, levelFromAnswers, startState, firstThings, exampleState, listText, test };
+})();
+
+/* ============================================================
+   coach.js : moteur de coaching (logique pure, aucun acces au DOM).
+   A partir du niveau reel du joueur (maximums declares, ELO par exercice), de son objectif (force, masse, skills,
+   endurance, forme), de ses jours et de sa duree, il construit une seance: choix des exercices, series, repetitions,
+   repos, tempo, difficultes ajoutees (pause, lest...), puis la progression d'une seance a l'autre.
+   Reperes (CG = connaissances generales, a calibrer avec de vrais sportifs et a faire relire par un coach):
+   - force: 3 a 6 repetitions, 2 en reserve, repos 2 a 3 min; masse: 8 a 15 repetitions proches de la limite (1 a 2 en
+     reserve), tempo lent, repos 60 a 90 s; endurance: 40 a 60 % du maximum, repos courts; forme: 60 % du maximum, 3 en reserve.
+   - equivalence entre exercices: les standards de data/standards.json sont sur la meme echelle d'ELO, donc a un niveau
+     donne on sait combien de repetitions d'un exercice correspondent a combien d'un autre (perfForElo).
+   ============================================================ */
+const Coach = (() => {
+  'use strict';
+  const TI = Troph.ITEMS, EX = Core.EX;
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const FAMS = ['push', 'pull', 'legs', 'core', 'skills'];
+
+  /* ---------- objectifs: parametres d'entrainement ---------- */
+  const GOALS = {
+    force: {
+      id: 'force', label: 'Force', rT: 6, win: [4, 9], sets: 5, frac: 0.6, repMin: 2, repMax: 6, rest: 150, tf: 0.85,
+      tempo: '2-0-X : descente contrôlée 2 s, montée la plus vite possible', rir: '2 répétitions en réserve (tu sens que c\'est lourd mais propre)',
+      why: 'Peu de répétitions sur un mouvement difficile : c\'est la tension qui rend fort. Longs repos pour être frais à chaque série.',
+      tips: ['Repose-toi vraiment 2 à 3 minutes entre les séries : la force se construit frais.', 'Quand tu réussis toutes les séries avec 2 répétitions de marge, passe à une version plus dure.', 'Dors 7 à 9 heures : c\'est là que la force progresse.']
+    },
+    masse: {
+      id: 'masse', label: 'Masse', rT: 15, win: [10, 22], sets: 4, frac: 0.8, repMin: 6, repMax: 15, rest: 75, tf: 0.55,
+      tempo: '3-1-1 : descente 3 s, pause 1 s en bas, montée 1 s', rir: '1 à 2 répétitions en réserve (proche de la limite)',
+      why: 'Séries lentes, proches de la limite, entre 8 et 15 répétitions : le muscle travaille longtemps sous tension, c\'est ce qui le fait grossir.',
+      tips: ['Pour prendre de la masse, mange un peu plus que ce que tu dépenses (environ +200 à 300 kcal) et vise 1,6 à 2,2 g de protéines par kilo.', 'Fais travailler chaque groupe musculaire 2 fois par semaine.', 'Chaque séance, essaie de battre la précédente : +1 répétition, ou une version plus dure.']
+    },
+    endurance: {
+      id: 'endurance', label: 'Endurance', rT: 35, win: [20, 70], sets: 4, frac: 0.55, repMin: 10, repMax: 40, rest: 40, tf: 1,
+      tempo: 'régulier : 1 s en descente, 1 s en montée', rir: '4 répétitions en réserve, tu gardes du souffle',
+      why: 'Beaucoup de répétitions faciles avec des repos courts : tu apprends à tenir l\'effort et à récupérer vite.',
+      tips: ['Reste régulier : mieux vaut 15 répétitions propres que 25 bâclées.', 'Réduis le repos de 5 secondes toutes les deux semaines.', 'Respire en continu, souffle sur l\'effort.']
+    },
+    forme: {
+      id: 'forme', label: 'Forme', rT: 18, win: [12, 35], sets: 3, frac: 0.6, repMin: 8, repMax: 20, rest: 45, tf: 0.8,
+      tempo: 'contrôlé : 2 s en descente, 1 s en montée', rir: '3 répétitions en réserve',
+      why: 'Séances complètes, pas trop dures, qui font travailler tout le corps : idéal pour être en forme, garder le rythme et perdre du gras.',
+      tips: ['Marche ou bouge un peu tous les jours : pour perdre du gras, ça compte autant que la séance.', 'Garde 3 répétitions de marge : l\'important est de revenir souvent.', 'Mange des protéines à chaque repas, et dors assez.']
+    },
+    skills: {
+      id: 'skills', label: 'Skills', rT: 8, win: [5, 12], sets: 3, frac: 0.7, repMin: 4, repMax: 10, rest: 120, tf: 0.85,
+      tempo: 'contrôlé : 2 s en descente, 1 s en montée', rir: '2 répétitions en réserve',
+      why: 'Un skill s\'apprend frais et souvent, sans jamais aller à l\'échec. La force de base (pousser, tirer, gainage) le rend possible.',
+      tips: ['Travaille ton skill en premier, quand tu es frais, et arrête avant que la technique se dégrade.', 'Fais un peu de skill souvent (3 à 4 fois par semaine) plutôt qu\'une grosse séance.', 'Échauffe toujours les poignets et les épaules.']
+    }
+  };
+
+  /* exercices non classes: nombre de repetitions attendu = facteur x un exercice de reference */
+  /* [référence, facteur, minimum] : le minimum évite des consignes absurdes pour un débutant (un rowing inversé reste faisable sans traction) */
+  const REL = {
+    pompes_inclinees: ['pompes_strictes', 1.7, 6], rowing_inverse: ['tractions_strictes', 1.8, 6],
+    squat: ['squat_bulgare', 3, 8], releves_de_genoux: ['releves_de_jambes_tendues_suspendus', 1.6, 4], gainage: ['l_sit', 4, 20]
+  };
+
+  /* difficultes ajoutables quand l'exercice est trop facile (multiplient le maximum attendu) */
+  const MODS = {
+    pause: { id: 'pause', label: 'Pause de 2 secondes en bas', f: 0.8 },
+    lent: { id: 'lent', label: 'Descente en 4 secondes', f: 0.75 },
+    lest: { id: 'lest', label: 'Sac à dos lesté (10 à 15 % de ton poids)', f: 0.7 },
+    lest2: { id: 'lest2', label: 'Sac à dos lesté (20 à 25 % de ton poids)', f: 0.5 },
+    lest3: { id: 'lest3', label: 'Sac à dos lesté (35 à 40 % de ton poids)', f: 0.35 }
+  };
+  /* difficultés possibles selon l'objectif (de la plus légère à la plus lourde) : en force on ajoute du poids, en masse du tempo */
+  const COMBOS = {
+    force: [[], [MODS.lest], [MODS.pause, MODS.lest], [MODS.lest2], [MODS.pause, MODS.lest2], [MODS.lest3]],
+    masse: [[], [MODS.pause], [MODS.lest], [MODS.pause, MODS.lest], [MODS.lent, MODS.pause], [MODS.lent, MODS.pause, MODS.lest]],
+    endurance: [[]],
+    forme: [[], [MODS.pause]],
+    skills: [[], [MODS.pause, MODS.lest]]
+  };
+
+  /* emplacements d'une seance: liste d'exercices possibles, du plus facile au plus dur */
+  const SLOT = {
+    push_h: ['pompes_inclinees', 'pompes_strictes', 'pompes_diamant', 'pompes_declinees', 'pompes_archer', 'pompes_une_main'],
+    push_v: ['pompes_pike', 'handstand_push_up_strict'],
+    push_dip: ['dips_strictes'],
+    pull_v: ['tractions_strictes', 'tractions_supination', 'tractions_archer', 'traction_une_main'],
+    pull_h: ['rowing_inverse'],
+    legs: ['squat', 'squat_bulgare', 'squat_cossack', 'pistol_squat', 'shrimp_squat', 'dragon_squat'],
+    hinge: ['nordic_curl'],
+    core: ['releves_de_genoux', 'releves_de_jambes_tendues_suspendus', 'toes_to_bar_strict', 'dragon_flag'],
+    core_hold: ['gainage', 'l_sit', 'v_sit']
+  };
+  const FOCUS = {
+    full: ['push_h', 'pull_v', 'legs', 'core', 'push_dip', 'pull_h', 'hinge'],
+    upper: ['push_h', 'pull_v', 'push_dip', 'pull_h', 'push_v', 'core'],
+    push: ['push_h', 'push_dip', 'push_v', 'push_h', 'core_hold'],
+    pull: ['pull_v', 'pull_h', 'pull_v', 'core', 'core_hold'],
+    legs: ['legs', 'hinge', 'legs', 'core', 'core_hold'],
+    core: ['core', 'core_hold', 'core', 'core_hold', 'core'],
+    skills: []
+  };
+  const FOCUS_LABEL = { full: 'Corps entier', upper: 'Haut du corps', push: 'Pousser', pull: 'Tirer', legs: 'Jambes', core: 'Abdos', skills: 'Skill' };
+
+  /* ---------- programmes de skills ---------- */
+  const SKILLS = {
+    handstand: { label: 'Handstand', support: ['pompes_pike', 'handstand_push_up_strict', 'gainage', 'l_sit'], steps: ['kickup', 'handstand_mur', 'handstand_libre'],
+      tip: 'Mains à largeur d\'épaules, doigts écartés, regard entre les mains. Pousse le sol, serre fessiers et abdos. Commence contre le mur.' },
+    planche: { label: 'Planche', ladder: 'planche', support: ['pompes_pike', 'dips_strictes', 'pompes_archer', 'gainage'],
+      tip: 'Bras tendus, épaules loin devant les mains, bassin sous contrôle. Tiens de courtes séries propres, jamais jusqu\'à l\'échec.' },
+    front_lever: { label: 'Front lever', ladder: 'front_lever', support: ['tractions_strictes', 'rowing_inverse', 'releves_de_jambes_tendues_suspendus'],
+      tip: 'Épaules tirées vers le bas, bras tendus, corps en ligne. La force du dos et des abdos fait la différence.' },
+    muscle_up: { label: 'Muscle-up', steps: ['tractions_strictes', 'muscle_up_strict'], support: ['tractions_strictes', 'dips_strictes', 'toes_to_bar_strict'],
+      tip: 'Tire fort et haut (la barre vers le ventre), puis bascule les coudes au-dessus de la barre. Il faut environ 10 tractions et 10 dips avant de viser le muscle-up.' },
+    human_flag: { label: 'Human flag', steps: ['human_flag'], support: ['tractions_strictes', 'dips_strictes', 'releves_de_jambes_tendues_suspendus', 'gainage'],
+      tip: 'Un poteau vertical, une main en haut qui tire et une en bas qui pousse. Les obliques et les épaules doivent être solides avant de viser le drapeau.' }
+  };
+
+  /* ---------- reglages et niveau du joueur ---------- */
+  function settings(S) {
+    const p = S.plan || {};
+    const oldGoals = ['force', 'masse', 'skills', 'forme'];
+    const goal = p.goal || (S.intake && oldGoals[S.intake.goal]) || 'forme';
+    return {
+      goal: GOALS[goal] ? goal : 'forme', skill: p.skill || null, days: p.days || 3, dur: p.dur || 40, maxes: p.maxes || {},
+      newbie: !!(S.intake && S.intake.time != null && S.intake.time <= 1)
+    };
+  }
+  /* ELO du joueur dans une famille: meilleur entre ses vraies performances et ses maximums declares (non plafonnes) */
+  function catElo(S, D, cat) {
+    const c = D.cats && D.cats[cat];
+    let e = c && c.ranked ? c.elo : null;
+    const m = (S.plan && S.plan.maxes) || {};
+    if (cat === 'push' && m.pu > 0) { const d = Core.perfElo('pompes_strictes', m.pu); if (d != null && (e == null || d > e)) e = d; }
+    if (cat === 'pull' && m.pl > 0) { const d = Core.perfElo('tractions_strictes', m.pl); if (d != null && (e == null || d > e)) e = d; }
+    return e == null ? Core.rStart(S.earned) : e;
+  }
+  /* le coaching suit le niveau réel (maximum attendu), pas seulement les niveaux d'ouverture du jeu : jusqu'à 2 niveaux d'avance */
+  const isOpen = (S, key) => Troph.unlockOf(key) <= Troph.level(S) + 2;
+  const REPS_LIKE = { reps: 1, reps_per_side: 1, seconds: 1 };
+
+  /** Maximum attendu (répétitions ou secondes) sur un exercice, au niveau actuel du joueur. null si non estimable. */
+  function expectedMax(S, D, key) {
+    const it = TI[key];
+    if (!it) return null;
+    const base = EX[it.ex];
+    if (!it.ranked || !base) {
+      const r = REL[key];
+      if (!r) return null;
+      const v = expectedMax(S, D, r[0]);
+      return v == null ? null : Math.max(r[2] || 2, v * r[1]);
+    }
+    if (!REPS_LIKE[base.measure]) return null;
+    const own = D.ex[it.ex];
+    if (own && own.pb && own.pb.perf > 0) return own.pb.perf;
+    return Math.max(1, Core.perfForElo(base.anchors, catElo(S, D, base.category)));
+  }
+
+  function lastKeys(S) {
+    const ss = (S.plan && S.plan.sessions) || [];
+    const last = ss[ss.length - 1];
+    return new Set(last ? last.items.map(i => i.key) : []);
+  }
+
+  /* meilleur exercice d'un emplacement pour un objectif */
+  function evalCandidate(S, D, key, g, pendingKeys, recent) {
+    const it = TI[key];
+    if (!it || !isOpen(S, key)) return null;
+    const r = expectedMax(S, D, key);
+    if (r == null || r < 1) return null;
+    const noMods = it.hold || it.fam === 'core' || it.fam === 'skills';
+    // un débutant (peu de répétitions possibles) garde un tempo normal : ralentir la descente n'a pas de sens à 3 répétitions
+    const tf = r < 10 ? Math.max(g.tf, 0.9) : g.tf;
+    const base = r * (it.hold ? 1 : tf);
+    let best = null;
+    for (const combo of (noMods ? [[]] : (COMBOS[g.id] || [[]]))) {
+      const rEff = base * combo.reduce((p, m) => p * m.f, 1);
+      const d = Math.abs(Math.log(Math.max(0.5, rEff) / g.rT)) + 0.18 * combo.length;
+      if (!best || d < best.d) best = { key, r, rEff, mods: combo, d };
+      if (rEff <= g.win[1] && rEff >= g.win[0]) break;
+    }
+    if (best.rEff < g.win[0] * 0.5) { best.hard = true; best.d += 1; }   // plus dur que prévu pour ce niveau : seulement en dernier recours
+    if (pendingKeys.has(key)) best.d -= 0.2;                              // aide à valider un trophée du niveau suivant
+    if (recent.has(key)) best.d += 0.25;                                  // variété d'une séance à l'autre
+    return best;
+  }
+  function pickSlot(S, D, slotId, g, used) {
+    const pend = new Set(Troph.pending(S, Troph.targetLevel(S)).map(t => t.key));
+    const recent = lastKeys(S);
+    let best = null;
+    for (const key of SLOT[slotId] || []) {
+      if (used.has(key)) continue;
+      const c = evalCandidate(S, D, key, g, pend, recent);
+      if (c && (!best || c.d < best.d)) best = c;
+    }
+    return best;
+  }
+
+  /* ---------- prescription d'un exercice ---------- */
+  const modSig = mods => mods.map(m => m.id).join('+');
+  function repsLabel(it, n) { return it.hold ? n + ' s' : String(n); }
+  function prescribe(S, D, cand, g, st) {
+    const it = TI[cand.key], base = EX[it.ex];
+    const perSide = !!(base && base.measure === 'reps_per_side');
+    let sets = g.sets - (st.newbie ? 1 : 0);
+    let target;
+    if (it.hold) {
+      target = clamp(Math.round(cand.rEff * (g.id === 'force' ? 0.55 : g.id === 'masse' ? 0.7 : g.id === 'endurance' ? 0.6 : 0.65)), 5, 90);
+      if (g.id === 'endurance') sets = Math.max(sets, 4);
+    } else {
+      target = clamp(Math.round(cand.rEff * g.frac), 1, g.repMax);
+      target = Math.max(target, Math.min(g.repMin, Math.max(1, Math.floor(cand.rEff * 0.85))));
+    }
+    const sig = cand.key + '|' + modSig(cand.mods);
+    const h = S.plan && S.plan.hist && S.plan.hist[sig];
+    let last = null;
+    if (h && h.goal === g.id) {
+      last = h.sets;
+      const done = h.sets.length && h.sets.every(v => v >= h.target);
+      target = done ? Math.min(h.target + (it.hold ? 2 : 1), it.hold ? 90 : g.repMax + 4) : h.target;
+    }
+    const rest = g.rest + (st.newbie ? 15 : 0);
+    const notes = cand.mods.map(m => m.label);
+    if (cand.rEff > g.win[1] && !it.hold && it.fam !== 'core') notes.push('Encore trop facile : ajoute une pause en bas ou passe à une version plus dure dès que possible.');
+    const why = cand.mods.length ? 'Version trop facile pour ton niveau : on ajoute de la difficulté pour que tes ' + target + ' répétitions restent proches de ta limite.'
+      : cand.rEff < g.win[0] ? 'Exercice difficile pour ton niveau : on reste sur peu de répétitions propres.' : g.why;
+    const tempo = cand.r < 10 && !it.hold ? '2-0-1 : contrôlé, 2 s en descente et 1 s en montée' : g.tempo;
+    return {
+      key: cand.key, name: it.name, fam: it.fam, hold: !!it.hold, perSide, sets, target, rest, tempo, rir: g.rir, mods: cand.mods.map(m => m.id),
+      notes, why, last, sig, goal: g.id, expected: Math.round(cand.r)
+    };
+  }
+
+  /* ---------- skills ---------- */
+  function ladderVariant(S, D, ex) {
+    const lad = Core.ladderFor(ex), e = D.ex[ex];
+    let idx = -1;
+    lad.variants.forEach((v, i) => { if (Troph.unlockOf(ex + ':' + v.variant) <= Troph.level(S)) idx = i; });
+    if (!(e && e.pb && e.pb.variant)) idx = Math.max(0, idx - 1);   // aucun essai enregistré : on démarre une marche plus bas
+    if (e && e.pb && e.pb.variant) {
+      const bi = Core.variantIndex(lad, e.pb.variant);
+      idx = e.pb.perf >= 8 && bi + 1 < lad.variants.length ? Math.max(0, Math.min(idx, bi + 1)) : Math.max(0, Math.min(idx, bi));
+    }
+    return lad.variants[Math.max(0, idx)].variant;
+  }
+  function skillMain(S, D, skillId) {
+    const sk = SKILLS[skillId];
+    if (sk.ladder) {
+      const v = ladderVariant(S, D, sk.ladder), key = sk.ladder + ':' + v;
+      const e = D.ex[sk.ladder], best = e && e.pb && e.pb.variant === v ? e.pb.perf : 0;
+      return { key, hold: true, secs: clamp(Math.round(best ? best * 0.8 : 6), 4, 12), sets: 6, rest: 150, note: 'Séries courtes et propres : arrête dès que ta position se dégrade, jamais jusqu\'à l\'échec.' };
+    }
+    if (skillId === 'handstand') {
+      const lib = D.ex.handstand_libre ? D.ex.handstand_libre.pb.perf : 0;
+      if (lib >= 8) return { key: 'handstand_libre', hold: true, secs: clamp(Math.round(lib * 0.7), 5, 45), sets: 6, rest: 120, note: 'Essaie de te tenir sans le mur ; si tu perds l\'équilibre, redescends en contrôle et recommence.' };
+      if (isOpen(S, 'handstand_mur')) return { key: 'handstand_mur', hold: true, secs: lib >= 3 ? 30 : 20, sets: 5, rest: 90, note: 'Dos au mur ou face au mur : corps le plus droit possible, regard entre les mains.' };
+      return { key: 'kickup', hold: false, secs: 0, sets: 8, rest: 60, reps: 5, note: 'Apprends à monter les jambes proprement contre le mur, 5 essais par série.' };
+    }
+    if (skillId === 'muscle_up') {
+      const m = (S.plan && S.plan.maxes) || {};
+      const pl = Math.max(m.pl || 0, D.ex.tractions_strictes ? D.ex.tractions_strictes.pb.perf : 0);
+      if (pl < 10 || !isOpen(S, 'muscle_up_strict')) return { key: 'tractions_strictes', hold: false, reps: clamp(Math.round(pl * 0.7), 3, 12), sets: 4, rest: 120, note: 'Avant le muscle-up : construis environ 10 tractions strictes. Tire vite et haut sur chaque répétition.' };
+      return { key: 'muscle_up_strict', hold: false, reps: 2, sets: 5, rest: 150, note: 'Essais de muscle-up propres : 1 à 3 répétitions par série, jamais jusqu\'à l\'échec.' };
+    }
+    if (skillId === 'human_flag') {
+      if (isOpen(S, 'human_flag')) return { key: 'human_flag', hold: true, secs: 5, sets: 6, rest: 150, note: 'Essaie de tenir 3 à 5 secondes de chaque côté.' };
+      return { key: 'releves_de_jambes_tendues_suspendus', hold: false, reps: 8, sets: 4, rest: 90, note: 'Le human flag arrive plus tard : construis d\'abord les obliques, les épaules et le dos.' };
+    }
+    return null;
+  }
+  function skillItems(S, D, st, g, used) {
+    const id = st.skill && SKILLS[st.skill] ? st.skill : 'handstand', sk = SKILLS[id], out = [];
+    const m = skillMain(S, D, id);
+    if (m && TI[m.key]) {
+      used.add(m.key);
+      out.push({
+        key: m.key, name: TI[m.key].name, fam: TI[m.key].fam, hold: m.hold, perSide: false, sets: m.sets, target: m.hold ? m.secs : (m.reps || 5), rest: m.rest, tempo: 'propre et contrôlé', rir: 'jamais jusqu\'à l\'échec',
+        mods: [], notes: [m.note], why: sk.tip, last: null, sig: m.key + '|skill', goal: 'skills', expected: 0, skill: id
+      });
+    }
+    return { items: out, skill: sk, id };
+  }
+
+  /* ---------- seance ---------- */
+  const WARM = {
+    base: ['Poignets : rotations et flexions, 30 secondes', 'Épaules : grands cercles de bras, 10 dans chaque sens', 'Omoplates : 10 rétractions bras tendus, suspendu ou au sol'],
+    push: ['Pompes lentes sur les genoux, 2 séries de 8', 'Planche sur les mains, 2 × 20 secondes'],
+    pull: ['Suspension active à la barre, 2 × 15 secondes', 'Tractions faciles ou rowing léger, 2 séries de 5'],
+    legs: ['Squats lents sans charge, 2 séries de 10', 'Fentes dynamiques, 2 × 8 par jambe', 'Cercles de hanches, 10 par côté'],
+    core: ['Planche sur les avant-bras, 2 × 20 secondes', 'Gainage dynamique : mouvements de jambes allongé, 2 × 10'],
+    skills: ['Mobilité des poignets : 1 minute', 'Épaules actives : planche épaules hautes, 2 × 20 secondes', 'Hollow body : 2 × 20 secondes']
+  };
+  function warmupFor(focus, skills) {
+    const f = focus === 'full' || focus === 'upper' ? ['push', 'pull'] : [focus === 'skills' ? 'skills' : focus];
+    const list = WARM.base.slice();
+    f.forEach(k => { (WARM[k] || []).slice(0, 2).forEach(x => list.push(x)); });
+    if (skills && focus !== 'skills') (WARM.skills || []).slice(0, 1).forEach(x => list.push(x));
+    return list.slice(0, 7);
+  }
+  function workSeconds(it, g) {
+    if (it.hold) return it.target;
+    const per = g === 'masse' ? 4.5 : g === 'force' ? 3.5 : 2.6;
+    return it.target * per * (it.perSide ? 2 : 1);
+  }
+  const estimate = (items, goal) => 5 + items.reduce((s, it) => s + it.sets * (workSeconds(it, goal) + it.rest) / 60, 0);
+
+  /** Construit une seance. opts: { focus, minutes, goal }. Retourne { goal, focus, minutes, estMin, warmup, items, tips, skill }. */
+  function buildSession(S, D, opts) {
+    opts = opts || {};
+    const st = settings(S);
+    const goal = GOALS[opts.goal] ? opts.goal : st.goal, g = GOALS[goal];
+    const focus = FOCUS[opts.focus] !== undefined ? opts.focus : 'full';
+    const minutes = opts.minutes || st.dur;
+    const nEx = minutes <= 20 ? 3 : minutes <= 40 ? 5 : 6;
+    const used = new Set(), items = [];
+    let skillInfo = null;
+    const wantSkill = focus === 'skills' || (goal === 'skills' && (focus === 'full' || focus === 'upper'));
+    if (wantSkill) {
+      const sk = skillItems(S, D, st, g, used);
+      skillInfo = { id: sk.id, label: sk.skill.label };
+      sk.items.forEach(i => items.push(i));
+      const sup = (SKILLS[sk.id].support || []).slice();
+      const supG = GOALS.skills;
+      const want = focus === 'skills' ? Math.max(2, nEx - 2) : Math.max(1, Math.floor(nEx / 3));
+      const cands = sup.map(k => evalCandidate(S, D, k, supG, new Set(), lastKeys(S))).filter(Boolean).sort((a, b) => a.d - b.d);
+      for (const c of cands) { if (items.length - sk.items.length >= want) break; if (used.has(c.key)) continue; used.add(c.key); items.push(prescribe(S, D, c, supG, st)); }
+    }
+    // remplissage par emplacements (jour de skill: un peu de force de base autour du skill)
+    const gen = goal === 'skills' ? GOALS.skills : g;
+    const slots = focus === 'skills' ? ['push_h', 'pull_v', 'core', 'legs'] : (FOCUS[focus] && FOCUS[focus].length ? FOCUS[focus] : FOCUS.full);
+    const ALT = { pull_v: 'pull_h', push_v: 'push_h' };   // si l'exercice normal est trop dur (débutant), on prend l'alternative plus facile
+    for (const s of slots) {
+      if (items.length >= nEx) break;
+      let c = pickSlot(S, D, s, gen, used);
+      if (c && c.hard && ALT[s]) { const c2 = pickSlot(S, D, ALT[s], gen, used); if (c2 && !c2.hard) c = c2; }
+      if (!c) continue;
+      used.add(c.key);
+      items.push(prescribe(S, D, c, gen, st));
+    }
+    // la séance doit tenir dans le temps demandé : on retire d'abord des séries (jamais sous 3 en force et en masse, 2 sinon), puis les derniers exercices
+    const minSets = goal === 'force' || goal === 'masse' ? 3 : 2;
+    let guard = 60;
+    while (estimate(items, goal) > minutes + 2 && guard-- > 0) {
+      const it = items.slice().reverse().find(x => x.sets > minSets && !x.skill);
+      if (it) { it.sets -= 1; continue; }
+      if (items.length <= 2) break;
+      const lastIdx = items.length - 1 - items.slice().reverse().findIndex(x => !x.skill);
+      items.splice(lastIdx, 1);
+    }
+    return { goal, focus, focusLabel: FOCUS_LABEL[focus], minutes, estMin: Math.round(estimate(items, goal)), warmup: warmupFor(focus, goal === 'skills'), items, tips: g.tips, skill: skillInfo, ts: 0 };
+  }
+
+  /* ---------- semaine et progression ---------- */
+  function weekPlan(S) {
+    const st = settings(S);
+    const base = { 2: ['full', 'full'], 3: ['full', 'full', 'full'], 4: ['upper', 'legs', 'upper', 'legs'], 5: ['push', 'pull', 'legs', 'upper', 'core'] }[clamp(st.days, 2, 5)];
+    const w = base.slice();
+    if (st.goal === 'skills') { for (let i = 0; i < w.length; i += 2) w[i] = 'skills'; }
+    return w.map((f, i) => ({ day: i + 1, focus: f, label: FOCUS_LABEL[f] }));
+  }
+  function nextFocus(S) {
+    const w = weekPlan(S), ss = (S.plan && S.plan.sessions) || [];
+    if (!ss.length) return w[0];
+    const lastWeek = ss.filter(x => x.ts > Date.now() - 7 * 86400000);
+    return w[lastWeek.length % w.length];
+  }
+  /** Enregistre une séance terminée: historique et cibles de la prochaine fois. res = [{key, sig, sets:[valeurs], target, goal}] */
+  function recordSession(S, session, res, now) {
+    if (!S.plan) S.plan = { goal: settings(S).goal, hist: {}, sessions: [] };
+    if (!S.plan.hist) S.plan.hist = {};
+    if (!S.plan.sessions) S.plan.sessions = [];
+    const items = [];
+    res.forEach(r => {
+      if (!r.sets.length) return;
+      S.plan.hist[r.sig] = { ts: now, sets: r.sets.slice(), target: r.target, goal: r.goal };
+      items.push({ key: r.key, sets: r.sets.slice(), target: r.target });
+    });
+    const rec = { ts: now, goal: session.goal, focus: session.focus, minutes: session.minutes, items };
+    S.plan.sessions.push(rec);
+    if (S.plan.sessions.length > 60) S.plan.sessions.shift();
+    return rec;
+  }
+
+  /* ---------- niveau sur un exercice ---------- */
+  /** Niveau du joueur sur un exercice: rang, ELO, record, prochain palier. null si l'exercice n'est pas classé. */
+  function exLevel(S, D, key) {
+    const it = TI[key];
+    if (!it || !it.ranked) return null;
+    const e = D.ex[it.ex];
+    const base = EX[it.ex];
+    if (!e) return { key, ranked: false, name: it.name };
+    const rank = e.rank, start = Core.rStart(rank), end = Core.rEnd(rank);
+    const pct = clamp(Math.round(100 * (e.eff - start) / Math.max(1, end - start)), 0, 100);
+    const out = { key, ranked: true, rank, level: Core.levelOf(rank), elo: Math.round(e.eff), pct, provisional: e.provisional, pb: e.pb, next: null, unit: it.hold ? 's' : 'reps', days: Math.round(e.days) };
+    const nr = Core.nextRank(rank);
+    if (nr && base.measure !== 'variant') {
+      const std = Core.standardFor(it.ex, nr);
+      if (std) out.next = { rank: nr, value: Math.ceil(std.value - 1e-9), missing: Math.max(0, Math.ceil(std.value - 1e-9) - e.pb.perf) };
+    } else if (nr && base.measure === 'variant') {
+      const lad = Core.ladderFor(it.ex), v = lad.variants.find(x => Core.rIdx(x.entry_rank) === Core.rIdx(nr)) || lad.variants.find(x => Core.rIdx(x.entry_rank) > Core.rIdx(rank));
+      if (v) out.next = { rank: v.entry_rank, variant: v.variant, value: 5, missing: 0 };
+    }
+    return out;
+  }
+  /** Tous les exercices classés du joueur, du plus haut au plus bas. */
+  function allLevels(S, D) {
+    return Object.keys(D.ex).map(id => {
+      const e = D.ex[id], base = EX[id];
+      const key = base && base.measure === 'variant' && e.pb.variant ? id + ':' + e.pb.variant : id;
+      const it = TI[key] || TI[id];
+      return it ? { key: it.key, name: it.name, fam: it.fam, rank: e.rank, elo: Math.round(e.eff), pb: e.pb, provisional: e.provisional, unit: it.hold ? 's' : 'reps' } : null;
+    }).filter(Boolean).sort((a, b) => b.elo - a.elo);
+  }
+
+  /* ---------- autotests ---------- */
+  function test() {
+    const R = [], now = Date.UTC(2026, 9, 24, 12);
+    const eq = (name, got, exp) => R.push({ name, got, exp, pass: JSON.stringify(got) === JSON.stringify(exp) });
+    const ok = (name, cond, info) => R.push({ name, got: info, exp: true, pass: !!cond });
+    const mk = (pu, pl, goalIdx, o) => { const S = Troph.startState(Object.assign({ time: 2, pu, pl, goal: goalIdx, skill: 0, days: 1, dur: 1 }, o || {}), now); return S; };
+    const sess = (S, o) => buildSession(S, Core.derive(S, now), o);
+    // 70 pompes, objectif masse: pas de pompe standard facile, des difficultés ajoutées, séries proches de la limite
+    let S = mk(70, 12, 1);
+    let D = Core.derive(S, now);
+    const r70 = expectedMax(S, D, 'pompes_strictes');
+    eq('maximum déclaré (70 pompes) utilisé comme maximum attendu', Math.round(r70), 70);
+    const sm = sess(S, { focus: 'push', minutes: 40 });
+    const push1 = sm.items[0];
+    ok('masse: la première pompe n\'est pas la version standard sans difficulté', push1.key !== 'pompes_strictes' || push1.mods.length > 0, push1.key + ' ' + push1.mods.join('+'));
+    ok('masse: répétitions cibles entre 6 et 15', sm.items.filter(i => !i.hold && i.fam !== 'core').every(i => i.target >= 6 && i.target <= 15 || i.expected < 12), sm.items.map(i => i.key + ':' + i.target).join(' '));
+    ok('masse: 3 à 4 séries et repos de 75 s', sm.items.every(i => i.sets >= 2 && i.sets <= 4) && sm.items.every(i => i.rest === 75), sm.items.map(i => i.sets + '/' + i.rest).join(' '));
+    // force
+    S = mk(70, 12, 0);
+    const sf = sess(S, { focus: 'push', minutes: 40 });
+    ok('force: peu de répétitions (2 à 6) et longs repos', sf.items.filter(i => !i.hold && i.fam !== 'core').every(i => i.target <= 6) && sf.items.every(i => i.rest >= 150), sf.items.map(i => i.key + ':' + i.target + '/' + i.rest).join(' '));
+    // endurance: plus de répétitions que force
+    S = mk(70, 12, 3);
+    const se = sess(S, { focus: 'push', minutes: 40 });
+    const maxR = items => Math.max(...items.filter(i => !i.hold && i.fam !== 'core').map(i => i.target));
+    ok('endurance: plus de répétitions que la force', maxR(se.items) > maxR(sf.items), maxR(se.items) + ' contre ' + maxR(sf.items));
+    ok('endurance: repos courts (40 s)', se.items.every(i => i.rest === 40), se.items.map(i => i.rest).join(','));
+    // débutant: version facile
+    S = mk(3, 0, 1);
+    const sb = sess(S, { focus: 'full', minutes: 20 });
+    ok('débutant: 3 exercices et une pompe inclinée ou standard', sb.items.length === 3 && sb.items.some(i => i.key === 'pompes_inclinees' || i.key === 'pompes_strictes'), sb.items.map(i => i.key).join(','));
+    // durée
+    S = mk(30, 8, 1);
+    const s20 = sess(S, { focus: 'full', minutes: 20 }), s40 = sess(S, { focus: 'full', minutes: 40 }), s60 = sess(S, { focus: 'full', minutes: 60 });
+    ok('durée: 20 min < 40 min <= 60 min en nombre d\'exercices', s20.items.length < s40.items.length && s40.items.length <= s60.items.length, [s20, s40, s60].map(s => s.items.length).join('/'));
+    ok('durée: l\'estimation respecte le temps demandé', [s20, s40, s60].every((s, i) => s.estMin <= [20, 40, 60][i] + 3), [s20, s40, s60].map(s => s.estMin).join('/'));
+    // focus
+    const sp = sess(S, { focus: 'legs', minutes: 40 });
+    ok('focus jambes: uniquement jambes et abdos', sp.items.every(i => i.fam === 'legs' || i.fam === 'core'), sp.items.map(i => i.key).join(','));
+    const su = sess(S, { focus: 'pull', minutes: 40 });
+    ok('focus tirer: tractions et abdos', su.items.every(i => i.fam === 'pull' || i.fam === 'core'), su.items.map(i => i.key).join(','));
+    // exercices fermés jamais proposés
+    ok('jamais d\'exercice à plus de 2 niveaux au-dessus du joueur', [s20, s40, s60, sp, su].every(s => s.items.every(i => Troph.unlockOf(i.key) <= Troph.level(S) + 2)), '');
+    S = mk(70, 12, 0); D = Core.derive(S, now);
+    const f70 = sess(S, { focus: 'push', minutes: 40 });
+    ok('force avec 70 pompes: une version difficile (archer ou diamant lesté), pas la pompe standard', f70.items[0].key !== 'pompes_strictes' && f70.items[0].key !== 'pompes_inclinees', f70.items[0].key + ' ' + f70.items[0].mods.join('+'));
+    ok('force: jamais plus de 6 répétitions', f70.items.filter(i => !i.hold && i.fam !== 'core').every(i => i.target <= 6), f70.items.map(i => i.key + ':' + i.target).join(' '));
+    S = mk(3, 0, 1, { time: 0 }); D = Core.derive(S, now);
+    const deb = sess(S, { focus: 'full', minutes: 20 });
+    ok('débutant sans traction: un rowing inversé, jamais 3 x 1 traction', !deb.items.some(i => i.key.indexOf('traction') === 0) && deb.items.some(i => i.key === 'rowing_inverse'), deb.items.map(i => i.key + ':' + i.target).join(' '));
+    // skills
+    S = mk(30, 8, 2, { skill: 1 });
+    D = Core.derive(S, now);
+    const ss = sess(S, { focus: 'skills', minutes: 40 });
+    ok('skills (planche): la planche est en tête avec des tenues courtes', ss.items[0].key.indexOf('planche') === 0 && ss.items[0].hold && ss.items[0].target <= 12, ss.items.map(i => i.key + ':' + i.target).join(' '));
+    ok('skills: renforcement ajouté (pousser, abdos)', ss.items.length >= 3, ss.items.map(i => i.key).join(','));
+    S = mk(20, 3, 2, { skill: 3 });
+    const sm2 = sess(S, { focus: 'skills', minutes: 40 });
+    ok('muscle-up avec 3 tractions: on construit d\'abord les tractions', sm2.items[0].key === 'tractions_strictes', sm2.items.map(i => i.key).join(','));
+    // progression
+    S = mk(30, 8, 1);
+    D = Core.derive(S, now);
+    let a = sess(S, { focus: 'push', minutes: 40 });
+    const it0 = a.items[0];
+    Coach.recordSession(S, a, [{ key: it0.key, sig: it0.sig, sets: Array(it0.sets).fill(it0.target), target: it0.target, goal: a.goal }], now);
+    const b = sess(S, { focus: 'push', minutes: 40 });
+    const same = b.items.find(i => i.sig === it0.sig);
+    ok('progression: toutes les séries réussies -> +1 répétition la fois suivante', !same || same.target === Math.min(it0.target + 1, GOALS.masse.repMax + 4), it0.target + ' -> ' + (same ? same.target : 'autre exercice'));
+    // niveau sur exercice
+    S = mk(70, 12, 1); D = Core.derive(S, now);
+    const L = exLevel(S, D, 'pompes_strictes');
+    ok('niveau sur exercice: rang, ELO et prochain palier', L && L.ranked && L.next && L.next.value > 70 || (L && L.ranked && L.rank === 'or'), JSON.stringify(L && { rank: L.rank, elo: L.elo, next: L.next }));
+    eq('exercice jamais fait: pas classé', exLevel(S, D, 'pistol_squat') && exLevel(S, D, 'pistol_squat').ranked, false);
+    // semaine
+    eq('semaine à 3 jours: 3 séances corps entier', weekPlan(mk(30, 8, 1, { days: 1 })).map(x => x.focus), ['full', 'full', 'full']);
+    eq('semaine à 5 jours', weekPlan(mk(30, 8, 1, { days: 3 })).map(x => x.focus), ['push', 'pull', 'legs', 'upper', 'core']);
+    return R;
+  }
+
+  return { GOALS, SKILLS, FOCUS_LABEL, FOCUS, settings, catElo, expectedMax, buildSession, weekPlan, nextFocus, recordSession, exLevel, allLevels, test, isOpen };
 })();
 
 /* ============================================================
@@ -2119,6 +2675,7 @@ function loadState() {
   return null;
 }
 function save() {
+  if (typeof Cloud !== 'undefined' && Cloud.loggedIn() && S && S.onboarded) S.owner = Cloud.user().id;   // la progression appartient au compte connecté
   try { if (S && S.onboarded) localStorage.setItem(STORE_KEY, JSON.stringify(S)); } catch (e) { /* sans effet */ }
   if (typeof cloudSyncSoon === 'function') cloudSyncSoon();
 }
@@ -2162,10 +2719,10 @@ function toast(msg) {
 
 /* ---------- navigation ---------- */
 const TABS = [
-  { id: 'train', label: 'S\'entraîner', ic: 'train' }, { id: 'ranked', label: 'Ranked', ic: 'ranked' }, { id: 'trophies', label: 'Trophées', ic: 'trophies' }
+  { id: 'train', label: 'S\'entraîner', ic: 'train' }, { id: 'plan', label: 'Programme', ic: 'plan' }, { id: 'ranked', label: 'Ranked', ic: 'ranked' }, { id: 'trophies', label: 'Trophées', ic: 'trophies' }
 ];
-const IMMERSIVE = new Set(['welcome', 'auth', 'intake', 'exercise', 'promo']);
-const tabOf = r => (r === 'promo' ? 'ranked' : r === 'family' || r === 'exercise' ? 'train' : r);
+const IMMERSIVE = new Set(['welcome', 'auth', 'intake', 'exercise', 'promo', 'session']);
+const tabOf = r => (r === 'promo' ? 'ranked' : r === 'session' ? 'plan' : r === 'family' || r === 'exercise' ? 'train' : r);
 function go(route, opts) {
   stopMq();
   ui.route = route;
@@ -2193,7 +2750,7 @@ const avatarBtn = () => `<button class="ibtn avatar" type="button" id="btn-profi
 const tabsHtml = (pre) => TABS.map(t => `<button class="tab" type="button" data-act="nav" data-route="${t.id}" id="${pre}-${t.id}"${t.id === tabOf(ui.route) ? ' aria-current="page"' : ''}>${icon(t.ic)}<span>${t.label}</span></button>`).join('');
 function topHtml() {
   if (ui.route === 'intake' || ui.route === 'welcome' || ui.route === 'auth') return '';
-  if (ui.route === 'exercise' || ui.route === 'promo') return '';
+  if (ui.route === 'exercise' || ui.route === 'promo' || ui.route === 'session') return '';
   const left = ui.route === 'ranked' || ui.route === 'trophies' ? '' : lvlChip();
   const kind = ui.route === 'ranked' ? 'ranked' : ui.route === 'trophies' ? 'trophies' : ui.route === 'family' ? 'family' : 'train';
   return `${left}<span class="sp"></span><nav class="topnav" aria-label="Navigation principale">${tabsHtml('top')}</nav><span class="sp"></span>${infoBtn(kind)}${avatarBtn()}`;
@@ -2220,6 +2777,8 @@ function view() {
   switch (ui.route) {
     case 'welcome': return welcomeView();
     case 'auth': return authView();
+    case 'plan': return planView();
+    case 'session': return sessionView();
     case 'intake': return intakeView();
     case 'family': return familyView();
     case 'exercise': return exerciseView();
@@ -2232,11 +2791,12 @@ function view() {
 function ctaHtml() {
   if (ui.route === 'exercise') return exerciseCta();
   if (ui.route === 'promo') return promoCta();
+  if (ui.route === 'session') return sessionCta();
   return '';
 }
 function afterRender() {
   if (ui.route === 'exercise' && ui.mqTab === 'move') startMq(); else stopMq();
-  if (ui.route === 'intake') { const b = $('#intake-first'); if (b) b.focus({ preventScroll: true }); }
+  if (ui.route === 'intake') { const b = $('#intake-first') || $('#iq-num'); if (b) b.focus({ preventScroll: true }); }
   if (ui.route === 'welcome') { const i = $('#pseudo'); if (i) i.focus({ preventScroll: true }); }
   if (ui.route === 'auth') { const i = $('#au-pseudo') || $('#au-email') || $('#au-password'); if (i && !i.value) i.focus({ preventScroll: true }); }
   if (ui.route === 'ranked' && typeof cloudLoadLb === 'function') cloudLoadLb();
@@ -2287,7 +2847,7 @@ function familyView() {
     else if (tp) tg = `${icon('medal')}<span>Trophée : ${esc(medNum(tp))}</span>`;
     else if (it.ranked && D.ex[it.ex] && D.ex[it.ex].pb) { const pb = D.ex[it.ex].pb; if (!it.variant || pb.variant === it.variant) tg = `<span class="dim">Record : ${esc(fmtNum(pb.perf))}${it.hold ? ' s' : ''}</span>`; }
     return `<button class="ex${locked ? ' locked' : ''}" type="button" data-act="open-ex" data-key="${esc(k)}" id="ex-${esc(k.replace(/[^a-z0-9]+/gi, '-'))}">
-      <span class="thumb">${thumb(it)}</span><span><div class="nm">${esc(it.name)}</div><div class="tg">${tg}</div></span>${icon('next', 'ch')}</button>`;
+      <span class="thumb">${thumb(it)}</span><span><div class="nm">${esc(it.name)} ${locked ? '' : rkTag(k)}</div><div class="tg">${tg}</div></span>${icon('next', 'ch')}</button>`;
   };
   return `<section><div class="sub"><button class="ibtn" type="button" id="btn-back" data-act="back" aria-label="Retour">${icon('back')}</button><h1>${FAM[f].label}</h1></div>
     <div class="list">${fi.open.map(k => card(k, false)).join('')}</div>
@@ -2314,7 +2874,7 @@ function exerciseView() {
   const chip = tp ? `<div><span class="chip-t">${icon('medal')}Trophée : ${esc(medNum(tp))}</span></div>` : '';
   const kick = (ui.key === 'handstand_libre' || ui.key === 'handstand_mur') ? `<div><button class="link" type="button" data-act="open-ex" data-key="kickup">Apprendre le kick-up</button></div>` : '';
   return `<section class="stack"><div class="sub"><button class="ibtn" type="button" id="btn-back" data-act="back" aria-label="Retour">${icon('back')}</button><h1>${esc(it.name)}</h1>${infoBtn('exercise')}</div>
-    <div class="stage">${seg}${stage}</div>${chip}
+    ${lvlBlock(ui.key)}<div class="stage">${seg}${stage}</div>${chip}
     <ol class="steps">${it.st.map(s => `<li>${esc(s)}</li>`).join('')}</ol>
     <div class="err">${icon('warn')}<div><b>Erreur à éviter</b>${esc(it.er)}</div></div>${kick}</section>`;
 }
@@ -2401,12 +2961,13 @@ function liveSet(it) { return it.pose && Mannequin.has(it.pose) ? it.pose : FAM_
 function beginLive(o) {
   const it = TI[o.key];
   const tp = pendingTrophy(o.key);
-  ui.live = { key: o.key, ctx: o.ctx, ranked: !!o.ranked, free: !!o.free, reps: 0, secs: 0, target: tp, hold: !!it.hold };
+  ui.live = { key: o.key, ctx: o.ctx, ranked: !!o.ranked, free: !!o.free, reps: 0, secs: 0, target: tp, hold: !!it.hold, goalText: o.goalText || '' };
   closeSheet();
   render();
 }
 function liveGoal(L) {
   const it = TI[L.key];
+  if (L.goalText) return L.goalText;
   if (L.ctx === 'promo' && ui.pr && ui.pr.targets && ui.pr.targets[L.key]) return goalText(ui.pr.targets[L.key]);
   return L.target ? goalText(L.target) : (it.hold ? 'Tiens le plus longtemps possible' : 'Compte tes répétitions');
 }
@@ -2487,6 +3048,13 @@ function liveEnd() {
   stopSkel();
   const key = L.key, ctx = L.ctx, free = L.free, ranked = L.ranked;
   ui.live = null;
+  if (ctx === 'session') {   // série d'une séance guidée : on rend la valeur à la séance, sans classement
+    const cs = ui.run && ui.run.camSet;
+    if (ui.run) ui.run.camSet = null;
+    render();
+    if (cs && ui.run) { if (perf > 0) sessionSetDone(cs.i, cs.n, perf); else toast('Série vide : rien n\'est enregistré.'); }
+    return;
+  }
   if (!(perf > 0)) { render(); toast('Série vide : rien n\'est enregistré.'); return; }
   if (ctx === 'promo') { promoRecord(key, perf); return; }
   recordTraining(key, perf, ranked, free);
@@ -2561,6 +3129,7 @@ function rankedView() {
       <div class="who" id="who-name">${esc(accName())}</div><div class="rn">${esc(Core.rName(S.earned))}</div><div class="nv">Niveau ${Troph.level(S)}</div>
       <div class="pts"><div class="pl"><b class="num" id="pts-val">${fmt(pts)}</b><span>/ 100 points</span></div><div class="bar" role="progressbar" aria-label="Points" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(pts)}"><i style="width:${pts.toFixed(1)}%"></i></div></div></div>
     ${btn}
+    ${typeof exercisesRankedHtml === 'function' ? exercisesRankedHtml() : ''}
     <div class="lb"><div class="lb-h"><span>Classement</span><span id="lb-label">${lbLabel()}</span></div><ol id="lb-list">${leaderboard()}</ol></div></section>`;
 }
 
@@ -2646,6 +3215,275 @@ function promoRecord(key, perf) {
   go('promo');
   if (ev) cinematic(ev.rank, null);
 }
+
+/* ============================================================
+   ui_plan.js : onglet Programme (objectif, semaine, creation de seance), seance guidee avec minuteur de repos,
+   et niveau du joueur sur chaque exercice (rang, ELO, prochain palier). La logique est dans coach.js.
+   ============================================================ */
+ui.build = { focus: 'full', minutes: 40, goal: null };
+ui.run = null;     // seance en cours: { s, done:[[valeurs]], started }
+ui.rest = null;    // repos en cours: { until, total }
+ui.edit = null;    // brouillon d'edition du plan
+
+const GOAL_IDS = ['force', 'masse', 'skills', 'endurance', 'forme'];
+const FOCUS_ORDER = ['full', 'upper', 'push', 'pull', 'legs', 'core', 'skills'];
+const planOf = () => Coach.settings(S);
+const fmtDate = ts => new Date(ts).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+const rkStyle = id => `--rc:var(--rk-${id});--rc-hi:var(--rk-${id}-hi);--rc-lo:var(--rk-${id}-lo)`;
+
+/* ---------- niveau sur un exercice ---------- */
+function rkTag(key) {
+  const L = typeof Coach !== 'undefined' ? Coach.exLevel(S, D, key) : null;
+  if (!L || !L.ranked) return '';
+  return `<span class="rkt" style="${rkStyle(L.rank)}">${esc(Core.rName(L.rank))}</span>`;
+}
+function lvlBlock(key) {
+  const it = TI[key];
+  if (!it || !it.ranked) return '';
+  const L = Coach.exLevel(S, D, key);
+  if (!L) return '';
+  if (!L.ranked) return `<div class="lvlx"><div class="k">Ton niveau sur cet exercice</div><div class="v dim">Pas encore classé</div><div class="s">Fais une série classée pour connaître ton niveau.</div></div>`;
+  const rec = fmtNum(L.pb.perf) + (it.hold ? ' s' : ' rép.') + (L.pb.variant ? ' · ' + (VAR_SHORT[L.pb.variant] || L.pb.variant) : '');
+  let next = '';
+  if (L.next) {
+    const nm = Core.rName(L.next.rank);
+    next = L.next.variant ? `Prochain rang, ${esc(nm)} : ${esc(VAR_SHORT[L.next.variant] || L.next.variant)} pendant 5 s.`
+      : L.next.missing > 0 ? `Prochain rang, ${esc(nm)} : ${fmtNum(L.next.value)}${it.hold ? ' s' : ''} (encore ${fmtNum(L.next.missing)}).` : `Tu as déjà le niveau de ${esc(nm)} : monte ton ELO avec une nouvelle série classée.`;
+  } else next = 'Rang maximal atteint.';
+  return `<div class="lvlx" style="${rkStyle(L.rank)}"><div class="emb">${emblem(L.rank, 72)}</div><div class="bd"><div class="k">Ton niveau sur cet exercice</div>
+    <div class="v"><b>${esc(Core.rName(L.rank))}</b> · niveau ${L.level}<span class="el"> · ${fmt(L.elo)} ELO</span></div>
+    <div class="bar" role="progressbar" aria-label="Progression dans le rang" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${L.pct}"><i style="width:${L.pct}%"></i></div>
+    <div class="s">Record : <b>${esc(rec)}</b>${L.provisional ? ' · classement provisoire' : ''}</div><div class="s">${next}</div></div></div>`;
+}
+function exercisesRankedHtml() {
+  const list = Coach.allLevels(S, D);
+  if (!list.length) return '';
+  return `<div class="lb"><div class="lb-h"><span>Tes exercices</span><span>niveau par exercice</span></div><ol id="ex-levels">${list.map(x =>
+    `<li><span class="em">${emblem(x.rank, 28)}</span><span class="nm">${esc(x.name)}</span><span class="el">${esc(Core.rName(x.rank))} · ${esc(fmtNum(x.pb.perf))}${x.unit === 's' ? ' s' : ''}</span></li>`).join('')}</ol></div>`;
+}
+
+/* ---------- onglet Programme ---------- */
+function planView() {
+  const st = planOf(), g = Coach.GOALS[st.goal], nf = Coach.nextFocus(S), week = Coach.weekPlan(S);
+  const ss = (S.plan && S.plan.sessions) || [], weekAgo = Date.now() - 7 * 86400000, doneWeek = ss.filter(x => x.ts > weekAgo).length;
+  const skill = st.goal === 'skills' && st.skill && Coach.SKILLS[st.skill] ? ' · ' + Coach.SKILLS[st.skill].label : '';
+  const m = st.maxes || {}, maxes = (m.pu || m.pl) ? ` · max : ${m.pu || 0} pompes, ${m.pl || 0} tractions` : '';
+  const weekHtml = week.map((w, i) => `<li class="${i < doneWeek ? 'done' : ''}"><span class="dn">${i + 1}</span><span class="nm">${esc(w.label)}</span><button class="btn sm" type="button" data-act="plan-make" data-focus="${w.focus}">Créer</button></li>`).join('');
+  const hist = ss.slice(-4).reverse().map(x => {
+    const n = x.items.reduce((s, i) => s + i.sets.length, 0);
+    return `<li><span class="nm">${esc(Coach.FOCUS_LABEL[x.focus] || x.focus)} · ${esc((Coach.GOALS[x.goal] || g).label)}</span><span class="el">${fmtDate(x.ts)} · ${n} séries</span></li>`;
+  }).join('');
+  return `<section class="stack plan">
+    <div class="pobj"><div class="k">Ton objectif</div><div class="v">${esc(g.label)}${esc(skill)}</div><div class="s">${st.days} séances par semaine · ${st.dur} min${esc(maxes)}</div>
+      <button class="link" type="button" id="btn-plan-edit" data-act="plan-edit">Modifier mon plan</button></div>
+    <div class="pnext"><div class="k">Séance suggérée</div><div class="v">${esc(nf.label)}</div><div class="s">${esc(g.why)}</div>
+      <div class="acts"><button class="btn primary" type="button" id="btn-plan-make" data-act="plan-make" data-focus="${nf.focus}">Créer ma séance</button><button class="btn" type="button" id="btn-plan-other" data-act="plan-build">Une autre séance</button></div></div>
+    <div class="psec"><h2>Ma semaine</h2><div class="muted" style="margin:-4px 0 8px">${doneWeek} séance${doneWeek > 1 ? 's' : ''} sur 7 jours glissants, objectif ${st.days}.</div><ul class="weeklist" id="weeklist">${weekHtml}</ul></div>
+    ${hist ? `<div class="psec"><h2>Derniers entraînements</h2><ul class="histlist">${hist}</ul></div>` : ''}
+    <div class="psec"><h2>Conseils du coach</h2><ul class="lines">${g.tips.map(t => `<li>${esc(t)}</li>`).join('')}</ul></div>
+  </section>`;
+}
+
+/* ---------- feuilles: creer une seance, modifier le plan, saisir une serie, fin de seance ---------- */
+const chips = (name, opts, cur, act) => `<div class="chips" role="group" aria-label="${name}">${opts.map(o => `<button type="button" class="chipb" data-act="${act}" data-v="${esc(o.v)}" aria-pressed="${String(o.v) === String(cur)}">${esc(o.l)}</button>`).join('')}</div>`;
+function planSheet(s) {
+  if (s.type === 'build') {
+    const b = ui.build, st = planOf();
+    return `<h2 id="sheet-t">Créer ma séance</h2>
+      <div class="lab">Quoi travailler ?</div>${chips('Focus', FOCUS_ORDER.map(f => ({ v: f, l: Coach.FOCUS_LABEL[f] })), b.focus, 'bd-focus')}
+      <div class="lab" style="margin-top:12px">Combien de temps ?</div>${chips('Durée', [20, 40, 60].map(v => ({ v, l: v + ' min' })), b.minutes, 'bd-min')}
+      <div class="lab" style="margin-top:12px">Objectif de la séance</div>${chips('Objectif', GOAL_IDS.map(id => ({ v: id, l: Coach.GOALS[id].label })), b.goal || st.goal, 'bd-goal')}
+      ${(b.goal || st.goal) === 'skills' && !st.skill ? '<p class="dim" style="margin:8px 0 0;font-size:14px">Choisis ton skill dans « Modifier mon plan ».</p>' : ''}
+      <div class="acts"><button class="btn primary focus-first" type="button" id="btn-bd-go" data-act="bd-go">Générer la séance</button></div>`;
+  }
+  if (s.type === 'planedit') {
+    const e = ui.edit;
+    return `<h2 id="sheet-t">Mon plan</h2>
+      <div class="lab">Objectif</div>${chips('Objectif', GOAL_IDS.map(id => ({ v: id, l: Coach.GOALS[id].label })), e.goal, 'pe-goal')}
+      ${e.goal === 'skills' ? `<div class="lab" style="margin-top:12px">Skill visé</div>${chips('Skill', Object.keys(Coach.SKILLS).map(id => ({ v: id, l: Coach.SKILLS[id].label })), e.skill || '', 'pe-skill')}` : ''}
+      <div class="lab" style="margin-top:12px">Jours par semaine</div>${chips('Jours', [2, 3, 4, 5].map(v => ({ v, l: String(v) })), e.days, 'pe-days')}
+      <div class="lab" style="margin-top:12px">Durée d'une séance</div>${chips('Durée', [20, 40, 60].map(v => ({ v, l: v + ' min' })), e.dur, 'pe-dur')}
+      <div class="lab" style="margin-top:12px">Tes maximums actuels</div>
+      <div class="two2"><div><label class="lab" for="pe-pu">Pompes</label><input class="field" id="pe-pu" data-in="pe-pu" type="number" inputmode="numeric" min="0" max="300" value="${e.pu}"></div>
+      <div><label class="lab" for="pe-pl">Tractions</label><input class="field" id="pe-pl" data-in="pe-pl" type="number" inputmode="numeric" min="0" max="80" value="${e.pl}"></div></div>
+      <p class="dim" style="font-size:14px;margin:6px 0 0">Ces chiffres servent à choisir tes exercices et tes répétitions. Fais une série classée pour les mettre à jour.</p>
+      <div class="acts"><button class="btn primary focus-first" type="button" id="btn-pe-save" data-act="pe-save">Enregistrer</button></div>`;
+  }
+  if (s.type === 'setlog') {
+    const R = ui.run, it = R.s.items[s.i], n = s.n, val = s.val;
+    const cam = typeof LiveCam !== 'undefined' && LiveCam.available() && LiveCam.supports(it.key);
+    return `<h2 id="sheet-t">${esc(it.name)}</h2><div class="muted" style="margin:-4px 0 8px">Série ${n + 1} sur ${it.sets} · objectif ${it.target}${it.hold ? ' s' : ' répétitions'}${it.perSide ? ' par côté' : ''}</div>
+      <div class="stepper"><button class="btn" type="button" id="btn-sl-minus" data-act="sl-minus" aria-label="Moins">−</button><div class="sv" id="sl-val" aria-live="polite">${val}</div><button class="btn" type="button" id="btn-sl-plus" data-act="sl-plus" aria-label="Plus">+</button></div>
+      <div class="dim" style="text-align:center;font-size:14px">${it.hold ? 'secondes tenues' : 'répétitions faites'}</div>
+      <div class="acts"><button class="btn primary focus-first" type="button" id="btn-sl-ok" data-act="sl-ok">Valider la série</button>${cam ? `<button class="btn" type="button" id="btn-sl-cam" data-act="sl-cam">Compter avec la caméra</button>` : ''}${R.s.items[s.i].sets > n && R.done[s.i][n] != null ? `<button class="btn" type="button" data-act="sl-del">Effacer cette série</button>` : ''}</div>`;
+  }
+  if (s.type === 'sessend') {
+    const r = s.res;
+    const rows = r.rows.map(x => `<li class="${x.ok ? 'ok' : ''}"><span>${esc(x.name)}</span><b>${esc(x.txt)}</b></li>`).join('');
+    return `<h2 id="sheet-t">Séance terminée</h2><div class="big">${r.sets} <small>séries</small></div>
+      <ul class="pdone" style="margin-top:10px">${rows}</ul>
+      <p class="muted" style="margin:10px 0 0">${esc(r.msg)}</p>
+      <div class="acts"><button class="btn primary focus-first" type="button" id="btn-se-ok" data-act="se-ok">Continuer</button></div>`;
+  }
+  if (s.type === 'quitrun') {
+    return `<h2 id="sheet-t">Quitter la séance ?</h2><p class="muted" style="margin:0">Tes séries déjà faites ne seront pas enregistrées.</p>
+      <div class="acts"><button class="btn focus-first" type="button" data-act="sheet-close">Continuer la séance</button><button class="btn danger" type="button" id="btn-qr-yes" data-act="qr-yes">Quitter sans enregistrer</button></div>`;
+  }
+  return '';
+}
+
+/* ---------- seance guidee ---------- */
+function sessionView() {
+  const R = ui.run;
+  if (!R) return `<section class="stack"><div class="sub"><button class="ibtn" type="button" data-act="plan-back" aria-label="Retour">${icon('back')}</button><h1>Séance</h1></div></section>`;
+  const s = R.s, g = Coach.GOALS[s.goal];
+  const warm = `<details class="warm"><summary>Échauffement · 5 minutes (touche pour ouvrir)</summary><ul class="lines">${s.warmup.map(w => `<li>${esc(w)}</li>`).join('')}</ul></details>`;
+  const cards = s.items.map((it, i) => {
+    const done = R.done[i], bub = [];
+    for (let n = 0; n < it.sets; n++) bub.push(`<button type="button" class="setb${done[n] != null ? ' on' : ''}" id="set-${i}-${n}" data-act="set-open" data-i="${i}" data-n="${n}" aria-label="Série ${n + 1}${done[n] != null ? ', ' + done[n] : ''}">${done[n] != null ? done[n] : n + 1}</button>`);
+    const t = TI[it.key];
+    const notes = it.notes.length ? `<ul class="lines sxn">${it.notes.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : '';
+    return `<article class="sx" id="sx-${i}"><div class="sxh"><div class="thumb">${thumb(t)}</div><div class="bd"><div class="nm">${esc(it.name)}</div><div class="rk">${rkTag(it.key)}</div></div></div>
+      <div class="sxp"><b>${it.sets} × ${it.target}${it.hold ? ' s' : ''}</b>${it.perSide ? ' par côté' : ''} · repos ${it.rest} s</div>
+      <div class="sxm">Tempo ${esc(it.tempo)}.<br>${esc(it.rir)}.</div>${notes}
+      ${it.last ? `<div class="sxl">La dernière fois : ${it.last.join(' · ')}</div>` : ''}
+      <div class="sets">${bub.join('')}</div>
+      <div class="sxw dim">${esc(it.why)}</div>
+      <div class="row" style="margin-top:8px"><button class="link" type="button" data-act="open-ex" data-key="${esc(it.key)}">Voir l'exercice</button></div></article>`;
+  }).join('');
+  const tot = R.done.reduce((a, d) => a + d.length, 0);
+  return `<section class="stack session"><div class="sub"><button class="ibtn" type="button" id="btn-sess-back" data-act="sess-back" aria-label="Retour">${icon('back')}</button><h1>${esc(s.focusLabel)} · ${esc(g.label)}</h1></div>
+    <div class="muted" style="margin:-2px 0 4px">${s.items.length} exercices · environ ${s.estMin} min${s.skill ? ' · skill : ' + esc(s.skill.label) : ''}</div>
+    <div class="notice" style="margin:0">Douleur de tendon ou d'articulation à 6 sur 10 ou plus : on arrête. La fatigue des muscles ne compte pas.</div>
+    ${warm}${cards}</section>`;
+}
+function sessionCta() {
+  const R = ui.run; if (!R) return '';
+  const tot = R.done.reduce((a, d) => a + d.length, 0);
+  return `<div class="cta"><div><button class="btn primary" type="button" id="btn-sess-end" data-act="sess-end"${tot ? '' : ' disabled'}>${tot ? 'Terminer la séance (' + tot + ' série' + (tot > 1 ? 's' : '') + ')' : 'Fais ta première série'}</button></div></div>`;
+}
+
+/* repos entre les series */
+let restTimer = 0;
+function planBeep(f, ms) {
+  try { const A = window.AudioContext || window.webkitAudioContext; const c = planBeep.c || (planBeep.c = new A()); if (c.state === 'suspended') c.resume(); const o = c.createOscillator(), g = c.createGain(); o.frequency.value = f; g.gain.value = 0.1; o.connect(g); g.connect(c.destination); o.start(); o.stop(c.currentTime + ms / 1000); } catch (e) { /* pas de son */ }
+}
+function startRest(sec) {
+  ui.rest = { until: Date.now() + sec * 1000, total: sec };
+  clearInterval(restTimer);
+  restTimer = setInterval(restTick, 250);
+  restTick();
+}
+function stopRest() { clearInterval(restTimer); ui.rest = null; const r = $('#rest-root'); if (r) r.innerHTML = ''; }
+function restTick() {
+  const r = $('#rest-root'), R = ui.rest;
+  if (!r) return;
+  if (!R || ui.route !== 'session') { r.innerHTML = ''; clearInterval(restTimer); return; }
+  const left = Math.max(0, Math.ceil((R.until - Date.now()) / 1000));
+  if (!r.firstChild) r.innerHTML = `<div class="restbar" role="timer" aria-live="off"><div class="rt"><span class="k">Repos</span><b id="rest-left"></b></div><div class="rp"><i id="rest-fill"></i></div><button class="btn sm" type="button" id="btn-rest-skip" data-act="rest-skip">Passer</button></div>`;
+  $('#rest-left').textContent = Math.floor(left / 60) + ':' + String(left % 60).padStart(2, '0');
+  $('#rest-fill').style.width = (100 * (1 - left / R.total)) + '%';
+  if (left <= 3 && left > 0 && R.lastBeep !== left) { R.lastBeep = left; planBeep(660, 90); }
+  if (left <= 0) { planBeep(990, 260); try { if (navigator.vibrate) navigator.vibrate(200); } catch (e) { /* ignore */ } toast('Repos terminé : à toi !'); stopRest(); }
+}
+
+/* ---------- actions ---------- */
+function planStartSession(opts) {
+  const sess = Coach.buildSession(S, D, opts);
+  if (!sess.items.length) { toast('Aucun exercice trouvé pour cette séance.'); return; }
+  ui.run = { s: sess, done: sess.items.map(() => []), started: false, t0: null };
+  ui.sheet = null;
+  go('session');
+}
+function setNext(i, n) {
+  const R = ui.run, it = R.s.items[i];
+  const prev = R.done[i][n] != null ? R.done[i][n] : (R.done[i].length ? R.done[i][R.done[i].length - 1] : it.target);
+  openSheet({ type: 'setlog', i, n, val: prev });
+}
+function sessionSetDone(i, n, v) {
+  const R = ui.run; if (!R) return;
+  v = Math.max(0, Math.min(999, Math.round(v)));
+  R.done[i][n] = v;
+  for (let k = 0; k < n; k++) if (R.done[i][k] == null) R.done[i][k] = v;   // pas de trou dans la liste
+  if (!R.started) { R.started = true; R.t0 = Date.now(); try { if (navigator.wakeLock) navigator.wakeLock.request('screen').catch(() => {}); } catch (e) { /* ignore */ } }
+  closeSheet(); render();
+  const it = R.s.items[i];
+  const allDone = R.done.every((d, j) => d.length >= R.s.items[j].sets);
+  if (!allDone) startRest(it.rest);
+}
+function sessionFinish() {
+  const R = ui.run; if (!R) return;
+  const now = nowMs(), res = [], rows = [];
+  let sets = 0, allOk = 0, total = 0;
+  R.s.items.forEach((it, i) => {
+    const d = R.done[i].filter(v => v != null);
+    if (!d.length) return;
+    sets += d.length;
+    const ok = d.length >= it.sets && d.every(v => v >= it.target);
+    total++; if (ok) allOk++;
+    res.push({ key: it.key, sig: it.sig, sets: d, target: it.target, goal: it.goal });
+    rows.push({ name: it.name, txt: d.join(' · ') + (it.hold ? ' s' : ''), ok });
+  });
+  Coach.recordSession(S, R.s, res, now);
+  R.s.items.forEach(it => S.log.push({ key: it.key, ts: now, perf: (R.done[R.s.items.indexOf(it)] || [0])[0] || 0 }));
+  if (S.log.length > 200) S.log.splice(0, S.log.length - 200);
+  save();
+  const msg = allOk === total ? 'Toutes les séries à l\'objectif : la prochaine fois, tu vises une répétition (ou deux secondes) de plus.'
+    : allOk ? 'Une partie des objectifs atteints : garde les mêmes cibles pour les exercices manqués, et monte pour les autres.' : 'Garde les mêmes cibles la prochaine fois : la progression viendra, ne force pas.';
+  stopRest();
+  ui.run = null;
+  go('plan');
+  openSheet({ type: 'sessend', res: { sets, rows, msg } });
+}
+function planAct(a, el) {
+  const d = el.dataset;
+  switch (a) {
+    case 'plan-build': ui.build = { focus: Coach.nextFocus(S).focus, minutes: planOf().dur, goal: null }; openSheet({ type: 'build' }); return true;
+    case 'plan-make': planStartSession({ focus: d.focus, minutes: planOf().dur }); return true;
+    case 'bd-focus': ui.build.focus = d.v; renderSheet(); return true;
+    case 'bd-min': ui.build.minutes = parseInt(d.v, 10); renderSheet(); return true;
+    case 'bd-goal': ui.build.goal = d.v; renderSheet(); return true;
+    case 'bd-go': planStartSession({ focus: ui.build.focus, minutes: ui.build.minutes, goal: ui.build.goal || planOf().goal }); return true;
+    case 'plan-edit': { const st = planOf(); ui.edit = { goal: st.goal, skill: st.skill, days: st.days, dur: st.dur, pu: (st.maxes && st.maxes.pu) || 0, pl: (st.maxes && st.maxes.pl) || 0 }; openSheet({ type: 'planedit' }); return true; }
+    case 'pe-goal': ui.edit.goal = d.v; if (d.v === 'skills' && !ui.edit.skill) ui.edit.skill = 'handstand'; renderSheet(); return true;
+    case 'pe-skill': ui.edit.skill = d.v; renderSheet(); return true;
+    case 'pe-days': ui.edit.days = parseInt(d.v, 10); renderSheet(); return true;
+    case 'pe-dur': ui.edit.dur = parseInt(d.v, 10); renderSheet(); return true;
+    case 'pe-save': {
+      const e = ui.edit;
+      if (!S.plan) S.plan = { hist: {}, sessions: [] };
+      S.plan.goal = e.goal; S.plan.skill = e.goal === 'skills' ? (e.skill || 'handstand') : (e.skill || null); S.plan.days = e.days; S.plan.dur = e.dur;
+      S.plan.maxes = { pu: Math.max(0, Math.min(300, Math.round(Number(e.pu) || 0))), pl: Math.max(0, Math.min(80, Math.round(Number(e.pl) || 0))) };
+      save(); closeSheet(); render(); toast('Plan enregistré'); return true;
+    }
+    case 'set-open': setNext(parseInt(d.i, 10), parseInt(d.n, 10)); return true;
+    case 'sl-minus': case 'sl-plus': {
+      const s = ui.sheet; s.val = Math.max(0, Math.min(999, s.val + (a === 'sl-plus' ? 1 : -1)));
+      const v = $('#sl-val'); if (v) v.textContent = s.val; return true;
+    }
+    case 'sl-ok': sessionSetDone(ui.sheet.i, ui.sheet.n, ui.sheet.val); return true;
+    case 'sl-del': { const s = ui.sheet, R = ui.run; R.done[s.i].splice(s.n); closeSheet(); render(); return true; }
+    case 'sl-cam': {
+      const s = ui.sheet, it = ui.run.s.items[s.i];
+      closeSheet();
+      ui.run.camSet = { i: s.i, n: s.n };
+      beginLive({ key: it.key, ctx: 'session', ranked: false, free: true, goalText: 'Objectif : ' + it.target + (it.hold ? ' s' : ' répétitions') });
+      return true;
+    }
+    case 'sess-end': sessionFinish(); return true;
+    case 'sess-back': if (ui.run && ui.run.done.some(x => x.length)) openSheet({ type: 'quitrun' }); else { stopRest(); ui.run = null; go('plan'); } return true;
+    case 'qr-yes': stopRest(); ui.run = null; closeSheet(); go('plan'); return true;
+    case 'plan-back': go('plan'); return true;
+    case 'se-ok': closeSheet(); render({ top: true }); return true;
+    case 'rest-skip': stopRest(); return true;
+    default: return false;
+  }
+}
+document.addEventListener('input', e => {
+  const t = e.target, k = t.dataset && t.dataset.in;
+  if (k === 'pe-pu' && ui.edit) ui.edit.pu = t.value;
+  else if (k === 'pe-pl' && ui.edit) ui.edit.pl = t.value;
+});
 
 /* ============================================================
    profile.js : compte local (pseudo + identifiant), ecran d'accueil, sauvegarde.
@@ -4584,49 +5422,86 @@ function sheetContent() {
     case 'profile': return profileSheet();
     case 'backup': return backupSheet();
     case 'legal': return legalSheet(s.kind);
-    default: return '';
+    default: return typeof planSheet === 'function' ? planSheet(s) : '';
   }
 }
 
 /* ---------- questionnaire de depart ---------- */
-const IQ = [
+/* Les réponses servent vraiment : maximums exacts -> niveau de départ ET volume des séances ; objectif -> choix des exercices,
+   répétitions, repos ; skill visé -> programme dédié ; jours et durée -> semaine type et nombre d'exercices (voir coach.js). */
+const IQ_ALL = [
   { k: 'time', t: 'Tu t\'entraînes depuis combien de temps ?', o: () => Troph.Q.time },
-  { k: 'pu', t: 'Combien de pompes d\'affilée ?', o: () => Troph.Q.pushups.map(x => x.l) },
-  { k: 'pl', t: 'Combien de tractions d\'affilée ?', o: () => Troph.Q.pullups.map(x => x.l) },
-  { k: 'goal', t: 'Quel est ton objectif ?', o: () => Troph.Q.goal, two: true },
-  { k: 'days', t: 'Combien de jours par semaine ?', o: () => Troph.Q.days }
+  { k: 'pu', t: 'Combien de pompes d\'affilée, au maximum ?', num: { max: 300, zero: 'Je n\'en fais pas encore', hint: 'Poitrine près du sol, bras tendus en haut. Donne ton vrai maximum.' } },
+  { k: 'pl', t: 'Combien de tractions d\'affilée, au maximum ?', num: { max: 80, zero: 'Je n\'en fais pas encore', hint: 'Menton au-dessus de la barre, sans élan. Donne ton vrai maximum.' } },
+  { k: 'goal', t: 'Quel est ton objectif principal ?', o: () => Troph.Q.goals.map(g => g.l), d: () => Troph.Q.goals.map(g => g.d) },
+  { k: 'skill', t: 'Quel skill veux-tu apprendre en premier ?', o: () => Troph.Q.skills.map(s => s.l), when: a => a.goal === 2 },
+  { k: 'days', t: 'Combien de jours par semaine peux-tu t\'entraîner ?', o: () => Troph.Q.days.map(d => d.l) },
+  { k: 'dur', t: 'Combien de temps par séance ?', o: () => Troph.Q.dur.map(d => d.l) }
 ];
+const iqSteps = () => IQ_ALL.filter(q => !q.when || q.when(ui.intake.a));
 function intakeView() {
-  const n = ui.intake.step;
-  const dots = `<div class="dots" aria-label="Question ${Math.min(n + 1, 5)} sur 5">${IQ.map((_, i) => `<i class="${i < n ? 'on' : i === n ? 'on cur' : ''}"></i>`).join('')}</div>`;
-  if (n < IQ.length) {
-    const q = IQ[n];
+  const n = ui.intake.step, steps = iqSteps();
+  const dots = `<div class="dots" aria-label="Question ${Math.min(n + 1, steps.length)} sur ${steps.length}">${steps.map((_, i) => `<i class="${i < n ? 'on' : i === n ? 'on cur' : ''}"></i>`).join('')}</div>`;
+  if (n < steps.length) {
+    const q = steps[n];
     const top = n > 0 ? `<button class="ibtn" type="button" id="btn-iq-back" data-act="iq-back" aria-label="Question précédente" style="position:absolute;left:0;top:0">${icon('back')}</button>`
       : (S.onboarded ? `<button class="ibtn" type="button" id="btn-iq-cancel" data-act="iq-cancel" aria-label="Annuler" style="position:absolute;left:0;top:0">${icon('cross')}</button>` : '');
+    if (q.num) {
+      const prev = ui.intake.a[q.k];
+      return `<section class="intake"><div style="position:relative">${dots}${top}</div>
+        <div class="q"><h1>${esc(q.t)}</h1><p class="muted" style="margin:0">${esc(q.num.hint)}</p>
+          <form id="iq-num-form" novalidate style="display:grid;gap:12px;margin-top:14px"><input class="field xl" id="iq-num" type="number" inputmode="numeric" pattern="[0-9]*" min="0" max="${q.num.max}" value="${prev == null ? '' : prev}" placeholder="0" aria-label="Nombre">
+          <div class="notice bad" id="iq-err" role="alert" hidden></div>
+          <button class="btn primary block" type="submit" id="btn-iq-num">Continuer</button></form>
+          <button class="link" type="button" id="btn-iq-zero" data-act="iq-zero">${esc(q.num.zero)}</button></div><div></div></section>`;
+    }
+    const descs = q.d ? q.d() : null;
     return `<section class="intake"><div style="position:relative">${dots}${top}</div>
-      <div class="q"><h1>${esc(q.t)}</h1><div class="opts${q.two ? ' two' : ''}">${q.o().map((l, i) => `<button class="opt" type="button" id="${i === 0 ? 'intake-first' : 'opt-' + q.k + '-' + i}" data-act="iq" data-i="${i}" aria-pressed="${ui.intake.a[q.k] === i}">${esc(l)}</button>`).join('')}</div></div>
+      <div class="q"><h1>${esc(q.t)}</h1><div class="opts${q.two ? ' two' : ''}">${q.o().map((l, i) => `<button class="opt" type="button" id="${i === 0 ? 'intake-first' : 'opt-' + q.k + '-' + i}" data-act="iq" data-i="${i}" aria-pressed="${ui.intake.a[q.k] === i}">${esc(l)}${descs ? `<small class="od">${esc(descs[i])}</small>` : ''}</button>`).join('')}</div></div>
       <div style="text-align:center">${n === 0 ? `<button class="link" type="button" id="btn-example0" data-act="load-example">Voir un exemple</button>` : ''}</div></section>`;
   }
-  const first = Troph.firstThings(S), lv = Troph.level(S), it = S.intake || {};
+  const first = Troph.firstThings(S), lv = Troph.level(S), it = S.intake || {}, pl = S.plan || {};
   const capped = it.raw != null && it.raw > Troph.START_CAP;
+  const g = Troph.Q.goals.find(x => x.id === pl.goal);
   return `<section class="intake"><div>${dots}</div>
     <div class="res"><div class="emb">${emblem(S.earned, 230)}</div><div class="t1">Ton niveau : <b>${lv}</b></div><div class="muted" style="font-family:var(--f-display);font-size:26px;text-transform:uppercase;letter-spacing:.08em;margin-top:-6px">${esc(Core.rName(S.earned))}</div>
       ${capped ? `<p class="dim" style="margin:0;font-size:15px">Plafonné au niveau ${Troph.START_CAP} pour commencer. Valide des trophées pour monter.</p>` : ''}
+      ${g ? `<p class="muted" style="margin:0">Ton plan : <b style="color:var(--accent)">${esc(g.l)}</b> · ${pl.days} séances de ${pl.dur} min par semaine</p>` : ''}
       <div class="first"><div class="hd">À faire d'abord</div>${first.map(t => `<div class="it"><div class="md">${esc(medNumShort(t))}</div><div class="t">${esc(TI[t.key].name)}</div></div>`).join('')}</div></div>
-    <div><button class="btn primary block" type="button" id="btn-intake-go" data-act="intake-go">Commencer</button></div></section>`;
+    <div style="display:grid;gap:10px"><button class="btn primary block" type="button" id="btn-intake-plan" data-act="intake-plan">Créer ma première séance</button><button class="btn block" type="button" id="btn-intake-go" data-act="intake-go">Voir mes exercices</button></div></section>`;
 }
-function intakeAnswer(i) {
-  const q = IQ[ui.intake.step];
-  ui.intake.a[q.k] = i;
-  if (ui.intake.step < IQ.length - 1) { ui.intake.step++; render({ top: true }); return; }
-  const a = ui.intake.a, old = S, ns = Troph.startState({ time: a.time || 0, pu: a.pu || 0, pl: a.pl || 0, goal: a.goal || 0, days: a.days || 0 }, nowMs());
+function intakeFinish() {
+  const a = ui.intake.a, old = S, ns = Troph.startState({ time: a.time || 0, pu: a.pu || 0, pl: a.pl || 0, goal: a.goal || 0, skill: a.skill || 0, days: a.days == null ? 1 : a.days, dur: a.dur == null ? 1 : a.dur }, nowMs());
   Core.setTrial(ns, old.trial !== false);
   ns.prefs = old.prefs || ns.prefs;
   S = ns; save();
-  ui.intake.step = IQ.length;
+  ui.intake.step = iqSteps().length;
   ui.pr = null; ui.result = null; ui.trophyLv = null;
   render({ top: true });
 }
+function intakeNext() {
+  if (ui.intake.step < iqSteps().length - 1) { ui.intake.step++; render({ top: true }); return; }
+  intakeFinish();
+}
+function intakeAnswer(i) {
+  const q = iqSteps()[ui.intake.step];
+  ui.intake.a[q.k] = i;
+  intakeNext();
+}
+function intakeNum(v) {
+  const q = iqSteps()[ui.intake.step];
+  ui.intake.a[q.k] = v;
+  intakeNext();
+}
+document.addEventListener('submit', e => {
+  if (!e.target || e.target.id !== 'iq-num-form') return;
+  e.preventDefault();
+  const q = iqSteps()[ui.intake.step], el = $('#iq-num'), err = $('#iq-err');
+  const raw = String(el.value).trim(), v = Math.round(Number(raw));
+  if (raw === '' || !isFinite(v) || v < 0) { err.textContent = 'Entre un nombre (0 si tu n\'en fais pas encore).'; err.hidden = false; return; }
+  if (v > q.num.max) { err.textContent = 'Ce nombre est trop grand : maximum ' + q.num.max + '.'; err.hidden = false; return; }
+  intakeNum(v);
+});
 function loadExample() {
   const trial = S.trial !== false;
   S = Troph.exampleState(nowMs());
@@ -4684,10 +5559,12 @@ function act(a, el) {
     case 'reset-no': ui.confirmReset = false; renderSheet(); break;
     case 'reset-yes': resetAll(); break;
     case 'iq': intakeAnswer(parseInt(d.i, 10)); break;
+    case 'iq-zero': intakeNum(0); break;
+    case 'intake-plan': go('plan'); break;
     case 'iq-back': ui.intake.step = Math.max(0, ui.intake.step - 1); render({ top: true }); break;
     case 'iq-cancel': go('train'); break;
     case 'intake-go': go('train'); break;
-    default: if (!accAct(a) && !(typeof cloudAct === 'function' && cloudAct(a, el)) && typeof camAct === 'function') camAct(a, el); break;
+    default: if (!planAct(a, el) && !accAct(a) && !(typeof cloudAct === 'function' && cloudAct(a, el)) && typeof camAct === 'function') camAct(a, el); break;
   }
 }
 document.addEventListener('click', e => {
@@ -4736,7 +5613,7 @@ function boot() {
 window.CaliApp = {
   get S() { return S; }, set S(v) { S = v; }, get D() { return D; }, ui, render, go, act, Core, Troph, Body, Mannequin, Emblems,
   liveSim, liveEnd, beginLive, startExercise, openExercise, openPromo, recordTraining, loadExample, intakeAnswer, save, mq,
-  tests() { return { core: Core.selfTest(), flow: Core.flowTest(), troph: Troph.test() }; }
+  tests() { return { core: Core.selfTest(), flow: Core.flowTest(), troph: Troph.test(), coach: Coach.test() }; }
 };
 boot();
 
