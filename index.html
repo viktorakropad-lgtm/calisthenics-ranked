@@ -14,6 +14,7 @@
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <style>html,body{margin:0;background:#0b0d17}</style>
+<script>window.APP_VERSION = "0.2-90abab";</script>
 </head>
 <body>
 <style>
@@ -4283,7 +4284,8 @@ function profileSheet() {
     <button class="sw" type="button" role="switch" id="sw-trial" data-act="toggle-trial" aria-checked="${S.trial ? 'true' : 'false'}"><span class="tr"></span><span>Ignorer les délais pour tester</span></button>
     <div class="acts"><button class="btn focus-first" type="button" id="btn-redo" data-act="redo-intake">Refaire le test de départ</button>
     <button class="btn" type="button" id="btn-example" data-act="load-example">Voir un exemple</button>
-    <button class="btn" type="button" id="btn-backup" data-act="open-backup">Sauvegarde</button>${reset}</div>`;
+    <button class="btn" type="button" id="btn-backup" data-act="open-backup">Sauvegarde</button>${reset}</div>
+    <p class="dim" id="app-ver" style="font-size:13px;margin:12px 0 0">Version ${esc(window.APP_VERSION || 'aperçu')}</p>`;
 }
 function sheetContent() {
   const s = ui.sheet;
@@ -4450,7 +4452,17 @@ boot();
 
 <script>
 if ("serviceWorker" in navigator) {
-  window.addEventListener("load", function () { try { navigator.serviceWorker.register("sw.js"); } catch (e) {} });
+  // une nouvelle version prend le contrôle : on recharge une seule fois, sauf pendant une série
+  var reloaded = false;
+  navigator.serviceWorker.addEventListener("controllerchange", function () {
+    if (reloaded || !navigator.serviceWorker.controller) return;
+    var live = window.CaliApp && window.CaliApp.ui && window.CaliApp.ui.live;
+    if (live) return;
+    reloaded = true; location.reload();
+  });
+  window.addEventListener("load", function () {
+    try { navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).then(function (r) { r.update(); }).catch(function () {}); } catch (e) {}
+  });
 }
 </script>
 </body>
