@@ -14,7 +14,7 @@
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <style>html,body{margin:0;background:#0b0d17}</style>
-<script>window.APP_VERSION = "0.2-9b6b1f";</script>
+<script>window.APP_VERSION = "0.3-70c60a";</script>
 </head>
 <body>
 <style>
@@ -129,7 +129,7 @@ main { outline: none; padding-bottom: 12px; }
 
 .tabbar {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
-  display: grid; grid-template-columns: repeat(3, 1fr);
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
   background: var(--bg-2); border-top: 1px solid var(--line);
   padding-top: 4px;
   padding-bottom: env(safe-area-inset-bottom, 0px);
@@ -611,6 +611,71 @@ rect.sh { fill: url(#bshade); pointer-events: none; }
 .restbar { position: fixed; left: 0; right: 0; bottom: calc(env(safe-area-inset-bottom, 0px) + 92px); z-index: 60; width: min(calc(100% - 32px), 520px); margin: 0 auto; display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; padding: 10px 14px; border-radius: 18px; border: 1px solid var(--accent); background: var(--scrim); backdrop-filter: blur(10px); }
 .restbar .rt { display: grid; } .restbar .rt .k { color: var(--text-3); font-size: 12.5px; letter-spacing: .08em; text-transform: uppercase; } .restbar b { font-family: var(--f-display); font-size: 32px; line-height: 1; }
 .restbar .rp { height: 8px; border-radius: 6px; background: var(--surface-3); overflow: hidden; } .restbar .rp i { display: block; height: 100%; background: var(--accent); transition: width .25s linear; }
+
+/* ---------- programme par muscles, emploi du temps, seance guidee (v0.3) ---------- */
+/* securite anti-debordement: les textes longs passent a la ligne dans leur cadre, jamais dehors */
+.plan, .session, .sheet, .lvlx, .tcard { overflow-wrap: anywhere; }
+.plan *, .session *, .sheet *, .lvlx * { min-width: 0; }
+.lvl { max-width: 100%; min-width: 0; } .lvl > span { overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.gchips { display: flex; flex-wrap: wrap; gap: 6px; }
+.gc { display: inline-block; padding: 2px 10px; border-radius: 99px; font-family: var(--f-display); font-weight: 700; font-size: 15px; letter-spacing: .05em; text-transform: uppercase; line-height: 1.5; border: 1px solid var(--line); background: var(--surface-2); color: var(--text); }
+.gc-up { border-color: color-mix(in srgb, var(--accent) 65%, var(--line)); }
+.gc-low { border-color: color-mix(in srgb, var(--ok) 65%, var(--line)); }
+.gc-skill { border-color: var(--warn); }
+.tcard { display: grid; gap: 10px; padding: 16px; border-radius: 18px; border: 1px solid var(--accent); background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 16%, var(--surface)), var(--surface)); }
+.tcard.rest { border-color: var(--line); background: var(--surface); }
+.tcard .k, .pobj .k { color: var(--text-3); font-size: 13.5px; letter-spacing: .08em; text-transform: uppercase; }
+.tcard .v { font-family: var(--f-display); font-size: 30px; text-transform: uppercase; letter-spacing: .03em; line-height: 1.05; }
+.tcard .s, .plan .pobj .s { margin: 0; color: var(--text-2); font-size: 15.5px; line-height: 1.4; }
+.tcard .acts { display: grid; gap: 10px; margin-top: 4px; }
+.plan .pobj .v.sm { font-size: 24px; margin: 2px 0; }
+.plan .v { font-size: 30px; }
+.sub2 { margin: -4px 0 10px; font-size: 15px; line-height: 1.4; }
+.weeklist .dayrow { display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; align-items: center; gap: 10px; min-height: 60px; padding: 8px 10px; }
+.dayrow .dn { display: grid; justify-items: center; line-height: 1.1; color: var(--text-2); }
+.dayrow .dn b { font-family: var(--f-display); font-size: 20px; text-transform: uppercase; letter-spacing: .05em; color: var(--text); }
+.dayrow .dn span { font-size: 14px; }
+.dayrow.today { border-color: var(--accent); }
+.dayrow.today .dn b { color: var(--accent); }
+.dayrow.done { background: color-mix(in srgb, var(--ok) 10%, var(--surface)); }
+.dayrow .dd { display: grid; gap: 4px; align-content: center; font-size: 15px; }
+.dayrow .ok { color: var(--ok); font-weight: 600; font-size: 14px; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+.row2 .btn:only-child { grid-column: 1 / -1; }
+.row2 .btn, .plan .btn { white-space: normal; line-height: 1.15; text-align: center; }
+.recl { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.recl li { display: grid; gap: 2px; padding: 10px 12px; border-radius: var(--r-md); border: 1px solid var(--line-soft); background: var(--surface); }
+.recl .nm { font-weight: 700; } .recl .st { font-family: var(--f-display); font-size: 15px; letter-spacing: .06em; text-transform: uppercase; color: var(--ok); }
+.recl .tired .st { color: var(--warn); } .recl .lb2 { color: var(--text-3); font-size: 13.5px; line-height: 1.3; }
+.chipb.sm { min-height: 40px; padding: 6px 12px; font-size: 15px; }
+.mlist { margin: 8px 0 0; padding: 0; list-style: none; display: grid; gap: 2px; font-size: 14.5px; color: var(--text-2); }
+.notice.warn { border-color: var(--warn); background: var(--warn-bg); margin-top: 10px; }
+.pvl { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 8px; }
+.pvl li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 10px; padding: 8px 10px; border-radius: var(--r-md); background: var(--surface-2); }
+.pvl .nm { font-weight: 700; } .pvl .rp { font-family: var(--f-display); font-size: 20px; color: var(--accent); white-space: nowrap; }
+.pvl .sxmus { grid-column: 1 / -1; }
+.sxmus { font-size: 14.5px; line-height: 1.35; color: var(--text-2); }
+.sxmus b { color: var(--text); }
+.session .sx { gap: 8px; }
+.sx .sxh { grid-template-columns: 64px minmax(0, 1fr); }
+.sx .nm { font-size: 22px; line-height: 1.1; }
+.sx .rk { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 4px; } .sx .rk .rkt { margin-left: 0; }
+.sx .sxp b { font-size: 34px; }
+.sxc { display: grid; gap: 4px; padding: 8px 10px; border-radius: var(--r-md); background: var(--surface-2); }
+.sxc .ctl { display: grid; grid-template-columns: minmax(0, 1fr) 44px 64px 44px; align-items: center; gap: 6px; }
+.sxc .ctl .cll { color: var(--text-2); font-size: 14px; letter-spacing: .06em; text-transform: uppercase; }
+.sxc .ctl .btn { min-height: 40px; padding: 0; font-size: 22px; }
+.sxc .ctl .cv { text-align: center; font-family: var(--f-display); font-size: 22px; }
+.sxc .fx { margin: 0 0 6px; font-size: 14px; line-height: 1.4; color: var(--text-2); } .sxc .fx b { color: var(--text); }
+.how { border-top: 1px solid var(--line-soft); padding-top: 6px; } .how summary { cursor: pointer; font-weight: 700; min-height: 36px; display: flex; align-items: center; }
+.how ol { margin: 4px 0 6px; padding-left: 22px; display: grid; gap: 6px; font-size: 15.5px; } .how .herr { margin: 0; font-size: 14.5px; color: var(--text-2); }
+.sx .sxm { font-size: 14.5px; }
+@media (max-width: 380px) { .plan .v, .tcard .v { font-size: 26px; } .sx .nm { font-size: 20px; } .recl { gap: 6px; } .weeklist .dayrow { grid-template-columns: 46px minmax(0, 1fr) auto; gap: 8px; } }
+@media (max-width: 400px) { .lvl { gap: 6px; min-height: 44px; padding: 4px 12px 4px 6px; font-size: 17px; } .lvl svg.emblem { width: 28px; height: 28px; } .top { gap: 8px; } .top .ibtn { width: 44px; height: 44px; } }
+.weeklist .dayrow .dn { width: auto; height: auto; border: 0; border-radius: 0; display: grid; place-items: center; }
+.tab { padding-left: 2px; padding-right: 2px; }
+@media (max-width: 340px) { .lvl { font-size: 15px; letter-spacing: .02em; gap: 5px; padding-right: 8px; } .lvl svg.emblem { width: 24px; height: 24px; } }
+.pobj .chips { margin: 8px 0; }
 
 </style>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600;700&display=swap">
@@ -1368,9 +1433,19 @@ const XI = {
     st: ['Appuie-toi sur les barres, bras tendus, épaules basses.', 'Descends jusqu\'à avoir les épaules au niveau des coudes.', 'Remonte en poussant jusqu\'aux bras tendus.'], er: 'Épaules qui montent vers les oreilles.' },
   handstand_push_up_strict: { n: 'Pompes en poirier', s: 'Poirier', fam: 'push', p: ['delts', 'triceps'], s2: ['traps', 'pecs', 'abs'],
     st: ['Mains au sol près du mur, corps à l\'envers.', 'Plie les bras, pose la tête entre les mains.', 'Pousse jusqu\'à tendre complètement les bras.'], er: 'Dos creusé et amplitude réduite.' },
+  dips_banc: { n: 'Dips sur banc', fam: 'push', p: ['triceps'], s2: ['pecs', 'delts'], u: 1,
+    st: ['Mains sur le bord d\'un banc derrière toi, jambes tendues ou pliées.', 'Plie les coudes vers l\'arrière jusqu\'à 90°.', 'Pousse avec les triceps jusqu\'à tendre les bras.'], er: 'Épaules qui montent vers les oreilles ou coudes qui s\'écartent.' },
 
   rowing_inverse: { n: 'Rowing inversé', fam: 'pull', p: ['lats', 'biceps'], s2: ['traps', 'forearms', 'abs'], u: 1,
     st: ['Allonge-toi sous une barre basse, corps droit.', 'Tire la poitrine vers la barre.', 'Redescends lentement, bras tendus.'], er: 'Hanches qui tombent pendant la traction.' },
+  rowing_supination: { n: 'Rowing inversé supination', fam: 'pull', p: ['biceps', 'lats'], s2: ['forearms', 'traps'], u: 1,
+    st: ['Allonge-toi sous une barre basse, paumes tournées vers toi.', 'Tire la poitrine vers la barre en gardant les coudes près du corps.', 'Redescends lentement, bras tendus.'], er: 'Hanches qui tombent ou épaules qui montent.' },
+  tractions_scapulaires: { n: 'Tractions scapulaires', fam: 'pull', p: ['traps', 'lats'], s2: ['forearms'], u: 1,
+    st: ['Suspendu à la barre, bras tendus.', 'Sans plier les coudes, tire les épaules vers le bas et l\'arrière.', 'Relâche doucement et recommence.'], er: 'Plier les bras au lieu de bouger seulement les épaules.' },
+  suspension: { n: 'Suspension à la barre', fam: 'pull', p: ['forearms', 'lats'], s2: ['traps', 'biceps'], u: 1, hold: true,
+    st: ['Saisis la barre, mains à largeur d\'épaules.', 'Tire les épaules vers le bas, bras tendus.', 'Respire calmement et tiens la position.'], er: 'Épaules relâchées vers les oreilles.' },
+  extension_dos: { n: 'Extensions du dos', fam: 'pull', p: ['lowback', 'glutes'], s2: ['hams', 'traps'], u: 1,
+    st: ['Allongé sur le ventre, bras tendus devant toi.', 'Lève bras, poitrine et jambes en même temps, regard au sol.', 'Marque une pause en haut, puis redescends sans à-coup.'], er: 'Relever la tête en arrière et cambrer le cou.' },
   tractions_strictes: { n: 'Tractions strictes', s: 'Tractions', fam: 'pull', p: ['lats', 'biceps'], s2: ['traps', 'forearms', 'abs'], pose: 'traction',
     st: ['Prise un peu plus large que les épaules, bras tendus.', 'Tire jusqu\'à passer le menton au-dessus de la barre.', 'Redescends lentement jusqu\'aux bras tendus.'], er: 'Élan des jambes pour monter.' },
   tractions_supination: { n: 'Tractions supination', s: 'Supination', fam: 'pull', p: ['biceps', 'lats'], s2: ['forearms', 'traps'], pose: 'traction',
@@ -1384,6 +1459,14 @@ const XI = {
 
   squat: { n: 'Squat', fam: 'legs', p: ['quads', 'glutes'], s2: ['hams', 'calves', 'abs'], u: 1, pose: 'squat',
     st: ['Pieds à largeur d\'épaules, regard devant.', 'Descends les hanches entre les talons, dos droit.', 'Remonte en poussant dans les talons.'], er: 'Talons qui décollent du sol.' },
+  pont_fessier: { n: 'Pont fessier', fam: 'legs', p: ['glutes'], s2: ['hams', 'lowback', 'abs'], u: 1,
+    st: ['Allongé sur le dos, genoux pliés, pieds à plat.', 'Pousse dans les talons et monte le bassin jusqu\'à l\'alignement épaules-genoux.', 'Serre les fessiers en haut, puis redescends en contrôle.'], er: 'Bas du dos cambré au lieu d\'utiliser les fessiers.' },
+  pont_fessier_une_jambe: { n: 'Pont fessier une jambe', fam: 'legs', p: ['glutes', 'hams'], s2: ['lowback', 'abs'], u: 2, side: true,
+    st: ['Allongé sur le dos, une jambe tendue en l\'air, l\'autre pied à plat.', 'Pousse dans le talon pour monter le bassin.', 'Garde le bassin horizontal et redescends en contrôle.'], er: 'Bassin qui bascule d\'un côté.' },
+  mollets: { n: 'Montées sur pointes', fam: 'legs', p: ['calves'], s2: [], u: 1,
+    st: ['Debout sur le bord d\'une marche, talons dans le vide.', 'Monte le plus haut possible sur la pointe des pieds.', 'Redescends lentement, talons sous le niveau de la marche.'], er: 'Rebondir sans contrôler la descente.' },
+  mollets_une_jambe: { n: 'Montées sur pointes une jambe', fam: 'legs', p: ['calves'], s2: [], u: 2, side: true,
+    st: ['Un pied sur le bord d\'une marche, l\'autre en l\'air, une main en appui.', 'Monte haut sur la pointe du pied.', 'Redescends lentement, talon bien sous la marche.'], er: 'Utiliser la main pour te pousser.' },
   squat_bulgare: { n: 'Squat bulgare', s: 'Bulgare', fam: 'legs', p: ['quads', 'glutes'], s2: ['hams', 'calves', 'abs'],
     st: ['Un pied derrière sur un banc, l\'autre devant.', 'Descends le genou arrière vers le sol, dos droit.', 'Remonte en poussant dans le talon avant.'], er: 'Genou avant qui rentre vers l\'intérieur.' },
   squat_cossack: { n: 'Squat cossack', fam: 'legs', p: ['quads', 'glutes'], s2: ['hams', 'calves'], u: 2,
@@ -1399,6 +1482,8 @@ const XI = {
 
   gainage: { n: 'Gainage', fam: 'core', p: ['abs', 'obliques'], s2: ['delts', 'glutes', 'lowback'], u: 1, hold: true,
     st: ['Avant-bras au sol, coudes sous les épaules.', 'Corps droit, fesses serrées, ventre rentré.', 'Respire calmement et tiens la position.'], er: 'Bassin qui monte ou qui tombe.' },
+  planche_laterale: { n: 'Planche latérale', fam: 'core', p: ['obliques', 'abs'], s2: ['delts', 'glutes'], u: 1, hold: true, side: true,
+    st: ['Allongé sur le côté, coude sous l\'épaule, pieds empilés.', 'Soulève les hanches pour aligner tête, bassin et pieds.', 'Tiens la position, puis change de côté.'], er: 'Hanches qui s\'affaissent vers le sol.' },
   releves_de_genoux: { n: 'Relevés de genoux suspendus', fam: 'core', p: ['abs'], s2: ['forearms', 'obliques'], u: 1,
     st: ['Suspendu à la barre, épaules actives.', 'Monte les genoux vers la poitrine.', 'Redescends sans te balancer.'], er: 'Balancement du corps.' },
   releves_de_jambes_tendues_suspendus: { n: 'Relevés de jambes tendues', s: 'Relevés', fam: 'core', p: ['abs'], s2: ['forearms', 'obliques', 'quads'],
@@ -1474,6 +1559,7 @@ const Troph = (() => {
     addItem(k, {
       ex: k, variant: null, fam: x.fam, name: x.n || (base && base.name) || k, short: x.s || x.n, p: x.p, s: x.s2 || [],
       st: x.st, er: x.er, hold: !!x.hold || (base && base.measure === 'seconds'), ranked: !!base,
+      side: !!x.side || !!(base && base.measure === 'reps_per_side'),
       pose: x.pose || null, poseNames: x.poseNames || null, u: x.u, unit: base ? base.unit_label : (x.hold ? 's' : 'reps')
     });
   });
@@ -1779,62 +1865,93 @@ const Troph = (() => {
 /* ============================================================
    coach.js : moteur de coaching (logique pure, aucun acces au DOM).
    A partir du niveau reel du joueur (maximums declares, ELO par exercice), de son objectif (force, masse, skills,
-   endurance, forme), de ses jours et de sa duree, il construit une seance: choix des exercices, series, repetitions,
-   repos, tempo, difficultes ajoutees (pause, lest...), puis la progression d'une seance a l'autre.
+   endurance, forme), de son intensite et de ses muscles preferes, il construit une seance POUR LES MUSCLES CHOISIS:
+   choix des exercices, series, repetitions, repos, tempo (vitesse de descente), difficultes ajoutees (pause, lest...),
+   puis la progression d'une seance a l'autre. Il gere aussi l'emploi du temps de la semaine, la recuperation
+   (au moins un jour complet sans retravailler le meme muscle) et la suggestion de la seance du jour.
    Reperes (CG = connaissances generales, a calibrer avec de vrais sportifs et a faire relire par un coach):
-   - force: 3 a 6 repetitions, 2 en reserve, repos 2 a 3 min; masse: 8 a 15 repetitions proches de la limite (1 a 2 en
-     reserve), tempo lent, repos 60 a 90 s; endurance: 40 a 60 % du maximum, repos courts; forme: 60 % du maximum, 3 en reserve.
+   - force: 3 a 6 repetitions, 2 en reserve, repos 2 a 3 min; masse: 8 a 15 repetitions proches de la limite (1 en
+     reserve), descente lente, repos 60 a 90 s; endurance: 40 a 60 % du maximum, repos courts; forme: 60 % du maximum, 3 en reserve.
    - equivalence entre exercices: les standards de data/standards.json sont sur la meme echelle d'ELO, donc a un niveau
      donne on sait combien de repetitions d'un exercice correspondent a combien d'un autre (perfForElo).
+   - un joueur fort (100 pompes) ne recoit jamais un exercice facile: on monte en variante, puis en lest et en tempo.
    ============================================================ */
 const Coach = (() => {
   'use strict';
   const TI = Troph.ITEMS, EX = Core.EX;
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
-  const FAMS = ['push', 'pull', 'legs', 'core', 'skills'];
+  const DAY = 86400000;
+  const DAY_NAMES = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
+
+  /* ---------- groupes de muscles choisis par le joueur ---------- */
+  const GROUPS = {
+    chest: { id: 'chest', label: 'Pectoraux', m: ['pecs'], region: 'up' },
+    back: { id: 'back', label: 'Dos', m: ['lats', 'traps', 'lowback'], region: 'up' },
+    shoulders: { id: 'shoulders', label: 'Épaules', m: ['delts'], region: 'up' },
+    arms: { id: 'arms', label: 'Bras', m: ['biceps', 'triceps', 'forearms'], region: 'up' },
+    abs: { id: 'abs', label: 'Abdos', m: ['abs', 'obliques'], region: 'low' },
+    legs: { id: 'legs', label: 'Jambes', m: ['quads', 'glutes', 'hams', 'calves'], region: 'low' },
+    skill: { id: 'skill', label: 'Skill', m: [], region: 'skill' }
+  };
+  const GROUP_ORDER = ['chest', 'back', 'shoulders', 'arms', 'abs', 'legs'];
+  const BUILD_ORDER = ['chest', 'back', 'shoulders', 'legs', 'arms', 'abs'];   // ordre dans une séance: gros mouvements d'abord, abdos à la fin
+  const ANCIENS = { full: ['chest', 'back', 'legs', 'abs'], upper: ['chest', 'back', 'shoulders', 'arms'], push: ['chest', 'shoulders', 'arms'], pull: ['back', 'arms'], legs: ['legs'], core: ['abs'], skills: ['skill'] };
+  const groupLabels = list => list.map(g => (GROUPS[g] || {}).label || g).join(' + ');
 
   /* ---------- objectifs: parametres d'entrainement ---------- */
+  /* tempo: d = descente (s), p = pause en bas (s), u = montee (s, 0 = le plus vite possible) */
   const GOALS = {
     force: {
-      id: 'force', label: 'Force', rT: 6, win: [4, 9], sets: 5, frac: 0.6, repMin: 2, repMax: 6, rest: 150, tf: 0.85,
-      tempo: '2-0-X : descente contrôlée 2 s, montée la plus vite possible', rir: '2 répétitions en réserve (tu sens que c\'est lourd mais propre)',
+      id: 'force', label: 'Force', rT: 6, win: [4, 9], sets: 5, frac: 0.6, repMin: 2, repMax: 6, rest: 150, tf: 0.85, tempo: { d: 2, p: 0, u: 0 }, rirN: 2,
       why: 'Peu de répétitions sur un mouvement difficile : c\'est la tension qui rend fort. Longs repos pour être frais à chaque série.',
       tips: ['Repose-toi vraiment 2 à 3 minutes entre les séries : la force se construit frais.', 'Quand tu réussis toutes les séries avec 2 répétitions de marge, passe à une version plus dure.', 'Dors 7 à 9 heures : c\'est là que la force progresse.']
     },
     masse: {
-      id: 'masse', label: 'Masse', rT: 15, win: [10, 22], sets: 4, frac: 0.8, repMin: 6, repMax: 15, rest: 75, tf: 0.55,
-      tempo: '3-1-1 : descente 3 s, pause 1 s en bas, montée 1 s', rir: '1 à 2 répétitions en réserve (proche de la limite)',
+      id: 'masse', label: 'Masse', rT: 15, win: [10, 22], sets: 4, frac: 0.8, repMin: 6, repMax: 15, rest: 75, tf: 0.55, tempo: { d: 3, p: 1, u: 1 }, rirN: 1,
       why: 'Séries lentes, proches de la limite, entre 8 et 15 répétitions : le muscle travaille longtemps sous tension, c\'est ce qui le fait grossir.',
       tips: ['Pour prendre de la masse, mange un peu plus que ce que tu dépenses (environ +200 à 300 kcal) et vise 1,6 à 2,2 g de protéines par kilo.', 'Fais travailler chaque groupe musculaire 2 fois par semaine.', 'Chaque séance, essaie de battre la précédente : +1 répétition, ou une version plus dure.']
     },
     endurance: {
-      id: 'endurance', label: 'Endurance', rT: 35, win: [20, 70], sets: 4, frac: 0.55, repMin: 10, repMax: 40, rest: 40, tf: 1,
-      tempo: 'régulier : 1 s en descente, 1 s en montée', rir: '4 répétitions en réserve, tu gardes du souffle',
+      id: 'endurance', label: 'Endurance', rT: 35, win: [20, 70], sets: 4, frac: 0.55, repMin: 10, repMax: 40, rest: 40, tf: 1, tempo: { d: 1, p: 0, u: 1 }, rirN: 4,
       why: 'Beaucoup de répétitions faciles avec des repos courts : tu apprends à tenir l\'effort et à récupérer vite.',
       tips: ['Reste régulier : mieux vaut 15 répétitions propres que 25 bâclées.', 'Réduis le repos de 5 secondes toutes les deux semaines.', 'Respire en continu, souffle sur l\'effort.']
     },
     forme: {
-      id: 'forme', label: 'Forme', rT: 18, win: [12, 35], sets: 3, frac: 0.6, repMin: 8, repMax: 20, rest: 45, tf: 0.8,
-      tempo: 'contrôlé : 2 s en descente, 1 s en montée', rir: '3 répétitions en réserve',
+      id: 'forme', label: 'Forme', rT: 18, win: [12, 35], sets: 3, frac: 0.6, repMin: 8, repMax: 20, rest: 45, tf: 0.8, tempo: { d: 2, p: 0, u: 1 }, rirN: 3,
       why: 'Séances complètes, pas trop dures, qui font travailler tout le corps : idéal pour être en forme, garder le rythme et perdre du gras.',
       tips: ['Marche ou bouge un peu tous les jours : pour perdre du gras, ça compte autant que la séance.', 'Garde 3 répétitions de marge : l\'important est de revenir souvent.', 'Mange des protéines à chaque repas, et dors assez.']
     },
     skills: {
-      id: 'skills', label: 'Skills', rT: 8, win: [5, 12], sets: 3, frac: 0.7, repMin: 4, repMax: 10, rest: 120, tf: 0.85,
-      tempo: 'contrôlé : 2 s en descente, 1 s en montée', rir: '2 répétitions en réserve',
+      id: 'skills', label: 'Skills', rT: 8, win: [5, 12], sets: 3, frac: 0.7, repMin: 4, repMax: 10, rest: 120, tf: 0.85, tempo: { d: 2, p: 0, u: 1 }, rirN: 2,
       why: 'Un skill s\'apprend frais et souvent, sans jamais aller à l\'échec. La force de base (pousser, tirer, gainage) le rend possible.',
       tips: ['Travaille ton skill en premier, quand tu es frais, et arrête avant que la technique se dégrade.', 'Fais un peu de skill souvent (3 à 4 fois par semaine) plutôt qu\'une grosse séance.', 'Échauffe toujours les poignets et les épaules.']
     }
   };
 
+  /* intensité choisie par le joueur: séries, répétitions, nombre d'exercices et marge avant l'échec */
+  const INTENS = {
+    leger: { id: 'leger', label: 'Légère', sets: -1, k: 0.85, ex: -1, rir: 1, desc: 'Moins de séries et plus de marge : pour reprendre, ou quand tu es fatigué.' },
+    modere: { id: 'modere', label: 'Modérée', sets: 0, k: 1, ex: 0, rir: 0, desc: 'Le bon dosage pour progresser régulièrement.' },
+    intense: { id: 'intense', label: 'Intense', sets: 1, k: 1.1, ex: 1, rir: -1, desc: 'Plus de séries, plus d\'exercices, plus proche de la limite : si tu es bien reposé.' }
+  };
+  function rirText(n) {
+    n = clamp(Math.round(n), 0, 5);
+    return n === 0 ? '0 répétition en réserve : tu vas à la limite, sans jamais casser la technique'
+      : n === 1 ? '1 répétition en réserve (très proche de la limite)' : n + ' répétitions en réserve' + (n >= 4 ? ', tu gardes du souffle' : n === 3 ? ' (dur mais propre)' : '');
+  }
+
   /* exercices non classes: nombre de repetitions attendu = facteur x un exercice de reference */
   /* [référence, facteur, minimum] : le minimum évite des consignes absurdes pour un débutant (un rowing inversé reste faisable sans traction) */
   const REL = {
     pompes_inclinees: ['pompes_strictes', 1.7, 6], rowing_inverse: ['tractions_strictes', 1.8, 6],
-    squat: ['squat_bulgare', 3, 8], releves_de_genoux: ['releves_de_jambes_tendues_suspendus', 1.6, 4], gainage: ['l_sit', 4, 20]
+    squat: ['squat_bulgare', 3, 8], releves_de_genoux: ['releves_de_jambes_tendues_suspendus', 1.6, 4], gainage: ['l_sit', 4, 20],
+    dips_banc: ['pompes_strictes', 1.2, 8], rowing_supination: ['tractions_supination', 1.8, 6], tractions_scapulaires: ['tractions_strictes', 1.5, 8],
+    suspension: ['tractions_strictes', 4, 25], extension_dos: ['squat_bulgare', 2, 10], pont_fessier: ['squat_bulgare', 2.5, 10],
+    pont_fessier_une_jambe: ['squat_bulgare', 1.5, 6], mollets: ['squat_bulgare', 4, 15], mollets_une_jambe: ['squat_bulgare', 2, 10],
+    planche_laterale: ['l_sit', 3, 20]
   };
 
-  /* difficultes ajoutables quand l'exercice est trop facile (multiplient le maximum attendu) */
+  /* difficultés ajoutables quand l'exercice est trop facile (multiplient le maximum attendu) */
   const MODS = {
     pause: { id: 'pause', label: 'Pause de 2 secondes en bas', f: 0.8 },
     lent: { id: 'lent', label: 'Descente en 4 secondes', f: 0.75 },
@@ -1844,8 +1961,8 @@ const Coach = (() => {
   };
   /* difficultés possibles selon l'objectif (de la plus légère à la plus lourde) : en force on ajoute du poids, en masse du tempo */
   const COMBOS = {
-    force: [[], [MODS.lest], [MODS.pause, MODS.lest], [MODS.lest2], [MODS.pause, MODS.lest2], [MODS.lest3]],
-    masse: [[], [MODS.pause], [MODS.lest], [MODS.pause, MODS.lest], [MODS.lent, MODS.pause], [MODS.lent, MODS.pause, MODS.lest]],
+    force: [[], [MODS.lest], [MODS.pause, MODS.lest], [MODS.lest2], [MODS.pause, MODS.lest2], [MODS.lest3], [MODS.pause, MODS.lest3], [MODS.lent, MODS.pause, MODS.lest3]],
+    masse: [[], [MODS.pause], [MODS.lest], [MODS.pause, MODS.lest], [MODS.lent, MODS.pause], [MODS.lent, MODS.pause, MODS.lest], [MODS.lent, MODS.pause, MODS.lest2], [MODS.lent, MODS.pause, MODS.lest3]],
     endurance: [[]],
     forme: [[], [MODS.pause]],
     skills: [[], [MODS.pause, MODS.lest]]
@@ -1855,24 +1972,31 @@ const Coach = (() => {
   const SLOT = {
     push_h: ['pompes_inclinees', 'pompes_strictes', 'pompes_diamant', 'pompes_declinees', 'pompes_archer', 'pompes_une_main'],
     push_v: ['pompes_pike', 'handstand_push_up_strict'],
+    delt: ['pompes_pike', 'pompes_declinees', 'handstand_push_up_strict'],
     push_dip: ['dips_strictes'],
+    arm_tri: ['dips_banc', 'pompes_diamant', 'dips_strictes'],
+    arm_bi: ['rowing_supination', 'tractions_supination'],
     pull_v: ['tractions_strictes', 'tractions_supination', 'tractions_archer', 'traction_une_main'],
     pull_h: ['rowing_inverse'],
+    pull_scap: ['tractions_scapulaires', 'suspension'],
+    back_low: ['extension_dos'],
     legs: ['squat', 'squat_bulgare', 'squat_cossack', 'pistol_squat', 'shrimp_squat', 'dragon_squat'],
     hinge: ['nordic_curl'],
+    glute: ['pont_fessier', 'pont_fessier_une_jambe'],
+    calf: ['mollets', 'mollets_une_jambe'],
     core: ['releves_de_genoux', 'releves_de_jambes_tendues_suspendus', 'toes_to_bar_strict', 'dragon_flag'],
-    core_hold: ['gainage', 'l_sit', 'v_sit']
+    core_hold: ['gainage', 'l_sit', 'v_sit'],
+    core_side: ['planche_laterale']
   };
-  const FOCUS = {
-    full: ['push_h', 'pull_v', 'legs', 'core', 'push_dip', 'pull_h', 'hinge'],
-    upper: ['push_h', 'pull_v', 'push_dip', 'pull_h', 'push_v', 'core'],
-    push: ['push_h', 'push_dip', 'push_v', 'push_h', 'core_hold'],
-    pull: ['pull_v', 'pull_h', 'pull_v', 'core', 'core_hold'],
-    legs: ['legs', 'hinge', 'legs', 'core', 'core_hold'],
-    core: ['core', 'core_hold', 'core', 'core_hold', 'core'],
-    skills: []
+  /* emplacements utilisés pour chaque groupe, dans l'ordre: le 1er exercice du groupe prend le 1er emplacement, etc. */
+  const GROUP_SLOTS = {
+    chest: ['push_h', 'push_dip', 'push_h'],
+    back: ['pull_v', 'pull_h', 'back_low', 'pull_scap'],
+    shoulders: ['delt', 'delt', 'push_v'],
+    arms: ['arm_bi', 'arm_tri', 'arm_bi', 'arm_tri'],
+    abs: ['core', 'core_hold', 'core_side', 'core'],
+    legs: ['legs', 'hinge', 'glute', 'calf', 'legs']
   };
-  const FOCUS_LABEL = { full: 'Corps entier', upper: 'Haut du corps', push: 'Pousser', pull: 'Tirer', legs: 'Jambes', core: 'Abdos', skills: 'Skill' };
 
   /* ---------- programmes de skills ---------- */
   const SKILLS = {
@@ -1895,6 +2019,7 @@ const Coach = (() => {
     const goal = p.goal || (S.intake && oldGoals[S.intake.goal]) || 'forme';
     return {
       goal: GOALS[goal] ? goal : 'forme', skill: p.skill || null, days: p.days || 3, dur: p.dur || 40, maxes: p.maxes || {},
+      intensity: INTENS[p.intensity] ? p.intensity : 'modere', prio: (p.prio || []).filter(g => GROUPS[g] && g !== 'skill').slice(0, 3),
       newbie: !!(S.intake && S.intake.time != null && S.intake.time <= 1)
     };
   }
@@ -1952,13 +2077,12 @@ const Coach = (() => {
       if (rEff <= g.win[1] && rEff >= g.win[0]) break;
     }
     if (best.rEff < g.win[0] * 0.5) { best.hard = true; best.d += 1; }   // plus dur que prévu pour ce niveau : seulement en dernier recours
+    if (!it.hold && it.fam !== 'core' && best.rEff > g.win[1] * 1.6) best.easy = true;   // même la variante la plus dure du jeu reste facile
     if (pendingKeys.has(key)) best.d -= 0.2;                              // aide à valider un trophée du niveau suivant
     if (recent.has(key)) best.d += 0.25;                                  // variété d'une séance à l'autre
     return best;
   }
-  function pickSlot(S, D, slotId, g, used) {
-    const pend = new Set(Troph.pending(S, Troph.targetLevel(S)).map(t => t.key));
-    const recent = lastKeys(S);
+  function pickSlot(S, D, slotId, g, used, pend, recent) {
     let best = null;
     for (const key of SLOT[slotId] || []) {
       if (used.has(key)) continue;
@@ -1967,20 +2091,53 @@ const Coach = (() => {
     }
     return best;
   }
+  /* le m-ième exercice d'un groupe: l'emplacement prévu, sinon un autre emplacement du groupe (jamais un exercice trop dur pour le niveau si on peut l'éviter) */
+  function pickForGroup(S, D, gid, m, g, used, pend, recent) {
+    const slots = GROUP_SLOTS[gid], order = slots.slice(m).concat(slots.slice(0, m));
+    let first = null;
+    for (const s of order) {
+      const c = pickSlot(S, D, s, g, used, pend, recent);
+      if (!c) continue;
+      if (!c.hard) return c;
+      if (!first) first = c;
+    }
+    return first;
+  }
+
+  /* ---------- explications: repos et vitesse de descente ---------- */
+  /** Effet d'un temps de repos entre deux séries. */
+  function restInfo(sec) {
+    if (sec <= 30) return { t: 'repos très court', e: 'Le cœur reste haut et le muscle brûle : tu travailles l\'endurance musculaire et le souffle, mais tu feras moins de répétitions aux séries suivantes.' };
+    if (sec <= 60) return { t: 'repos court', e: 'Beaucoup de volume en peu de temps : bon pour l\'endurance et pour gonfler le muscle, un peu moins pour la force pure.' };
+    if (sec <= 105) return { t: 'repos moyen', e: 'Bon compromis : assez de récupération pour garder tes répétitions, assez court pour accumuler du volume (prise de masse).' };
+    if (sec <= 180) return { t: 'repos long', e: 'Tu récupères presque tout : tu peux donner le maximum à chaque série. C\'est ce qui construit la force.' };
+    return { t: 'repos très long', e: 'Récupération complète, pour les séries les plus dures ou les skills : on cherche la force maximale et une technique parfaite.' };
+  }
+  /** Effet de la vitesse de descente (tempo = { d, p, u }). null pour une tenue. */
+  function tempoInfo(t) {
+    if (!t) return null;
+    const txt = 'Descente ' + t.d + ' s' + (t.p ? ', pause ' + t.p + ' s en bas' : '') + ', montée ' + (t.u ? t.u + ' s' : 'le plus vite possible');
+    let e;
+    if (t.d <= 1) e = 'Descente rapide : tu peux faire plus de répétitions, mais le muscle reste moins longtemps sous tension. Bon pour l\'endurance.';
+    else if (t.d === 2) e = 'Descente contrôlée : le bon réglage pour garder une technique propre et progresser en force.';
+    else if (t.d <= 4) e = 'Descente lente : le muscle reste longtemps sous tension, c\'est le meilleur levier pour prendre de la masse. Tu feras un peu moins de répétitions.';
+    else e = 'Descente très lente : très exigeant pour les muscles et les tendons, à réserver aux exercices que tu maîtrises.';
+    if (t.p >= 1) e += ' La pause en bas supprime l\'élan : le muscle fait tout le travail.';
+    return { txt, e };
+  }
 
   /* ---------- prescription d'un exercice ---------- */
   const modSig = mods => mods.map(m => m.id).join('+');
-  function repsLabel(it, n) { return it.hold ? n + ' s' : String(n); }
-  function prescribe(S, D, cand, g, st) {
-    const it = TI[cand.key], base = EX[it.ex];
-    const perSide = !!(base && base.measure === 'reps_per_side');
-    let sets = g.sets - (st.newbie ? 1 : 0);
-    let target;
+  function prescribe(S, D, cand, g, st, I) {
+    const it = TI[cand.key];
+    const perSide = !!it.side;
+    const sets = Math.max(2, g.sets + I.sets - (st.newbie ? 1 : 0));
+    let target, nSets = sets;
     if (it.hold) {
-      target = clamp(Math.round(cand.rEff * (g.id === 'force' ? 0.55 : g.id === 'masse' ? 0.7 : g.id === 'endurance' ? 0.6 : 0.65)), 5, 90);
-      if (g.id === 'endurance') sets = Math.max(sets, 4);
+      target = clamp(Math.round(cand.rEff * (g.id === 'force' ? 0.55 : g.id === 'masse' ? 0.7 : g.id === 'endurance' ? 0.6 : 0.65) * I.k), 5, 90);
+      if (g.id === 'endurance') nSets = Math.max(sets, 4);
     } else {
-      target = clamp(Math.round(cand.rEff * g.frac), 1, g.repMax);
+      target = clamp(Math.round(cand.rEff * g.frac * I.k), 1, g.repMax + (I.k > 1 ? 2 : 0));
       target = Math.max(target, Math.min(g.repMin, Math.max(1, Math.floor(cand.rEff * 0.85))));
     }
     const sig = cand.key + '|' + modSig(cand.mods);
@@ -1993,13 +2150,20 @@ const Coach = (() => {
     }
     const rest = g.rest + (st.newbie ? 15 : 0);
     const notes = cand.mods.map(m => m.label);
-    if (cand.rEff > g.win[1] && !it.hold && it.fam !== 'core') notes.push('Encore trop facile : ajoute une pause en bas ou passe à une version plus dure dès que possible.');
+    if (cand.easy) notes.push('Tu es au-dessus de ce que l\'application propose sur ce mouvement : ajoute du lest, ou vise un skill (planche, front lever, handstand…).');
+    else if (cand.rEff > g.win[1] && !it.hold && it.fam !== 'core') notes.push('Encore trop facile : ajoute une pause en bas ou passe à une version plus dure dès que possible.');
     const why = cand.mods.length ? 'Version trop facile pour ton niveau : on ajoute de la difficulté pour que tes ' + target + ' répétitions restent proches de ta limite.'
       : cand.rEff < g.win[0] ? 'Exercice difficile pour ton niveau : on reste sur peu de répétitions propres.' : g.why;
-    const tempo = cand.r < 10 && !it.hold ? '2-0-1 : contrôlé, 2 s en descente et 1 s en montée' : g.tempo;
+    let tempo = null;
+    if (!it.hold) {
+      const b = cand.r < 10 ? { d: 2, p: 0, u: 1 } : g.tempo;
+      tempo = { d: b.d, p: b.p, u: b.u };
+      if (cand.mods.some(m => m.id === 'lent')) tempo.d = Math.max(tempo.d, 4);
+      if (cand.mods.some(m => m.id === 'pause')) tempo.p = Math.max(tempo.p, 2);
+    }
     return {
-      key: cand.key, name: it.name, fam: it.fam, hold: !!it.hold, perSide, sets, target, rest, tempo, rir: g.rir, mods: cand.mods.map(m => m.id),
-      notes, why, last, sig, goal: g.id, expected: Math.round(cand.r)
+      key: cand.key, name: it.name, fam: it.fam, hold: !!it.hold, perSide, sets: nSets, target, rest, tempo, rir: rirText(g.rirN + I.rir), mods: cand.mods.map(m => m.id),
+      notes, why, last, sig, goal: g.id, expected: Math.round(cand.r), easy: !!cand.easy
     };
   }
 
@@ -2040,14 +2204,13 @@ const Coach = (() => {
     }
     return null;
   }
-  function skillItems(S, D, st, g, used) {
+  function skillItems(S, D, st) {
     const id = st.skill && SKILLS[st.skill] ? st.skill : 'handstand', sk = SKILLS[id], out = [];
     const m = skillMain(S, D, id);
     if (m && TI[m.key]) {
-      used.add(m.key);
       out.push({
-        key: m.key, name: TI[m.key].name, fam: TI[m.key].fam, hold: m.hold, perSide: false, sets: m.sets, target: m.hold ? m.secs : (m.reps || 5), rest: m.rest, tempo: 'propre et contrôlé', rir: 'jamais jusqu\'à l\'échec',
-        mods: [], notes: [m.note], why: sk.tip, last: null, sig: m.key + '|skill', goal: 'skills', expected: 0, skill: id
+        key: m.key, name: TI[m.key].name, fam: TI[m.key].fam, hold: m.hold, perSide: false, sets: m.sets, target: m.hold ? m.secs : (m.reps || 5), rest: m.rest, tempo: null,
+        rir: 'jamais jusqu\'à l\'échec', mods: [], notes: [m.note], why: sk.tip, last: null, sig: m.key + '|skill', goal: 'skills', expected: 0, skill: id, group: 'skill'
       });
     }
     return { items: out, skill: sk, id };
@@ -2062,80 +2225,178 @@ const Coach = (() => {
     core: ['Planche sur les avant-bras, 2 × 20 secondes', 'Gainage dynamique : mouvements de jambes allongé, 2 × 10'],
     skills: ['Mobilité des poignets : 1 minute', 'Épaules actives : planche épaules hautes, 2 × 20 secondes', 'Hollow body : 2 × 20 secondes']
   };
-  function warmupFor(focus, skills) {
-    const f = focus === 'full' || focus === 'upper' ? ['push', 'pull'] : [focus === 'skills' ? 'skills' : focus];
-    const list = WARM.base.slice();
-    f.forEach(k => { (WARM[k] || []).slice(0, 2).forEach(x => list.push(x)); });
-    if (skills && focus !== 'skills') (WARM.skills || []).slice(0, 1).forEach(x => list.push(x));
+  const WARM_OF = { chest: 'push', shoulders: 'push', arms: 'pull', back: 'pull', legs: 'legs', abs: 'core', skill: 'skills' };
+  function warmupFor(groups) {
+    const list = WARM.base.slice(), seen = new Set();
+    groups.forEach(g => {
+      const k = WARM_OF[g]; if (!k || seen.has(k)) return; seen.add(k);
+      (WARM[k] || []).slice(0, groups.length > 2 ? 1 : 2).forEach(x => list.push(x));
+    });
     return list.slice(0, 7);
   }
-  function workSeconds(it, g) {
-    if (it.hold) return it.target;
-    const per = g === 'masse' ? 4.5 : g === 'force' ? 3.5 : 2.6;
-    return it.target * per * (it.perSide ? 2 : 1);
+  function workSeconds(it) {
+    if (it.hold) return it.target * (it.perSide ? 2 : 1);
+    const t = it.tempo || { d: 2, p: 0, u: 1 };
+    return it.target * (t.d + t.p + Math.max(1, t.u) + 0.5) * (it.perSide ? 2 : 1);
   }
-  const estimate = (items, goal) => 5 + items.reduce((s, it) => s + it.sets * (workSeconds(it, goal) + it.rest) / 60, 0);
+  const estimate = items => 5 + items.reduce((s, it) => s + it.sets * (workSeconds(it) + it.rest) / 60, 0);
+  const baseCount = m => m <= 20 ? 3 : m <= 30 ? 4 : m <= 40 ? 5 : m <= 50 ? 6 : m <= 60 ? 7 : 8;
 
-  /** Construit une seance. opts: { focus, minutes, goal }. Retourne { goal, focus, minutes, estMin, warmup, items, tips, skill }. */
+  /** Construit une seance pour des muscles. opts: { muscles:[groupes], minutes, goal, intensity } (ou l'ancien { focus }).
+   *  Retourne { goal, muscles, focusLabel, minutes, estMin, warmup, items, tips, skill, intensity }. */
   function buildSession(S, D, opts) {
     opts = opts || {};
     const st = settings(S);
     const goal = GOALS[opts.goal] ? opts.goal : st.goal, g = GOALS[goal];
-    const focus = FOCUS[opts.focus] !== undefined ? opts.focus : 'full';
+    const I = INTENS[opts.intensity] || INTENS[st.intensity];
+    let groups = (opts.muscles && opts.muscles.length ? opts.muscles : (ANCIENS[opts.focus] || ANCIENS.full)).filter((x, i, a) => GROUPS[x] && a.indexOf(x) === i);
+    if (!groups.length) groups = ANCIENS.full.slice();
+    const wantSkill = groups.includes('skill');
+    const body = BUILD_ORDER.filter(x => groups.includes(x));
     const minutes = opts.minutes || st.dur;
-    const nEx = minutes <= 20 ? 3 : minutes <= 40 ? 5 : 6;
+    const nEx = clamp(Math.max(baseCount(minutes) + I.ex, groups.length), 3, 9);
     const used = new Set(), items = [];
-    let skillInfo = null;
-    const wantSkill = focus === 'skills' || (goal === 'skills' && (focus === 'full' || focus === 'upper'));
-    if (wantSkill) {
-      const sk = skillItems(S, D, st, g, used);
-      skillInfo = { id: sk.id, label: sk.skill.label };
-      sk.items.forEach(i => items.push(i));
-      const sup = (SKILLS[sk.id].support || []).slice();
-      const supG = GOALS.skills;
-      const want = focus === 'skills' ? Math.max(2, nEx - 2) : Math.max(1, Math.floor(nEx / 3));
-      const cands = sup.map(k => evalCandidate(S, D, k, supG, new Set(), lastKeys(S))).filter(Boolean).sort((a, b) => a.d - b.d);
-      for (const c of cands) { if (items.length - sk.items.length >= want) break; if (used.has(c.key)) continue; used.add(c.key); items.push(prescribe(S, D, c, supG, st)); }
-    }
-    // remplissage par emplacements (jour de skill: un peu de force de base autour du skill)
     const gen = goal === 'skills' ? GOALS.skills : g;
-    const slots = focus === 'skills' ? ['push_h', 'pull_v', 'core', 'legs'] : (FOCUS[focus] && FOCUS[focus].length ? FOCUS[focus] : FOCUS.full);
-    const ALT = { pull_v: 'pull_h', push_v: 'push_h' };   // si l'exercice normal est trop dur (débutant), on prend l'alternative plus facile
-    for (const s of slots) {
-      if (items.length >= nEx) break;
-      let c = pickSlot(S, D, s, gen, used);
-      if (c && c.hard && ALT[s]) { const c2 = pickSlot(S, D, ALT[s], gen, used); if (c2 && !c2.hard) c = c2; }
-      if (!c) continue;
-      used.add(c.key);
-      items.push(prescribe(S, D, c, gen, st));
+    const pend = new Set(Troph.pending(S, Troph.targetLevel(S)).map(t => t.key)), recent = lastKeys(S);
+    let skillInfo = null;
+    if (wantSkill) {
+      const sk = skillItems(S, D, st);
+      skillInfo = { id: sk.id, label: sk.skill.label };
+      sk.items.forEach(i => { used.add(i.key); items.push(i); });
+      if (!body.length) {   // jour de skill pur: un peu de force de base autour du skill
+        const supG = GOALS.skills;
+        const want = Math.max(2, nEx - 2);
+        const cands = (SKILLS[sk.id].support || []).map(k => evalCandidate(S, D, k, supG, new Set(), recent)).filter(Boolean).sort((a, b) => a.d - b.d);
+        for (const c of cands) { if (items.length - sk.items.length >= want) break; if (used.has(c.key)) continue; used.add(c.key); items.push(Object.assign(prescribe(S, D, c, supG, st, I), { group: 'skill' })); }
+      }
     }
-    // la séance doit tenir dans le temps demandé : on retire d'abord des séries (jamais sous 3 en force et en masse, 2 sinon), puis les derniers exercices
+    // nombre d'exercices par groupe: au moins un chacun, puis on distribue le reste en commençant par les muscles préférés
+    const counts = {};
+    body.forEach(x => { counts[x] = 1; });
+    let left = nEx - items.length - body.length;
+    const order = body.slice().sort((a, b) => st.prio.includes(b) - st.prio.includes(a));
+    order.forEach(x => { if (left > 0 && st.prio.includes(x) && counts[x] < GROUP_SLOTS[x].length) { counts[x]++; left--; } });   // muscles préférés: un exercice de plus d'abord
+    for (let i = 0, guard = 0; left > 0 && order.length && guard < 200; i++, guard++) {
+      const x = order[i % order.length];
+      if (counts[x] < GROUP_SLOTS[x].length) { counts[x]++; left--; }
+    }
+    body.forEach(x => {
+      for (let m = 0; m < counts[x]; m++) {
+        const c = pickForGroup(S, D, x, m, gen, used, pend, recent);
+        if (!c) continue;
+        used.add(c.key);
+        items.push(Object.assign(prescribe(S, D, c, gen, st, I), { group: x }));
+      }
+    });
+    // la séance doit tenir dans le temps demandé : on retire d'abord des séries (jamais sous 3 en force et en masse, 2 sinon), puis des exercices (jamais le seul exercice d'un groupe)
     const minSets = goal === 'force' || goal === 'masse' ? 3 : 2;
-    let guard = 60;
-    while (estimate(items, goal) > minutes + 2 && guard-- > 0) {
+    let guard = 80;
+    while (estimate(items) > minutes + 2 && guard-- > 0) {
       const it = items.slice().reverse().find(x => x.sets > minSets && !x.skill);
       if (it) { it.sets -= 1; continue; }
-      if (items.length <= 2) break;
-      const lastIdx = items.length - 1 - items.slice().reverse().findIndex(x => !x.skill);
-      items.splice(lastIdx, 1);
+      const cnt0 = {}; items.forEach(x => { cnt0[x.group] = (cnt0[x.group] || 0) + 1; });
+      if (!items.some(x => !x.skill && cnt0[x.group] > 1)) {   // un seul exercice par groupe: dernier recours, 2 séries
+        const low = items.slice().reverse().find(x => x.sets > 2 && !x.skill);
+        if (low) { low.sets -= 1; continue; }
+      }
+      const cnt = {}; items.forEach(x => { cnt[x.group] = (cnt[x.group] || 0) + 1; });
+      const idx = items.map((x, i) => i).reverse().find(i => !items[i].skill && cnt[items[i].group] > 1);
+      if (idx == null) break;
+      items.splice(idx, 1);
     }
-    return { goal, focus, focusLabel: FOCUS_LABEL[focus], minutes, estMin: Math.round(estimate(items, goal)), warmup: warmupFor(focus, goal === 'skills'), items, tips: g.tips, skill: skillInfo, ts: 0 };
+    return { goal, muscles: groups, focus: groups.join('+'), focusLabel: groupLabels(groups), minutes, estMin: Math.round(estimate(items)), warmup: warmupFor(groups), items, tips: g.tips, skill: skillInfo, intensity: I.id, ts: 0 };
   }
 
-  /* ---------- semaine et progression ---------- */
-  function weekPlan(S) {
-    const st = settings(S);
-    const base = { 2: ['full', 'full'], 3: ['full', 'full', 'full'], 4: ['upper', 'legs', 'upper', 'legs'], 5: ['push', 'pull', 'legs', 'upper', 'core'] }[clamp(st.days, 2, 5)];
-    const w = base.slice();
-    if (st.goal === 'skills') { for (let i = 0; i < w.length; i += 2) w[i] = 'skills'; }
-    return w.map((f, i) => ({ day: i + 1, focus: f, label: FOCUS_LABEL[f] }));
+  /* ---------- calendrier, recuperation, suggestions ---------- */
+  const dayNum = ts => { const d = new Date(ts); return Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / DAY); };
+  const dayIdx = ts => (new Date(ts).getDay() + 6) % 7;   // 0 = lundi
+  const weekStart = ts => dayNum(ts) - dayIdx(ts);
+  const sessionsOf = S => (S.plan && S.plan.sessions) || [];
+  const groupsOf = rec => (rec.muscles && rec.muscles.length ? rec.muscles : (ANCIENS[rec.focus] || []));
+  const cleanDay = e => e && e.m && e.m.length ? { m: e.m.filter(x => GROUPS[x]), min: e.min || 40, goal: e.goal || null } : null;
+  /** Les 7 jours de la semaine (lundi = 0): null = repos, sinon { m:[groupes], min, goal }. */
+  function week(S) {
+    const w = (S.plan && S.plan.week) || [];
+    return [0, 1, 2, 3, 4, 5, 6].map(i => cleanDay(w[i]));
   }
-  function nextFocus(S) {
-    const w = weekPlan(S), ss = (S.plan && S.plan.sessions) || [];
-    if (!ss.length) return w[0];
-    const lastWeek = ss.filter(x => x.ts > Date.now() - 7 * 86400000);
-    return w[lastWeek.length % w.length];
+  /** Où en est chaque groupe: jours depuis la dernière fois, et prêt ou non (au moins un jour complet de repos). */
+  function recovery(S, now) {
+    const out = {}, today = dayNum(now);
+    Object.keys(GROUPS).forEach(g => { out[g] = { gap: null, ts: 0 }; });
+    sessionsOf(S).forEach(rec => groupsOf(rec).forEach(g => { if (out[g] && rec.ts > out[g].ts && rec.ts <= now + DAY) { out[g].ts = rec.ts; out[g].gap = Math.max(0, today - dayNum(rec.ts)); } }));
+    Object.keys(out).forEach(g => {
+      const o = out[g];
+      o.ready = o.gap == null || o.gap >= 2;
+      o.label = o.gap == null ? 'Pas encore travaillé' : o.gap === 0 ? 'Travaillé aujourd\'hui : repos' : o.gap === 1 ? 'Travaillé hier : repos' : 'Reposé depuis ' + o.gap + ' jours';
+    });
+    return out;
   }
+  /** Avertissements quand on place des muscles un jour: le même muscle la veille ou le lendemain (le dimanche touche le lundi). */
+  function conflicts(wk, idx, groups) {
+    const out = [];
+    [-1, 1].forEach(dl => {
+      const j = (idx + dl + 7) % 7, e = wk[j];
+      if (!e || j === idx) return;
+      const same = e.m.filter(x => x !== 'skill' && groups.includes(x));
+      if (same.length) out.push(cap(nmList(same)) + (same.length > 1 ? ' sont aussi prévus ' : ' est aussi prévu ') + DAY_NAMES[j].toLowerCase() + ' : il faut au moins un jour complet de repos entre deux séances sur le même muscle.');
+    });
+    return out;
+  }
+  const regionOf = list => { const u = list.filter(x => GROUPS[x] && GROUPS[x].region === 'up').length, l = list.filter(x => GROUPS[x] && GROUPS[x].region === 'low').length; return u > l ? 'up' : l > u ? 'low' : null; };
+  const joinFr = list => list.length <= 1 ? (list[0] || '') : list.slice(0, -1).join(', ') + ' et ' + list[list.length - 1];
+  const lc = s => s.charAt(0).toLowerCase() + s.slice(1);
+  const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+  const nmList = list => joinFr(list.filter(x => GROUPS[x]).map(x => lc(GROUPS[x].label)));
+
+  /** La séance à faire aujourd'hui: celle prévue dans l'emploi du temps (moins les muscles encore en repos), sinon une suggestion
+   *  d'après ce qui a été fait les jours précédents. Retourne { kind: 'planned'|'suggested'|'rest', groups, minutes, reason, notes }. */
+  function suggestToday(S, now) {
+    const st = settings(S), rec = recovery(S, now), wk = week(S), idx = dayIdx(now), today = dayNum(now);
+    const ss = sessionsOf(S);
+    const doneToday = ss.filter(x => dayNum(x.ts) === today);
+    if (doneToday.length) return { kind: 'rest', groups: [], minutes: 0, reason: 'Tu t\'es déjà entraîné aujourd\'hui. Chaque muscle travaillé a besoin d\'au moins un jour complet de repos : à demain.', notes: [] };
+    const last = ss.length ? ss[ss.length - 1] : null;
+    const lastGroups = last ? groupsOf(last).filter(x => x !== 'skill') : [];
+    const lastTxt = last && today - dayNum(last.ts) <= 3 ? (today - dayNum(last.ts) === 1 ? 'Hier' : 'Il y a ' + (today - dayNum(last.ts)) + ' jours') + ' : ' + nmList(lastGroups) + '. ' : '';
+    const plan = wk[idx];
+    const notes = [];
+    if (plan) {
+      const fresh = plan.m.filter(x => x === 'skill' || rec[x].ready), tired = plan.m.filter(x => x !== 'skill' && !rec[x].ready);
+      if (!tired.length) return { kind: 'planned', groups: plan.m.slice(), minutes: plan.min, goal: plan.goal, reason: lastTxt + 'C\'est la séance prévue dans ton emploi du temps.', notes };
+      if (fresh.length) return { kind: 'planned', groups: fresh, minutes: plan.min, goal: plan.goal, reason: lastTxt + 'Prévu aujourd\'hui, mais ' + nmList(tired) + (tired.length > 1 ? ' sont' : ' est') + ' encore en repos : on les retire.', notes };
+      notes.push('La séance prévue (' + nmList(plan.m) + ') tombe sur des muscles encore en repos.');
+    }
+    const cand = GROUP_ORDER.filter(x => rec[x].ready);
+    if (!cand.length) return { kind: 'rest', groups: [], minutes: 0, reason: 'Tous tes muscles ont travaillé hier ou aujourd\'hui : un jour de repos fait aussi partie du programme.', notes };
+    const lastReg = regionOf(lastGroups);
+    const score = x => (rec[x].gap == null ? 6 : Math.min(rec[x].gap, 6)) + (st.prio.includes(x) ? 2.5 : 0) + (lastReg && GROUPS[x].region !== lastReg ? 1.2 : 0);
+    const sorted = cand.slice().sort((a, b) => score(b) - score(a) || GROUP_ORDER.indexOf(a) - GROUP_ORDER.indexOf(b));
+    const size = Math.min(sorted.length, st.dur >= 50 ? 3 : 2);
+    const groups = sorted.slice(0, size);
+    if (st.goal === 'skills' && st.skill && !ss.slice(-2).some(x => groupsOf(x).includes('skill'))) groups.unshift('skill');
+    const body = groups.filter(x => x !== 'skill'), known = body.filter(x => rec[x].gap != null).map(x => rec[x].gap);
+    const rested = !body.length ? '' : known.length === body.length ? ' Reposé' + (body.length > 1 ? 's' : '') + ' depuis ' + Math.min.apply(null, known) + ' jours au moins.' : !known.length ? ' Tu ne ' + (body.length > 1 ? 'les' : 'l\'') + 'as pas encore travaillé' + (body.length > 1 ? 's' : '') + '.' : '';
+    const nm = joinFr(body.map(x => lc(GROUPS[x].label)));
+    return { kind: 'suggested', groups, minutes: st.dur, reason: lastTxt + 'Aujourd\'hui : ' + nm + (groups.includes('skill') ? (nm ? ' et ' : '') + 'ton skill' : '') + '.' + rested, notes };
+  }
+
+  /** Propose une semaine type d'après le nombre de jours, sans jamais mettre le même muscle deux jours de suite. */
+  function autoWeek(S) {
+    const st = settings(S), n = clamp(st.days, 2, 6);
+    const PAT = { 2: [0, 3], 3: [0, 2, 4], 4: [0, 1, 3, 4], 5: [0, 1, 2, 4, 5], 6: [0, 1, 2, 3, 4, 5] };
+    const CYCLE = [['chest', 'arms'], ['abs', 'legs'], ['back', 'shoulders'], ['chest', 'abs'], ['legs', 'back'], ['shoulders', 'arms']];
+    const tpl = n === 2 ? [['chest', 'back', 'arms'], ['legs', 'abs', 'shoulders']] : CYCLE.slice(0, n).map(x => x.slice());
+    const days = PAT[n], w = [null, null, null, null, null, null, null];
+    days.forEach((d, i) => { w[d] = { m: tpl[i].slice(), min: st.dur, goal: null }; });
+    const adjacent = (d, g) => [-1, 1].some(dl => { const e = w[(d + dl + 7) % 7]; return e && e.m.includes(g); });
+    st.prio.forEach(g => {
+      let cnt = w.filter(e => e && e.m.includes(g)).length;
+      days.forEach(d => { if (cnt < 2 && !w[d].m.includes(g) && w[d].m.length < 3 && !adjacent(d, g)) { w[d].m.push(g); cnt++; } });
+    });
+    if (st.goal === 'skills') days.forEach((d, i) => { if (i % 2 === 0) w[d].m.unshift('skill'); });
+    return w;
+  }
+
   /** Enregistre une séance terminée: historique et cibles de la prochaine fois. res = [{key, sig, sets:[valeurs], target, goal}] */
   function recordSession(S, session, res, now) {
     if (!S.plan) S.plan = { goal: settings(S).goal, hist: {}, sessions: [] };
@@ -2147,7 +2408,7 @@ const Coach = (() => {
       S.plan.hist[r.sig] = { ts: now, sets: r.sets.slice(), target: r.target, goal: r.goal };
       items.push({ key: r.key, sets: r.sets.slice(), target: r.target });
     });
-    const rec = { ts: now, goal: session.goal, focus: session.focus, minutes: session.minutes, items };
+    const rec = { ts: now, goal: session.goal, muscles: (session.muscles || []).slice(), minutes: session.minutes, items };
     S.plan.sessions.push(rec);
     if (S.plan.sessions.length > 60) S.plan.sessions.shift();
     return rec;
@@ -2186,70 +2447,103 @@ const Coach = (() => {
 
   /* ---------- autotests ---------- */
   function test() {
-    const R = [], now = Date.UTC(2026, 9, 24, 12);
+    const R = [], now = new Date(2026, 9, 24, 12).getTime();   // samedi 24 octobre 2026, midi
     const eq = (name, got, exp) => R.push({ name, got, exp, pass: JSON.stringify(got) === JSON.stringify(exp) });
     const ok = (name, cond, info) => R.push({ name, got: info, exp: true, pass: !!cond });
-    const mk = (pu, pl, goalIdx, o) => { const S = Troph.startState(Object.assign({ time: 2, pu, pl, goal: goalIdx, skill: 0, days: 1, dur: 1 }, o || {}), now); return S; };
+    const mk = (pu, pl, goalIdx, o) => Troph.startState(Object.assign({ time: 2, pu, pl, goal: goalIdx, skill: 0, days: 1, dur: 1 }, o || {}), now);
     const sess = (S, o) => buildSession(S, Core.derive(S, now), o);
+    const prim = it => TI[it.key].p;
+    const covers = (it, gs) => prim(it).some(m => gs.some(g => GROUPS[g].m.includes(m)));
+    const names = s => s.items.map(i => i.key + ':' + i.sets + 'x' + i.target).join(' ');
     // 70 pompes, objectif masse: pas de pompe standard facile, des difficultés ajoutées, séries proches de la limite
     let S = mk(70, 12, 1);
     let D = Core.derive(S, now);
-    const r70 = expectedMax(S, D, 'pompes_strictes');
-    eq('maximum déclaré (70 pompes) utilisé comme maximum attendu', Math.round(r70), 70);
-    const sm = sess(S, { focus: 'push', minutes: 40 });
+    eq('maximum déclaré (70 pompes) utilisé comme maximum attendu', Math.round(expectedMax(S, D, 'pompes_strictes')), 70);
+    const sm = sess(S, { muscles: ['chest'], minutes: 40 });
     const push1 = sm.items[0];
     ok('masse: la première pompe n\'est pas la version standard sans difficulté', push1.key !== 'pompes_strictes' || push1.mods.length > 0, push1.key + ' ' + push1.mods.join('+'));
-    ok('masse: répétitions cibles entre 6 et 15', sm.items.filter(i => !i.hold && i.fam !== 'core').every(i => i.target >= 6 && i.target <= 15 || i.expected < 12), sm.items.map(i => i.key + ':' + i.target).join(' '));
+    ok('masse: répétitions cibles entre 6 et 15', sm.items.filter(i => !i.hold && i.fam !== 'core').every(i => i.target >= 6 && i.target <= 15 || i.expected < 12), names(sm));
     ok('masse: 3 à 4 séries et repos de 75 s', sm.items.every(i => i.sets >= 2 && i.sets <= 4) && sm.items.every(i => i.rest === 75), sm.items.map(i => i.sets + '/' + i.rest).join(' '));
+    ok('masse: descente lente (3 s ou plus)', sm.items.filter(i => i.tempo).every(i => i.tempo.d >= 3 || i.expected < 10), sm.items.map(i => i.tempo && i.tempo.d).join(','));
     // force
     S = mk(70, 12, 0);
-    const sf = sess(S, { focus: 'push', minutes: 40 });
+    const sf = sess(S, { muscles: ['chest'], minutes: 40 });
     ok('force: peu de répétitions (2 à 6) et longs repos', sf.items.filter(i => !i.hold && i.fam !== 'core').every(i => i.target <= 6) && sf.items.every(i => i.rest >= 150), sf.items.map(i => i.key + ':' + i.target + '/' + i.rest).join(' '));
     // endurance: plus de répétitions que force
     S = mk(70, 12, 3);
-    const se = sess(S, { focus: 'push', minutes: 40 });
+    const se = sess(S, { muscles: ['chest'], minutes: 40 });
     const maxR = items => Math.max(...items.filter(i => !i.hold && i.fam !== 'core').map(i => i.target));
     ok('endurance: plus de répétitions que la force', maxR(se.items) > maxR(sf.items), maxR(se.items) + ' contre ' + maxR(sf.items));
     ok('endurance: repos courts (40 s)', se.items.every(i => i.rest === 40), se.items.map(i => i.rest).join(','));
     // débutant: version facile
     S = mk(3, 0, 1);
-    const sb = sess(S, { focus: 'full', minutes: 20 });
-    ok('débutant: 3 exercices et une pompe inclinée ou standard', sb.items.length === 3 && sb.items.some(i => i.key === 'pompes_inclinees' || i.key === 'pompes_strictes'), sb.items.map(i => i.key).join(','));
+    const sb = sess(S, { muscles: ['chest', 'back', 'legs', 'abs'], minutes: 20 });
+    ok('débutant: au moins un exercice par groupe et une pompe inclinée ou standard', sb.items.length === 4 && sb.items.some(i => i.key === 'pompes_inclinees' || i.key === 'pompes_strictes'), names(sb));
     // durée
     S = mk(30, 8, 1);
-    const s20 = sess(S, { focus: 'full', minutes: 20 }), s40 = sess(S, { focus: 'full', minutes: 40 }), s60 = sess(S, { focus: 'full', minutes: 60 });
-    ok('durée: 20 min < 40 min <= 60 min en nombre d\'exercices', s20.items.length < s40.items.length && s40.items.length <= s60.items.length, [s20, s40, s60].map(s => s.items.length).join('/'));
+    const g4 = ['chest', 'back', 'legs', 'abs'];
+    const s20 = sess(S, { muscles: g4, minutes: 20 }), s40 = sess(S, { muscles: g4, minutes: 40 }), s60 = sess(S, { muscles: g4, minutes: 60 });
+    ok('durée: 20 min <= 40 min < 60 min en nombre d\'exercices', s20.items.length <= s40.items.length && s40.items.length < s60.items.length, [s20, s40, s60].map(s => s.items.length).join('/'));
     ok('durée: l\'estimation respecte le temps demandé', [s20, s40, s60].every((s, i) => s.estMin <= [20, 40, 60][i] + 3), [s20, s40, s60].map(s => s.estMin).join('/'));
-    // focus
-    const sp = sess(S, { focus: 'legs', minutes: 40 });
-    ok('focus jambes: uniquement jambes et abdos', sp.items.every(i => i.fam === 'legs' || i.fam === 'core'), sp.items.map(i => i.key).join(','));
-    const su = sess(S, { focus: 'pull', minutes: 40 });
-    ok('focus tirer: tractions et abdos', su.items.every(i => i.fam === 'pull' || i.fam === 'core'), su.items.map(i => i.key).join(','));
-    // exercices fermés jamais proposés
-    ok('jamais d\'exercice à plus de 2 niveaux au-dessus du joueur', [s20, s40, s60, sp, su].every(s => s.items.every(i => Troph.unlockOf(i.key) <= Troph.level(S) + 2)), '');
-    S = mk(70, 12, 0); D = Core.derive(S, now);
-    const f70 = sess(S, { focus: 'push', minutes: 40 });
-    ok('force avec 70 pompes: une version difficile (archer ou diamant lesté), pas la pompe standard', f70.items[0].key !== 'pompes_strictes' && f70.items[0].key !== 'pompes_inclinees', f70.items[0].key + ' ' + f70.items[0].mods.join('+'));
-    ok('force: jamais plus de 6 répétitions', f70.items.filter(i => !i.hold && i.fam !== 'core').every(i => i.target <= 6), f70.items.map(i => i.key + ':' + i.target).join(' '));
+    // muscles choisis: la séance ne travaille que ces muscles
+    const sca = sess(S, { muscles: ['chest', 'arms'], minutes: 40 });
+    ok('pectoraux + bras: tous les exercices travaillent ces muscles', sca.items.every(i => covers(i, ['chest', 'arms'])), names(sca));
+    ok('pectoraux + bras: les deux groupes sont présents', sca.items.some(i => i.group === 'chest') && sca.items.some(i => i.group === 'arms'), sca.items.map(i => i.group).join(','));
+    const sal = sess(S, { muscles: ['abs', 'legs'], minutes: 40 });
+    ok('abdos + jambes: uniquement jambes et abdos', sal.items.every(i => covers(i, ['abs', 'legs'])), names(sal));
+    const sba = sess(S, { muscles: ['back'], minutes: 40 });
+    ok('dos: tractions, rowing ou dos', sba.items.every(i => covers(i, ['back'])), names(sba));
+    const ssh = sess(S, { muscles: ['shoulders'], minutes: 40 });
+    ok('épaules: exercices qui travaillent les deltoïdes', ssh.items.every(i => covers(i, ['shoulders'])), names(ssh));
+    ok('jamais d\'exercice à plus de 2 niveaux au-dessus du joueur', [s20, s40, s60, sca, sal, sba, ssh].every(s => s.items.every(i => Troph.unlockOf(i.key) <= Troph.level(S) + 2)), '');
+    ok('jamais deux fois le même exercice', [s60, sca, sal].every(s => new Set(s.items.map(i => i.key)).size === s.items.length), '');
+    // muscle préféré: plus d'exercices pour lui
+    S = mk(30, 8, 1); S.plan.prio = ['arms'];
+    const spr = sess(S, { muscles: ['chest', 'arms', 'abs'], minutes: 40 });
+    const cnt = (s, g) => s.items.filter(i => i.group === g).length;
+    ok('muscle préféré: plus d\'exercices que les autres groupes', cnt(spr, 'arms') > cnt(spr, 'chest') && cnt(spr, 'arms') > cnt(spr, 'abs'), ['chest', 'arms', 'abs'].map(g => g + cnt(spr, g)).join(' '));
+    // intensité
+    S = mk(30, 8, 1);
+    const sl = sess(S, { muscles: ['chest', 'back'], minutes: 40, intensity: 'leger' }), si = sess(S, { muscles: ['chest', 'back'], minutes: 40, intensity: 'intense' });
+    const vol = s => s.items.reduce((a, i) => a + i.sets * i.target, 0);
+    ok('intensité: intense > légère en volume', vol(si) > vol(sl), vol(sl) + ' contre ' + vol(si));
+    ok('intensité: l\'intense garde moins de marge', /^[01] /.test(si.items[0].rir) && !/^[01] /.test(sl.items[0].rir), sl.items[0].rir + ' / ' + si.items[0].rir);
+    // joueur très fort (100 pompes): aucune séance facile
+    S = mk(100, 20, 1); D = Core.derive(S, now);
+    const s100 = sess(S, { muscles: ['chest'], minutes: 40 });
+    ok('100 pompes: pas de pompes diamant sans difficulté ajoutée', !s100.items.some(i => (i.key === 'pompes_diamant' || i.key === 'pompes_strictes' || i.key === 'pompes_inclinees') && !i.mods.length), names(s100) + ' | ' + s100.items.map(i => i.mods.join('+')).join(','));
+    ok('100 pompes: répétitions raisonnables (pas de 40 pompes en masse)', s100.items.filter(i => !i.hold).every(i => i.target <= 19), names(s100));
+    const s100f = sess(mk(100, 20, 0), { muscles: ['chest', 'arms'], minutes: 40 });
+    ok('100 pompes en force: toutes les séries entre 2 et 6 répétitions avec une vraie difficulté', s100f.items.filter(i => !i.hold && i.group === 'chest').every(i => i.target <= 6 && (i.mods.length || TI[i.key].u >= 4)), names(s100f) + ' | ' + s100f.items.map(i => i.mods.join('+')).join(','));
+    // explications repos et tempo
+    ok('repos: très court = endurance, long = force', /endurance/.test(restInfo(30).e) && /force/.test(restInfo(150).e) && /masse/.test(restInfo(75).e), '');
+    ok('tempo: descente lente = masse, rapide = endurance', /masse/.test(tempoInfo({ d: 3, p: 0, u: 1 }).e) && /endurance/.test(tempoInfo({ d: 1, p: 0, u: 1 }).e), '');
+    eq('tempo d\'une tenue: aucun', tempoInfo(null), null);
+    // débutant sans traction
     S = mk(3, 0, 1, { time: 0 }); D = Core.derive(S, now);
-    const deb = sess(S, { focus: 'full', minutes: 20 });
-    ok('débutant sans traction: un rowing inversé, jamais 3 x 1 traction', !deb.items.some(i => i.key.indexOf('traction') === 0) && deb.items.some(i => i.key === 'rowing_inverse'), deb.items.map(i => i.key + ':' + i.target).join(' '));
+    const deb = sess(S, { muscles: ['chest', 'back', 'legs', 'abs'], minutes: 20 });
+    ok('débutant sans traction: un rowing inversé, jamais 3 x 1 traction', !deb.items.some(i => i.key.indexOf('traction') === 0 && i.key !== 'tractions_scapulaires') && deb.items.some(i => i.key === 'rowing_inverse' || i.key === 'extension_dos'), names(deb));
+    ['dips_banc', 'rowing_supination', 'tractions_scapulaires', 'suspension', 'extension_dos', 'pont_fessier', 'mollets', 'planche_laterale'].forEach(k => {
+      ok('exercice ' + k + ': maximum attendu estimable pour un débutant', expectedMax(S, D, k) >= 1, String(expectedMax(S, D, k)));
+    });
     // skills
     S = mk(30, 8, 2, { skill: 1 });
     D = Core.derive(S, now);
-    const ss = sess(S, { focus: 'skills', minutes: 40 });
-    ok('skills (planche): la planche est en tête avec des tenues courtes', ss.items[0].key.indexOf('planche') === 0 && ss.items[0].hold && ss.items[0].target <= 12, ss.items.map(i => i.key + ':' + i.target).join(' '));
+    const ss = sess(S, { muscles: ['skill'], minutes: 40 });
+    ok('skills (planche): la planche est en tête avec des tenues courtes', ss.items[0].key.indexOf('planche') === 0 && ss.items[0].hold && ss.items[0].target <= 12, names(ss));
     ok('skills: renforcement ajouté (pousser, abdos)', ss.items.length >= 3, ss.items.map(i => i.key).join(','));
     S = mk(20, 3, 2, { skill: 3 });
-    const sm2 = sess(S, { focus: 'skills', minutes: 40 });
+    const sm2 = sess(S, { muscles: ['skill'], minutes: 40 });
     ok('muscle-up avec 3 tractions: on construit d\'abord les tractions', sm2.items[0].key === 'tractions_strictes', sm2.items.map(i => i.key).join(','));
+    const smix = sess(S, { muscles: ['skill', 'legs'], minutes: 40 });
+    ok('skill + jambes: le skill puis les jambes', smix.items[0].group === 'skill' && smix.items.some(i => i.group === 'legs'), smix.items.map(i => i.group + ':' + i.key).join(' '));
     // progression
     S = mk(30, 8, 1);
     D = Core.derive(S, now);
-    let a = sess(S, { focus: 'push', minutes: 40 });
+    const a = sess(S, { muscles: ['chest'], minutes: 40 });
     const it0 = a.items[0];
-    Coach.recordSession(S, a, [{ key: it0.key, sig: it0.sig, sets: Array(it0.sets).fill(it0.target), target: it0.target, goal: a.goal }], now);
-    const b = sess(S, { focus: 'push', minutes: 40 });
+    recordSession(S, a, [{ key: it0.key, sig: it0.sig, sets: Array(it0.sets).fill(it0.target), target: it0.target, goal: a.goal }], now - 5 * DAY);
+    const b = sess(S, { muscles: ['chest'], minutes: 40 });
     const same = b.items.find(i => i.sig === it0.sig);
     ok('progression: toutes les séries réussies -> +1 répétition la fois suivante', !same || same.target === Math.min(it0.target + 1, GOALS.masse.repMax + 4), it0.target + ' -> ' + (same ? same.target : 'autre exercice'));
     // niveau sur exercice
@@ -2257,13 +2551,52 @@ const Coach = (() => {
     const L = exLevel(S, D, 'pompes_strictes');
     ok('niveau sur exercice: rang, ELO et prochain palier', L && L.ranked && L.next && L.next.value > 70 || (L && L.ranked && L.rank === 'or'), JSON.stringify(L && { rank: L.rank, elo: L.elo, next: L.next }));
     eq('exercice jamais fait: pas classé', exLevel(S, D, 'pistol_squat') && exLevel(S, D, 'pistol_squat').ranked, false);
-    // semaine
-    eq('semaine à 3 jours: 3 séances corps entier', weekPlan(mk(30, 8, 1, { days: 1 })).map(x => x.focus), ['full', 'full', 'full']);
-    eq('semaine à 5 jours', weekPlan(mk(30, 8, 1, { days: 3 })).map(x => x.focus), ['push', 'pull', 'legs', 'upper', 'core']);
+    // récupération: au moins un jour complet sans retravailler le même muscle
+    S = mk(30, 8, 1);
+    const hier = now - DAY, avantHier = now - 2 * DAY;
+    recordSession(S, { goal: 'masse', muscles: ['chest', 'arms'], minutes: 40 }, [{ key: 'pompes_strictes', sig: 'x', sets: [10], target: 10, goal: 'masse' }], hier);
+    let rc = recovery(S, now);
+    ok('récupération: pectoraux travaillés hier = en repos, dos = prêt', !rc.chest.ready && !rc.arms.ready && rc.back.ready && rc.legs.ready, rc.chest.label + ' / ' + rc.back.label);
+    S.plan.sessions[0].ts = avantHier; rc = recovery(S, now);
+    ok('récupération: travaillés avant-hier = prêts (un jour complet de repos)', rc.chest.ready && rc.chest.gap === 2, rc.chest.label);
+    // suggestion du jour
+    S = mk(30, 8, 1);
+    recordSession(S, { goal: 'masse', muscles: ['chest', 'arms'], minutes: 40 }, [{ key: 'pompes_strictes', sig: 'x', sets: [10], target: 10, goal: 'masse' }], hier);
+    let sg = suggestToday(S, now);
+    ok('suggestion après haut du corps: on change de zone (abdos, jambes) et jamais pectoraux ou bras', sg.kind === 'suggested' && !sg.groups.some(g => g === 'chest' || g === 'arms') && sg.groups.some(g => g === 'abs' || g === 'legs'), sg.groups.join(',') + ' | ' + sg.reason);
+    S.plan.week = [null, null, null, null, null, { m: ['chest', 'back'], min: 40 }, null];   // samedi = aujourd'hui
+    sg = suggestToday(S, now);
+    ok('séance prévue avec pectoraux en repos: on retire les pectoraux et on garde le dos', sg.kind === 'planned' && sg.groups.join() === 'back', sg.groups.join(',') + ' | ' + sg.reason);
+    S.plan.week[5] = { m: ['chest'], min: 40 };
+    sg = suggestToday(S, now);
+    ok('séance prévue entièrement en repos: on suggère autre chose', sg.kind === 'suggested' && !sg.groups.includes('chest'), sg.kind + ' ' + sg.groups.join(','));
+    S.plan.week[5] = { m: ['legs', 'abs'], min: 30 };
+    sg = suggestToday(S, now);
+    ok('séance prévue reposée: reprise telle quelle', sg.kind === 'planned' && sg.groups.join() === 'legs,abs' && sg.minutes === 30, sg.kind + ' ' + sg.groups.join(','));
+    recordSession(S, { goal: 'masse', muscles: ['legs', 'abs'], minutes: 30 }, [{ key: 'squat', sig: 'y', sets: [10], target: 10, goal: 'masse' }], now - 3600000);
+    eq('déjà fait aujourd\'hui: repos', suggestToday(S, now).kind, 'rest');
+    S = mk(30, 8, 1); S.plan.prio = ['legs'];
+    sg = suggestToday(S, now);
+    ok('muscle préféré: proposé en premier quand tout est reposé', sg.groups.includes('legs'), sg.groups.join(','));
+    // emploi du temps automatique
+    const adj = w => w.every((e, i) => !e || !w[(i + 1) % 7] || !e.m.some(g => g !== 'skill' && w[(i + 1) % 7].m.includes(g)));
+    [2, 3, 4, 5, 6].forEach(n => {
+      S = mk(30, 8, 1, { days: n - 1 }); S.plan.days = n;
+      const w = autoWeek(S);
+      ok('semaine à ' + n + ' jours: ' + n + ' séances, jamais le même muscle deux jours de suite', w.filter(Boolean).length === n && adj(w), w.map(e => e ? e.m.join('+') : '-').join(' | '));
+    });
+    S = mk(30, 8, 1, { days: 1 });
+    const w3 = autoWeek(S), up = w3.filter(e => e && e.m.some(g => GROUPS[g].region === 'up')).length;
+    ok('semaine à 3 jours: pectoraux+bras, abdos+jambes, dos+épaules', JSON.stringify(w3.filter(Boolean).map(e => e.m)) === JSON.stringify([['chest', 'arms'], ['abs', 'legs'], ['back', 'shoulders']]) && up === 2, JSON.stringify(w3.filter(Boolean).map(e => e.m)));
+    S.plan.prio = ['abs'];
+    const wp = autoWeek(S);
+    ok('muscle préféré: au moins deux séances par semaine', wp.filter(e => e && e.m.includes('abs')).length >= 2 && adj(wp), wp.map(e => e ? e.m.join('+') : '-').join(' | '));
+    ok('conflit signalé: pectoraux le lundi et le mardi', conflicts([{ m: ['chest'], min: 40 }, null, null, null, null, null, null], 1, ['chest', 'abs']).length === 1 && conflicts([{ m: ['chest'], min: 40 }, null, null, null, null, null, null], 2, ['chest']).length === 0, '');
+    ok('conflit signalé: le dimanche touche le lundi', conflicts([{ m: ['legs'], min: 40 }, null, null, null, null, null, null], 6, ['legs']).length === 1, '');
     return R;
   }
 
-  return { GOALS, SKILLS, FOCUS_LABEL, FOCUS, settings, catElo, expectedMax, buildSession, weekPlan, nextFocus, recordSession, exLevel, allLevels, test, isOpen };
+  return { GOALS, GROUPS, GROUP_ORDER, INTENS, SKILLS, DAY_NAMES, settings, catElo, expectedMax, buildSession, week, recovery, conflicts, suggestToday, autoWeek, restInfo, tempoInfo, rirText, groupLabels, recordSession, exLevel, allLevels, dayIdx, dayNum, weekStart, test, isOpen };
 })();
 
 /* ============================================================
@@ -3217,19 +3550,39 @@ function promoRecord(key, perf) {
 }
 
 /* ============================================================
-   ui_plan.js : onglet Programme (objectif, semaine, creation de seance), seance guidee avec minuteur de repos,
-   et niveau du joueur sur chaque exercice (rang, ELO, prochain palier). La logique est dans coach.js.
+   ui_plan.js : onglet Programme (emploi du temps de la semaine, seance du jour, recuperation, intensite, muscles preferes),
+   creation d'une seance par muscles, seance guidee avec minuteur de repos, et niveau du joueur sur chaque exercice.
+   La logique est dans coach.js.
    ============================================================ */
-ui.build = { focus: 'full', minutes: 40, goal: null };
+ui.day = null;     // seance en cours de creation pour un jour: { d, m:[groupes], min, goal }
 ui.run = null;     // seance en cours: { s, done:[[valeurs]], started }
 ui.rest = null;    // repos en cours: { until, total }
 ui.edit = null;    // brouillon d'edition du plan
 
 const GOAL_IDS = ['force', 'masse', 'skills', 'endurance', 'forme'];
-const FOCUS_ORDER = ['full', 'upper', 'push', 'pull', 'legs', 'core', 'skills'];
+const PICK_GROUPS = ['chest', 'back', 'shoulders', 'arms', 'abs', 'legs', 'skill'];
+const PRESETS = [
+  { l: 'Pecs + bras', v: ['chest', 'arms'] }, { l: 'Abdos + jambes', v: ['abs', 'legs'] }, { l: 'Dos + épaules', v: ['back', 'shoulders'] },
+  { l: 'Haut du corps', v: ['chest', 'back', 'shoulders', 'arms'] }, { l: 'Corps entier', v: ['chest', 'back', 'legs', 'abs'] }
+];
 const planOf = () => Coach.settings(S);
 const fmtDate = ts => new Date(ts).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
 const rkStyle = id => `--rc:var(--rk-${id});--rc-hi:var(--rk-${id}-hi);--rc-lo:var(--rk-${id}-lo)`;
+const gLabel = g => (Coach.GROUPS[g] || {}).label || g;
+const lcf = s => s.charAt(0).toLowerCase() + s.slice(1);
+const musNames = ids => (ids || []).map(id => MUSCLES[id]).filter(Boolean).map(lcf);
+function ensurePlan() { if (!S.plan) S.plan = { goal: planOf().goal, hist: {}, sessions: [] }; return S.plan; }
+const groupChips = list => `<span class="gchips">${list.map(g => `<span class="gc gc-${Coach.GROUPS[g] ? Coach.GROUPS[g].region : 'up'}">${esc(gLabel(g))}</span>`).join('')}</span>`;
+/* muscles travailles par un exercice, en toutes lettres */
+function musclesHtml(key) {
+  const t = TI[key]; if (!t) return '';
+  const p = musNames(t.p), s = musNames(t.s);
+  return `<div class="sxmus"><b>Travaille :</b> ${esc(p.join(', '))}${s.length ? ` <span class="dim">· aide : ${esc(s.join(', '))}</span>` : ''}</div>`;
+}
+function howtoHtml(key) {
+  const t = TI[key]; if (!t || !t.st) return '';
+  return `<details class="how"><summary>Comment faire</summary><ol>${t.st.map(x => `<li>${esc(x)}</li>`).join('')}</ol><p class="herr"><b>Erreur fréquente :</b> ${esc(t.er || '')}</p></details>`;
+}
 
 /* ---------- niveau sur un exercice ---------- */
 function rkTag(key) {
@@ -3263,50 +3616,100 @@ function exercisesRankedHtml() {
 }
 
 /* ---------- onglet Programme ---------- */
+function dayDate(i) { return new Date((Coach.weekStart(nowMs()) + i) * 86400000).getUTCDate(); }
 function planView() {
-  const st = planOf(), g = Coach.GOALS[st.goal], nf = Coach.nextFocus(S), week = Coach.weekPlan(S);
-  const ss = (S.plan && S.plan.sessions) || [], weekAgo = Date.now() - 7 * 86400000, doneWeek = ss.filter(x => x.ts > weekAgo).length;
+  const now = nowMs(), st = planOf(), g = Coach.GOALS[st.goal], wk = Coach.week(S), todayI = Coach.dayIdx(now), ws = Coach.weekStart(now);
+  const ss = (S.plan && S.plan.sessions) || [], rec = Coach.recovery(S, now), sg = Coach.suggestToday(S, now);
   const skill = st.goal === 'skills' && st.skill && Coach.SKILLS[st.skill] ? ' · ' + Coach.SKILLS[st.skill].label : '';
   const m = st.maxes || {}, maxes = (m.pu || m.pl) ? ` · max : ${m.pu || 0} pompes, ${m.pl || 0} tractions` : '';
-  const weekHtml = week.map((w, i) => `<li class="${i < doneWeek ? 'done' : ''}"><span class="dn">${i + 1}</span><span class="nm">${esc(w.label)}</span><button class="btn sm" type="button" data-act="plan-make" data-focus="${w.focus}">Créer</button></li>`).join('');
-  const hist = ss.slice(-4).reverse().map(x => {
-    const n = x.items.reduce((s, i) => s + i.sets.length, 0);
-    return `<li><span class="nm">${esc(Coach.FOCUS_LABEL[x.focus] || x.focus)} · ${esc((Coach.GOALS[x.goal] || g).label)}</span><span class="el">${fmtDate(x.ts)} · ${n} séries</span></li>`;
+  // seance du jour
+  const kindLab = { planned: 'Séance prévue aujourd\'hui', suggested: 'Séance suggérée', rest: 'Repos conseillé' }[sg.kind];
+  let today = `<div class="tcard ${sg.kind}"><div class="k">${kindLab}</div>`;
+  if (sg.kind === 'rest') today += `<div class="v">Repose-toi</div><p class="s">${esc(sg.reason)}</p><div class="acts"><button class="btn" type="button" id="btn-today-edit" data-act="today-edit">Choisir quand même une séance</button></div>`;
+  else today += `${groupChips(sg.groups)}<p class="s">${esc(sg.reason)}</p>${sg.notes.map(n => `<p class="s dim">${esc(n)}</p>`).join('')}
+    <div class="acts"><button class="btn primary" type="button" id="btn-today-go" data-act="today-go">Démarrer · ${sg.minutes} min</button><button class="btn" type="button" id="btn-today-edit" data-act="today-edit">Changer les muscles</button></div>`;
+  today += '</div>';
+  // semaine
+  const rows = wk.map((e, i) => {
+    const done = ss.filter(x => Coach.dayNum(x.ts) === ws + i);
+    const isToday = i === todayI;
+    let body;
+    if (done.length) body = `<div class="dd">${groupChips(done.reduce((a, x) => a.concat((x.muscles && x.muscles.length ? x.muscles : [])).filter((v, k, ar) => ar.indexOf(v) === k), []))}<span class="ok">Séance faite</span></div>`;
+    else if (e) body = `<div class="dd">${groupChips(e.m)}<span class="dim">${e.min} min</span></div>`;
+    else body = `<div class="dd"><span class="dim">Repos</span></div>`;
+    return `<li class="dayrow${isToday ? ' today' : ''}${done.length ? ' done' : ''}${e ? ' has' : ''}"><div class="dn"><b>${Coach.DAY_NAMES[i].slice(0, 3)}</b><span>${dayDate(i)}</span></div>${body}
+      <button class="btn sm" type="button" id="btn-day-${i}" data-act="day-open" data-d="${i}" aria-label="${e ? 'Modifier' : 'Ajouter une séance'} ${Coach.DAY_NAMES[i].toLowerCase()}">${e ? 'Modifier' : '+ Ajouter'}</button></li>`;
   }).join('');
-  return `<section class="stack plan">
-    <div class="pobj"><div class="k">Ton objectif</div><div class="v">${esc(g.label)}${esc(skill)}</div><div class="s">${st.days} séances par semaine · ${st.dur} min${esc(maxes)}</div>
-      <button class="link" type="button" id="btn-plan-edit" data-act="plan-edit">Modifier mon plan</button></div>
-    <div class="pnext"><div class="k">Séance suggérée</div><div class="v">${esc(nf.label)}</div><div class="s">${esc(g.why)}</div>
-      <div class="acts"><button class="btn primary" type="button" id="btn-plan-make" data-act="plan-make" data-focus="${nf.focus}">Créer ma séance</button><button class="btn" type="button" id="btn-plan-other" data-act="plan-build">Une autre séance</button></div></div>
-    <div class="psec"><h2>Ma semaine</h2><div class="muted" style="margin:-4px 0 8px">${doneWeek} séance${doneWeek > 1 ? 's' : ''} sur 7 jours glissants, objectif ${st.days}.</div><ul class="weeklist" id="weeklist">${weekHtml}</ul></div>
+  const nPlanned = wk.filter(Boolean).length;
+  const weekHtml = `<div class="psec"><h2>Ma semaine</h2><p class="muted sub2">Ajoute une séance sur le jour de ton choix et choisis les muscles. Un muscle a besoin d'au moins un jour complet de repos avant d'être retravaillé.</p>
+    <ul class="weeklist" id="weeklist">${rows}</ul>
+    <div class="acts row2"><button class="btn" type="button" id="btn-wk-auto" data-act="wk-auto">${nPlanned ? 'Régénérer ma semaine' : 'Générer ma semaine'}</button>${nPlanned ? `<button class="btn" type="button" id="btn-wk-clear" data-act="wk-clear">Tout effacer</button>` : ''}</div></div>`;
+  // recuperation
+  const recHtml = `<div class="psec"><h2>Mes muscles</h2><ul class="recl" id="recl">${Coach.GROUP_ORDER.map(x => `<li class="${rec[x].ready ? 'ready' : 'tired'}"><span class="nm">${esc(gLabel(x))}</span><span class="st">${rec[x].ready ? 'Prêt' : 'Au repos'}</span><span class="lb2">${esc(rec[x].label)}</span></li>`).join('')}</ul></div>`;
+  // reglages
+  const I = Coach.INTENS[st.intensity];
+  const setHtml = `<div class="psec"><h2>Mes réglages</h2><div class="pobj"><div class="k">Intensité</div>${chips('Intensité', Object.keys(Coach.INTENS).map(id => ({ v: id, l: Coach.INTENS[id].label })), st.intensity, 'set-int')}<p class="s" id="int-desc">${esc(I.desc)}</p>
+    <div class="k" style="margin-top:14px">Muscles que je veux travailler le plus (3 maximum)</div>${prioChips(st.prio)}<p class="s">Ils reviennent plus souvent dans ta semaine, avec un exercice de plus dans les séances.</p>
+    <div class="k" style="margin-top:14px">Objectif</div><div class="v sm">${esc(g.label)}${esc(skill)}</div><div class="s">${st.days} séances par semaine · ${st.dur} min${esc(maxes)}</div>
+    <button class="link" type="button" id="btn-plan-edit" data-act="plan-edit">Modifier mon objectif et mes maximums</button></div></div>`;
+  const hist = ss.slice(-4).reverse().map(x => {
+    const n = x.items.reduce((s, i) => s + i.sets.length, 0), gs = x.muscles && x.muscles.length ? Coach.groupLabels(x.muscles) : 'Séance';
+    return `<li><span class="nm">${esc(gs)} · ${esc((Coach.GOALS[x.goal] || g).label)}</span><span class="el">${fmtDate(x.ts)} · ${n} séries</span></li>`;
+  }).join('');
+  return `<section class="stack plan">${today}${weekHtml}${recHtml}${setHtml}
     ${hist ? `<div class="psec"><h2>Derniers entraînements</h2><ul class="histlist">${hist}</ul></div>` : ''}
     <div class="psec"><h2>Conseils du coach</h2><ul class="lines">${g.tips.map(t => `<li>${esc(t)}</li>`).join('')}</ul></div>
   </section>`;
 }
+function prioChips(cur) {
+  return `<div class="chips" role="group" aria-label="Muscles préférés">${Coach.GROUP_ORDER.map(x => `<button type="button" class="chipb" data-act="set-prio" data-v="${x}" aria-pressed="${cur.includes(x)}">${esc(gLabel(x))}</button>`).join('')}</div>`;
+}
 
 /* ---------- feuilles: creer une seance, modifier le plan, saisir une serie, fin de seance ---------- */
 const chips = (name, opts, cur, act) => `<div class="chips" role="group" aria-label="${name}">${opts.map(o => `<button type="button" class="chipb" data-act="${act}" data-v="${esc(o.v)}" aria-pressed="${String(o.v) === String(cur)}">${esc(o.l)}</button>`).join('')}</div>`;
+function dayPreview() {
+  const d = ui.day;
+  if (!d.m.length) return '<p class="dim">Choisis au moins un muscle pour voir les exercices.</p>';
+  const s = Coach.buildSession(S, D, { muscles: d.m, minutes: d.min, goal: d.goal || planOf().goal });
+  const lis = s.items.map(it => `<li><span class="nm">${esc(it.name)}</span><span class="rp">${it.sets} × ${it.target}${it.hold ? ' s' : ''}</span>${musclesHtml(it.key)}</li>`).join('');
+  return `<div class="lab">Aperçu : ${s.items.length} exercices, environ ${s.estMin} min</div><ul class="pvl" id="day-preview">${lis}</ul>`;
+}
 function planSheet(s) {
-  if (s.type === 'build') {
-    const b = ui.build, st = planOf();
-    return `<h2 id="sheet-t">Créer ma séance</h2>
-      <div class="lab">Quoi travailler ?</div>${chips('Focus', FOCUS_ORDER.map(f => ({ v: f, l: Coach.FOCUS_LABEL[f] })), b.focus, 'bd-focus')}
-      <div class="lab" style="margin-top:12px">Combien de temps ?</div>${chips('Durée', [20, 40, 60].map(v => ({ v, l: v + ' min' })), b.minutes, 'bd-min')}
-      <div class="lab" style="margin-top:12px">Objectif de la séance</div>${chips('Objectif', GOAL_IDS.map(id => ({ v: id, l: Coach.GOALS[id].label })), b.goal || st.goal, 'bd-goal')}
-      ${(b.goal || st.goal) === 'skills' && !st.skill ? '<p class="dim" style="margin:8px 0 0;font-size:14px">Choisis ton skill dans « Modifier mon plan ».</p>' : ''}
-      <div class="acts"><button class="btn primary focus-first" type="button" id="btn-bd-go" data-act="bd-go">Générer la séance</button></div>`;
+  if (s.type === 'day') {
+    const d = ui.day, wk = Coach.week(S), now = nowMs(), st = planOf();
+    const warns = Coach.conflicts(wk, d.d, d.m);
+    if (d.d === Coach.dayIdx(now)) { const rec = Coach.recovery(S, now); const t = d.m.filter(x => x !== 'skill' && !rec[x].ready); if (t.length) warns.push(Coach.groupLabels(t) + ' : ' + (rec[t[0]].gap === 0 ? 'travaillé aujourd\'hui' : 'travaillé hier') + '. Il faut un jour complet de repos avant de les retravailler : mieux vaut les laisser tranquilles.'); }
+    const mus = d.m.filter(x => x !== 'skill').map(x => `<li><b>${esc(gLabel(x))}</b> : ${esc(musNames(Coach.GROUPS[x].m).join(', '))}</li>`).join('');
+    return `<h2 id="sheet-t">${esc(Coach.DAY_NAMES[d.d])} : ma séance</h2>
+      <div class="lab">Quels muscles veux-tu travailler ?</div>
+      <div class="chips" role="group" aria-label="Muscles">${PICK_GROUPS.map(x => `<button type="button" class="chipb" data-act="dy-m" data-v="${x}" aria-pressed="${d.m.includes(x)}">${esc(gLabel(x))}</button>`).join('')}</div>
+      ${mus ? `<ul class="mlist">${mus}</ul>` : ''}
+      <div class="lab" style="margin-top:12px">Ou une séance toute prête</div>
+      <div class="chips" role="group" aria-label="Séances types">${PRESETS.map(p => `<button type="button" class="chipb sm" data-act="dy-preset" data-v="${p.v.join('+')}">${esc(p.l)}</button>`).join('')}</div>
+      ${warns.map(w => `<div class="notice warn" role="alert">${esc(w)}</div>`).join('')}
+      <div class="lab" style="margin-top:12px">Durée</div>${chips('Durée', [20, 30, 40, 60].map(v => ({ v, l: v + ' min' })), d.min, 'dy-min')}
+      <div class="lab" style="margin-top:12px">Objectif de la séance</div>${chips('Objectif', GOAL_IDS.map(id => ({ v: id, l: Coach.GOALS[id].label })), d.goal || st.goal, 'dy-goal')}
+      ${(d.goal || st.goal) === 'skills' && !st.skill ? '<p class="dim" style="margin:8px 0 0;font-size:14px">Choisis ton skill dans « Modifier mon objectif ».</p>' : ''}
+      <div style="margin-top:14px">${dayPreview()}</div>
+      <div class="acts"><button class="btn primary focus-first" type="button" id="btn-dy-save" data-act="dy-save"${d.m.length ? '' : ' disabled'}>Ajouter à ma semaine</button>
+      <button class="btn" type="button" id="btn-dy-now" data-act="dy-now"${d.m.length ? '' : ' disabled'}>Faire cette séance maintenant</button>
+      ${d.had ? '<button class="btn danger" type="button" id="btn-dy-del" data-act="dy-del">Retirer cette séance</button>' : ''}</div>`;
+  }
+  if (s.type === 'wkauto') {
+    return `<h2 id="sheet-t">Régénérer ma semaine ?</h2><p class="muted" style="margin:0">Ton emploi du temps actuel sera remplacé par une semaine de ${planOf().days} séances, avec un jour de repos entre les mêmes muscles.</p>
+      <div class="acts"><button class="btn primary focus-first" type="button" id="btn-wka-yes" data-act="wk-auto-yes">Générer</button><button class="btn" type="button" data-act="sheet-close">Annuler</button></div>`;
   }
   if (s.type === 'planedit') {
     const e = ui.edit;
-    return `<h2 id="sheet-t">Mon plan</h2>
+    return `<h2 id="sheet-t">Mon objectif</h2>
       <div class="lab">Objectif</div>${chips('Objectif', GOAL_IDS.map(id => ({ v: id, l: Coach.GOALS[id].label })), e.goal, 'pe-goal')}
       ${e.goal === 'skills' ? `<div class="lab" style="margin-top:12px">Skill visé</div>${chips('Skill', Object.keys(Coach.SKILLS).map(id => ({ v: id, l: Coach.SKILLS[id].label })), e.skill || '', 'pe-skill')}` : ''}
-      <div class="lab" style="margin-top:12px">Jours par semaine</div>${chips('Jours', [2, 3, 4, 5].map(v => ({ v, l: String(v) })), e.days, 'pe-days')}
-      <div class="lab" style="margin-top:12px">Durée d'une séance</div>${chips('Durée', [20, 40, 60].map(v => ({ v, l: v + ' min' })), e.dur, 'pe-dur')}
+      <div class="lab" style="margin-top:12px">Séances par semaine</div>${chips('Jours', [2, 3, 4, 5, 6].map(v => ({ v, l: String(v) })), e.days, 'pe-days')}
+      <div class="lab" style="margin-top:12px">Durée d'une séance</div>${chips('Durée', [20, 30, 40, 60].map(v => ({ v, l: v + ' min' })), e.dur, 'pe-dur')}
       <div class="lab" style="margin-top:12px">Tes maximums actuels</div>
       <div class="two2"><div><label class="lab" for="pe-pu">Pompes</label><input class="field" id="pe-pu" data-in="pe-pu" type="number" inputmode="numeric" min="0" max="300" value="${e.pu}"></div>
       <div><label class="lab" for="pe-pl">Tractions</label><input class="field" id="pe-pl" data-in="pe-pl" type="number" inputmode="numeric" min="0" max="80" value="${e.pl}"></div></div>
-      <p class="dim" style="font-size:14px;margin:6px 0 0">Ces chiffres servent à choisir tes exercices et tes répétitions. Fais une série classée pour les mettre à jour.</p>
+      <p class="dim" style="font-size:14px;margin:6px 0 0">Ces chiffres servent à choisir des exercices à ta hauteur. Fais une série classée pour les mettre à jour.</p>
       <div class="acts"><button class="btn primary focus-first" type="button" id="btn-pe-save" data-act="pe-save">Enregistrer</button></div>`;
   }
   if (s.type === 'setlog') {
@@ -3333,27 +3736,35 @@ function planSheet(s) {
 }
 
 /* ---------- seance guidee ---------- */
+function sxControls(it, i) {
+  const ri = Coach.restInfo(it.rest), ti = Coach.tempoInfo(it.tempo);
+  const ctl = (lab, val, act, aria) => `<div class="ctl"><span class="cll">${lab}</span><button class="btn sm" type="button" data-act="${act}" data-i="${i}" data-d="-1" aria-label="Moins : ${aria}">−</button><b class="cv">${val}</b><button class="btn sm" type="button" data-act="${act}" data-i="${i}" data-d="1" aria-label="Plus : ${aria}">+</button></div>`;
+  return `<div class="sxc">${ctl('Repos', it.rest + ' s', 'rest-adj', 'repos')}<p class="fx"><b>${esc(ri.t.charAt(0).toUpperCase() + ri.t.slice(1))}.</b> ${esc(ri.e)}</p>
+    ${ti ? ctl('Descente', it.tempo.d + ' s', 'tempo-adj', 'durée de descente') + `<p class="fx"><b>${esc(ti.txt)}.</b> ${esc(ti.e)}</p>` : ''}</div>`;
+}
 function sessionView() {
   const R = ui.run;
   if (!R) return `<section class="stack"><div class="sub"><button class="ibtn" type="button" data-act="plan-back" aria-label="Retour">${icon('back')}</button><h1>Séance</h1></div></section>`;
-  const s = R.s, g = Coach.GOALS[s.goal];
+  const s = R.s, g = Coach.GOALS[s.goal], I = Coach.INTENS[s.intensity] || Coach.INTENS.modere;
   const warm = `<details class="warm"><summary>Échauffement · 5 minutes (touche pour ouvrir)</summary><ul class="lines">${s.warmup.map(w => `<li>${esc(w)}</li>`).join('')}</ul></details>`;
   const cards = s.items.map((it, i) => {
     const done = R.done[i], bub = [];
     for (let n = 0; n < it.sets; n++) bub.push(`<button type="button" class="setb${done[n] != null ? ' on' : ''}" id="set-${i}-${n}" data-act="set-open" data-i="${i}" data-n="${n}" aria-label="Série ${n + 1}${done[n] != null ? ', ' + done[n] : ''}">${done[n] != null ? done[n] : n + 1}</button>`);
     const t = TI[it.key];
     const notes = it.notes.length ? `<ul class="lines sxn">${it.notes.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : '';
-    return `<article class="sx" id="sx-${i}"><div class="sxh"><div class="thumb">${thumb(t)}</div><div class="bd"><div class="nm">${esc(it.name)}</div><div class="rk">${rkTag(it.key)}</div></div></div>
-      <div class="sxp"><b>${it.sets} × ${it.target}${it.hold ? ' s' : ''}</b>${it.perSide ? ' par côté' : ''} · repos ${it.rest} s</div>
-      <div class="sxm">Tempo ${esc(it.tempo)}.<br>${esc(it.rir)}.</div>${notes}
+    return `<article class="sx" id="sx-${i}"><div class="sxh"><div class="thumb">${thumb(t)}</div><div class="bd"><div class="nm">${esc(it.name)}</div><div class="rk">${it.group ? `<span class="gc gc-${Coach.GROUPS[it.group].region}">${esc(gLabel(it.group))}</span>` : ''}${rkTag(it.key)}</div></div></div>
+      ${musclesHtml(it.key)}
+      <div class="sxp"><b>${it.sets} × ${it.target}${it.hold ? ' s' : ''}</b>${it.perSide ? ' par côté' : ''}</div>
+      ${sxControls(it, i)}
+      <div class="sxm">${esc(it.rir)}.</div>${notes}
       ${it.last ? `<div class="sxl">La dernière fois : ${it.last.join(' · ')}</div>` : ''}
       <div class="sets">${bub.join('')}</div>
       <div class="sxw dim">${esc(it.why)}</div>
-      <div class="row" style="margin-top:8px"><button class="link" type="button" data-act="open-ex" data-key="${esc(it.key)}">Voir l'exercice</button></div></article>`;
+      ${howtoHtml(it.key)}
+      <div class="row" style="margin-top:4px"><button class="link" type="button" data-act="open-ex" data-key="${esc(it.key)}">Voir l'exercice</button></div></article>`;
   }).join('');
-  const tot = R.done.reduce((a, d) => a + d.length, 0);
-  return `<section class="stack session"><div class="sub"><button class="ibtn" type="button" id="btn-sess-back" data-act="sess-back" aria-label="Retour">${icon('back')}</button><h1>${esc(s.focusLabel)} · ${esc(g.label)}</h1></div>
-    <div class="muted" style="margin:-2px 0 4px">${s.items.length} exercices · environ ${s.estMin} min${s.skill ? ' · skill : ' + esc(s.skill.label) : ''}</div>
+  return `<section class="stack session"><div class="sub"><button class="ibtn" type="button" id="btn-sess-back" data-act="sess-back" aria-label="Retour">${icon('back')}</button><h1>${esc(s.focusLabel)}</h1></div>
+    <div class="muted" style="margin:-2px 0 4px">${esc(g.label)} · intensité ${esc(lcf(I.label))} · ${s.items.length} exercices · environ ${s.estMin} min${s.skill ? ' · skill : ' + esc(s.skill.label) : ''}</div>
     <div class="notice" style="margin:0">Douleur de tendon ou d'articulation à 6 sur 10 ou plus : on arrête. La fatigue des muscles ne compte pas.</div>
     ${warm}${cards}</section>`;
 }
@@ -3395,6 +3806,7 @@ function planStartSession(opts) {
   ui.sheet = null;
   go('session');
 }
+function openDay(d, m, min, goal, had) { ui.day = { d, m: m.slice(), min, goal, had }; openSheet({ type: 'day' }); }
 function setNext(i, n) {
   const R = ui.run, it = R.s.items[i];
   const prev = R.done[i][n] != null ? R.done[i][n] : (R.done[i].length ? R.done[i][R.done[i].length - 1] : it.target);
@@ -3438,23 +3850,42 @@ function sessionFinish() {
 function planAct(a, el) {
   const d = el.dataset;
   switch (a) {
-    case 'plan-build': ui.build = { focus: Coach.nextFocus(S).focus, minutes: planOf().dur, goal: null }; openSheet({ type: 'build' }); return true;
-    case 'plan-make': planStartSession({ focus: d.focus, minutes: planOf().dur }); return true;
-    case 'bd-focus': ui.build.focus = d.v; renderSheet(); return true;
-    case 'bd-min': ui.build.minutes = parseInt(d.v, 10); renderSheet(); return true;
-    case 'bd-goal': ui.build.goal = d.v; renderSheet(); return true;
-    case 'bd-go': planStartSession({ focus: ui.build.focus, minutes: ui.build.minutes, goal: ui.build.goal || planOf().goal }); return true;
+    case 'today-go': { const sg = Coach.suggestToday(S, nowMs()); if (sg.kind === 'rest') return true; planStartSession({ muscles: sg.groups, minutes: sg.minutes, goal: sg.goal || undefined }); return true; }
+    case 'today-edit': { const sg = Coach.suggestToday(S, nowMs()), i = Coach.dayIdx(nowMs()), cur = Coach.week(S)[i]; openDay(i, sg.groups.length ? sg.groups : (cur ? cur.m : []), sg.minutes || planOf().dur, cur ? cur.goal : null, !!cur); return true; }
+    case 'day-open': { const i = parseInt(d.d, 10), cur = Coach.week(S)[i]; openDay(i, cur ? cur.m : [], cur ? cur.min : planOf().dur, cur ? cur.goal : null, !!cur); return true; }
+    case 'dy-m': { const m = ui.day.m, k = m.indexOf(d.v); if (k >= 0) m.splice(k, 1); else m.push(d.v); renderSheet(); return true; }
+    case 'dy-preset': ui.day.m = d.v.split('+'); renderSheet(); return true;
+    case 'dy-min': ui.day.min = parseInt(d.v, 10); renderSheet(); return true;
+    case 'dy-goal': ui.day.goal = d.v === planOf().goal ? null : d.v; renderSheet(); return true;
+    case 'dy-save': {
+      const y = ui.day; if (!y.m.length) return true;
+      const p = ensurePlan(); p.week = Coach.week(S).map(e => e ? { m: e.m, min: e.min, goal: e.goal } : null);
+      p.week[y.d] = { m: y.m.slice(), min: y.min, goal: y.goal };
+      save(); closeSheet(); render(); toast('Séance ajoutée au ' + Coach.DAY_NAMES[y.d].toLowerCase()); return true;
+    }
+    case 'dy-now': { const y = ui.day; if (!y.m.length) return true; planStartSession({ muscles: y.m, minutes: y.min, goal: y.goal || undefined }); return true; }
+    case 'dy-del': { const y = ui.day, p = ensurePlan(); p.week = Coach.week(S).map(e => e ? { m: e.m, min: e.min, goal: e.goal } : null); p.week[y.d] = null; save(); closeSheet(); render(); toast('Séance retirée'); return true; }
+    case 'wk-auto': if (Coach.week(S).some(Boolean)) openSheet({ type: 'wkauto' }); else { ensurePlan().week = Coach.autoWeek(S); save(); render(); toast('Semaine créée : modifie chaque jour comme tu veux'); } return true;
+    case 'wk-auto-yes': ensurePlan().week = Coach.autoWeek(S); save(); closeSheet(); render(); toast('Semaine régénérée'); return true;
+    case 'wk-clear': ensurePlan().week = [null, null, null, null, null, null, null]; save(); render(); toast('Emploi du temps effacé'); return true;
+    case 'set-int': ensurePlan().intensity = d.v; save(); render(); return true;
+    case 'set-prio': {
+      const p = ensurePlan(), cur = planOf().prio.slice(), k = cur.indexOf(d.v);
+      if (k >= 0) cur.splice(k, 1); else if (cur.length >= 3) { toast('3 muscles préférés au maximum'); return true; } else cur.push(d.v);
+      p.prio = cur; save(); render(); return true;
+    }
+    case 'rest-adj': { const it = ui.run && ui.run.s.items[parseInt(d.i, 10)]; if (it) { it.rest = Math.max(15, Math.min(300, it.rest + 15 * parseInt(d.d, 10))); render(); } return true; }
+    case 'tempo-adj': { const it = ui.run && ui.run.s.items[parseInt(d.i, 10)]; if (it && it.tempo) { it.tempo.d = Math.max(1, Math.min(6, it.tempo.d + parseInt(d.d, 10))); render(); } return true; }
     case 'plan-edit': { const st = planOf(); ui.edit = { goal: st.goal, skill: st.skill, days: st.days, dur: st.dur, pu: (st.maxes && st.maxes.pu) || 0, pl: (st.maxes && st.maxes.pl) || 0 }; openSheet({ type: 'planedit' }); return true; }
     case 'pe-goal': ui.edit.goal = d.v; if (d.v === 'skills' && !ui.edit.skill) ui.edit.skill = 'handstand'; renderSheet(); return true;
     case 'pe-skill': ui.edit.skill = d.v; renderSheet(); return true;
     case 'pe-days': ui.edit.days = parseInt(d.v, 10); renderSheet(); return true;
     case 'pe-dur': ui.edit.dur = parseInt(d.v, 10); renderSheet(); return true;
     case 'pe-save': {
-      const e = ui.edit;
-      if (!S.plan) S.plan = { hist: {}, sessions: [] };
-      S.plan.goal = e.goal; S.plan.skill = e.goal === 'skills' ? (e.skill || 'handstand') : (e.skill || null); S.plan.days = e.days; S.plan.dur = e.dur;
-      S.plan.maxes = { pu: Math.max(0, Math.min(300, Math.round(Number(e.pu) || 0))), pl: Math.max(0, Math.min(80, Math.round(Number(e.pl) || 0))) };
-      save(); closeSheet(); render(); toast('Plan enregistré'); return true;
+      const e = ui.edit, p = ensurePlan();
+      p.goal = e.goal; p.skill = e.goal === 'skills' ? (e.skill || 'handstand') : (e.skill || null); p.days = e.days; p.dur = e.dur;
+      p.maxes = { pu: Math.max(0, Math.min(300, Math.round(Number(e.pu) || 0))), pl: Math.max(0, Math.min(80, Math.round(Number(e.pl) || 0))) };
+      save(); closeSheet(); render(); toast('Objectif enregistré'); return true;
     }
     case 'set-open': setNext(parseInt(d.i, 10), parseInt(d.n, 10)); return true;
     case 'sl-minus': case 'sl-plus': {
