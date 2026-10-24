@@ -14,7 +14,7 @@
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <style>html,body{margin:0;background:#0b0d17}</style>
-<script>window.APP_VERSION = "0.2-90abab";</script>
+<script>window.APP_VERSION = "0.2-39765f";</script>
 </head>
 <body>
 <style>
@@ -2797,11 +2797,11 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
       autoCalib: true        // adapte le seuil "bras tendus" à ce que la caméra mesure vraiment chez toi
     },
     pushup: {
-      down: 100,             // coude en bas : angle sous lequel la pompe est assez profonde
+      down: 115,             // coude en bas : angle sous lequel la pompe est assez profonde (l'IA mesure ~100° pour un vrai 90°)
       up: 150,               // bras tendus : angle au-dessus duquel on est "en haut"
-      attempt: 130,          // sous cet angle, on compte une tentative (même rejetée)
+      attempt: 140,          // sous cet angle, on compte une tentative (même rejetée)
       hyst: 10,              // hystérésis (sortie de la zone haute à up - hyst)
-      reversal: 30,          // remontée puis nouvelle descente sans verrouiller = "pas tendu"
+      reversal: 22,          // remontée puis nouvelle descente sans verrouiller = "pas tendu"
       bodyTol: 25,           // écart maximal à la ligne droite épaule-hanche-cheville (°), seulement si hanches et chevilles visibles
       shoulderDropMax: 0.9,  // épaule - poignet (vertical) / longueur du bras, au plus bas
       useShoulderHeight: false
@@ -2825,9 +2825,9 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
       reversal: 30
     },
     dip: {
-      down: 100,
+      down: 110,
       up: 150,
-      attempt: 130,
+      attempt: 135,
       hyst: 10,
       reversal: 30,
       shrugRatio: 0.6,       // distance oreille-épaule sous 60 % de la référence = épaules haussées
@@ -3159,13 +3159,13 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
             track(t, a, extra);
             rep.maxSince = Math.max(rep.maxSince, a);
             if (a >= p.up) { finish(t, events, false); phase = 'extended'; }
-            else if (a <= p.down) phase = 'flexed';
             else if (rep.maxSince - a >= p.reversal && a < p.up - p.hyst) {
               // il redescend avant d'avoir verrouillé : la répétition précédente est rejetée
               rep.maxAtEnd = rep.maxSince;
               finish(t, events, true);
               phase = 'flexing'; newRep(t, a, false);
             }
+            else if (a <= p.down) phase = 'flexed';
             break;
         }
         return events;
@@ -3541,15 +3541,15 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
         fillCommon(out); return out;
       }
       // calibrage automatique : si la position "bras tendus" n'est jamais atteinte (caméra de face, 3D bruitée),
-      // on abaisse le seuil "haut" au maximum réellement mesuré, sans jamais descendre sous "bas + 35°"
+      // on abaisse le seuil "haut" au maximum réellement mesuré, sans jamais descendre sous "bas + 25°"
       let calibrated = null;
       if (cfg.common.autoCalib && !calib.done) {
         const p = adapter.params;
         if (engine.phase() !== 'init') calib.done = true;
         else {
           calib.frames++; calib.maxSeen = Math.max(calib.maxSeen, m.a);
-          if (calib.frames >= 75 && calib.maxSeen < p.up && calib.maxSeen >= p.down + 35) {
-            const newUp = Math.max(p.down + 35, calib.maxSeen - 6);
+          if (calib.frames >= 75 && calib.maxSeen < p.up && calib.maxSeen >= p.down + 25) {
+            const newUp = Math.max(p.down + 25, calib.maxSeen - 6);
             p.up = newUp; p.attempt = Math.min(p.attempt, newUp - 10);
             calib.done = true; calibrated = round(newUp);
           }
