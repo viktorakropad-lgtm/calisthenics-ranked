@@ -14,7 +14,7 @@
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <style>html,body{margin:0;background:#0b0d17}</style>
-<script>window.APP_VERSION = "0.6-01c1a0";</script>
+<script>window.APP_VERSION = "0.7-fc1604";</script>
 </head>
 <body>
 <style>
@@ -701,6 +701,23 @@ rect.sh { fill: url(#bshade); pointer-events: none; }
 .mq-mh { fill: #ff2d4d; fill-opacity: 1; stroke: #9d0f29; stroke-width: .6; }
 .mq-fib { fill: none; stroke: rgba(70, 8, 22, .38); stroke-width: .6; stroke-linecap: round; }
 .mq-farg { opacity: .8; } .mq-farg .mq-sk { fill: #8e95a9; } .mq-farg .mq-m { fill-opacity: .3; }
+/* onglet Trophées (niveaux par exercice, skills conseillés) et explication du Ranked */
+.trophies, .trophies * { min-width: 0; overflow-wrap: anywhere; }
+.lvhero { display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 14px; align-items: center; padding: 16px; border-radius: 18px; border: 1px solid var(--rc, var(--line)); background: linear-gradient(135deg, color-mix(in srgb, var(--rc, var(--accent)) 18%, var(--surface)), var(--surface)); }
+.lvhero .emb svg { width: 100%; height: auto; } .lvhero .k { color: var(--text-3); font-size: 13.5px; letter-spacing: .08em; text-transform: uppercase; }
+.lvhero .v { font-family: var(--f-display); font-size: 28px; text-transform: uppercase; letter-spacing: .03em; line-height: 1.05; color: var(--rc-hi, var(--accent)); margin: 2px 0 6px; }
+.lvhero p { margin: 0 0 6px; font-size: 15px; line-height: 1.4; color: var(--text-2); } .lvhero .dim { color: var(--text-3); font-size: 14px; } .lvhero .bar { margin: 6px 0; }
+.howrank { border: 1px solid var(--line-soft); border-radius: var(--r-md); padding: 6px 14px; background: var(--surface); } .howrank summary { cursor: pointer; font-weight: 700; min-height: 44px; display: flex; align-items: center; } .howrank .lines { margin: 4px 0 10px; } .howrank .lines li { font-size: 16px; }
+.avgl { margin-top: 8px; font-size: 15px; color: var(--text-2); text-align: center; }
+.famavg { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; } .famavg li { display: grid; gap: 4px; padding: 10px 12px; border-radius: var(--r-md); border: 1px solid var(--line-soft); background: var(--surface); } .famavg .nm { font-weight: 700; } .famavg .rk { display: flex; align-items: center; gap: 6px; color: var(--text-2); font-size: 15px; } .famavg .off .rk { color: var(--text-3); }
+.sugl { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; } .sg { appearance: none; cursor: pointer; width: 100%; text-align: left; display: grid; gap: 4px; padding: 12px; border-radius: var(--r-md); border: 1px solid var(--line); background: var(--surface); color: var(--text); font: inherit; }
+.sg .t { display: flex; justify-content: space-between; align-items: center; gap: 8px; } .sg .t b { font-family: var(--f-display); font-size: 22px; text-transform: uppercase; letter-spacing: .04em; } .sg .n { font-size: 15px; color: var(--text-2); } .sg .m { font-size: 14px; color: var(--text-3); } .sg .m.ok { color: var(--ok); }
+.chip3 { font-size: 13px; font-weight: 700; padding: 2px 10px; border-radius: 99px; border: 1px solid var(--line); color: var(--text-2); } .sugl .ready .chip3 { border-color: var(--ok); color: var(--ok); } .sugl .soon .chip3 { border-color: var(--warn); color: var(--warn); } .sugl .ready .sg { border-color: color-mix(in srgb, var(--ok) 55%, var(--line)); }
+.lvfam h3 { margin: 10px 0 6px; font-family: var(--f-display); font-size: 20px; letter-spacing: .05em; text-transform: uppercase; color: var(--text-2); } .lvl-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.lvr { appearance: none; cursor: pointer; width: 100%; text-align: left; display: grid; grid-template-columns: 38px minmax(0, 1fr); gap: 10px; align-items: center; padding: 8px 10px; border-radius: var(--r-md); border: 1px solid var(--line-soft); background: var(--surface); color: var(--text); font: inherit; }
+.lvr .bd { display: grid; gap: 3px; } .lvr .nm { font-weight: 700; } .lvr .sm { font-size: 14px; color: var(--text-2); } .lvr .mini { display: block; height: 5px; border-radius: 4px; background: var(--surface-3); overflow: hidden; } .lvr .mini i { display: block; height: 100%; background: var(--accent); }
+.dre { appearance: none; cursor: pointer; width: 100%; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: center; text-align: left; background: none; border: 0; color: var(--text); font: inherit; padding: 0; min-height: 36px; } .dre .st { text-align: right; }
+.dayopt { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; } .dayopt .btn { width: 100%; display: grid; grid-template-columns: 110px minmax(0, 1fr); text-align: left; gap: 8px; white-space: normal; line-height: 1.2; } .dayopt .btn span { color: var(--text-2); font-weight: 500; font-size: 14.5px; }
 
 </style>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600;700&display=swap">
@@ -966,6 +983,17 @@ const Core = (() => {
       points, gateOpen, autoBronze, protection: state.protection || 0
     };
   }
+  /** Le rang suit la moyenne de tes exercices: rang = rang de l'ELO global (4 familles + bonus de skills). Pas de test de promotion.
+   *  Retourne un événement { type, rank, from, to, up } si le rang change, sinon null. Sans ELO global (moins de 3 familles classées), rien ne change. */
+  function syncRank(state, now) {
+    const d = derive(state, now);
+    if (d.global == null) return null;
+    const rank = rankOfElo(d.global), from = state.earned;
+    if (rank === from) return null;
+    state.earned = rank;
+    state.protection = 0;
+    return { type: 'promotion', rank, from: levelOf(from), to: levelOf(rank), up: rIdx(rank) > rIdx(from) };
+  }
   /** Promotion automatique Rookie -> Bronze a 800 d'ELO global. Retourne un evenement ou null. */
   function normalize(state, now) {
     const d = derive(state, now);
@@ -1175,6 +1203,18 @@ const Core = (() => {
     att(s, 'squat_bulgare', 25, now);
     d = derive(s, now);
     eq('3 familles: global 1100, porte ouverte', [rnd(d.global), d.gateOpen], [1100, true]);
+    // le rang suit la moyenne des exercices (pas de test de promotion)
+    s = newFreshState(now); s.earned = 'bronze';
+    att(s, 'pompes_strictes', 100, now); att(s, 'tractions_strictes', 16, now); att(s, 'squat_bulgare', 40, now);
+    const sy = syncRank(s, now), g1 = derive(s, now).global;
+    eq('rang = rang de l\'ELO global moyen', [sy && sy.up, s.earned === rankOfElo(g1), rIdx(s.earned) > rIdx('bronze')], [true, true, true]);
+    eq('rang déjà à jour: aucun événement', syncRank(s, now), null);
+    att(s, 'pompes_strictes', 10, now + 1); att(s, 'tractions_strictes', 2, now + 1); att(s, 'squat_bulgare', 5, now + 1);
+    const s2 = newFreshState(now); att(s2, 'pompes_strictes', 50, now);
+    eq('moins de 3 familles classées: le rang ne change pas', [syncRank(s2, now), s2.earned], [null, 'rookie']);
+    const s3 = newFreshState(now); s3.earned = 'platine'; att(s3, 'pompes_strictes', 30, now); att(s3, 'tractions_strictes', 8, now); att(s3, 'squat_bulgare', 15, now);
+    const sy3 = syncRank(s3, now);
+    eq('rang trop haut pour la moyenne: il est recalculé (baisse)', [sy3 && sy3.up, s3.earned === rankOfElo(derive(s3, now).global)], [false, true]);
     s = newFreshState(now); s.earned = 'bronze';
     for (const [ex, p] of [['pompes_strictes', 70], ['pompes_strictes', 70], ['tractions_strictes', 14], ['tractions_strictes', 14], ['squat_bulgare', 30], ['squat_bulgare', 30]]) att(s, ex, p, now);
     d = derive(s, now);
@@ -1199,7 +1239,7 @@ const Core = (() => {
     rIdx, rStart, rEnd, rName, nextRank, rankOfElo, minRank, levelOf, rankOfLevel,
     anchorPts, eloFromAnchors, perfForElo, ladderFor, variantLabel, variantIndex, variantTop, variantElo,
     isRankable, perfElo, standardFor, replayExercise, decay, computeCats, pointsFor,
-    setBonus, derive, normalize, newFreshState, nextId, canAttempt, promoDelay, setTrial,
+    setBonus, syncRank, derive, normalize, newFreshState, nextId, canAttempt, promoDelay, setTrial,
     recordAttempt, entryResult, applyEntry, promotionInfo, submitPromotion, completePromotion,
     sortKey, selfTest, flowTest
   };
@@ -1484,7 +1524,7 @@ const XI = {
     st: ['Mains très larges sur la barre.', 'Tire vers une main, l\'autre bras reste tendu.', 'Redescends, puis change de côté.'], er: 'Le bras tendu qui se plie.' },
   muscle_up_strict: { n: 'Muscle-up strict', s: 'Muscle-up', fam: 'pull', p: ['lats', 'triceps'], s2: ['biceps', 'delts', 'pecs', 'abs'],
     st: ['Tire fort et haut, la barre vers le ventre.', 'Bascule les coudes au-dessus de la barre.', 'Pousse jusqu\'aux bras tendus, poitrine au-dessus.'], er: 'Balancer les jambes pour passer la barre.' },
-  traction_une_main: { n: 'Traction une main', s: '1 main', fam: 'pull', p: ['lats', 'biceps'], s2: ['forearms', 'obliques', 'abs'],
+  traction_une_main: { n: 'Traction une main', s: '1 main', fam: 'pull', p: ['lats', 'biceps'], s2: ['forearms', 'obliques', 'abs'], u: 7,
     st: ['Une main sur la barre, jambes écartées pour l\'équilibre.', 'Tire jusqu\'au menton au-dessus de la barre.', 'Redescends lentement, sans te laisser tourner.'], er: 'Aider avec l\'autre main.' },
 
   squat: { n: 'Squat', fam: 'legs', p: ['quads', 'glutes'], s2: ['hams', 'calves', 'abs'], u: 1, pose: 'squat',
@@ -1563,15 +1603,15 @@ const XI = {
   hspu_negatif: { n: 'Poirier négatif au mur', fam: 'push', p: ['delts', 'triceps'], s2: ['traps', 'pecs', 'abs'], u: 4, pose: 'hspu',
     st: ['Monte en poirier contre le mur, bras tendus.', 'Descends lentement, en 5 secondes, jusqu\'à poser la tête.', 'Redescends en contrôle, puis replace-toi pour recommencer.'], er: 'Tomber d\'un coup sur la tête.' },
 
-  kickup: { n: 'Kick-up au mur', fam: 'skills', p: ['delts', 'abs'], s2: ['triceps', 'traps', 'forearms', 'glutes'], u: 3, pose: 'kickup',
+  kickup: { n: 'Kick-up au mur', fam: 'skills', p: ['delts', 'abs'], s2: ['triceps', 'traps', 'forearms', 'glutes'], u: 1, pose: 'kickup',
     st: ['Place tes mains à 20 cm du mur.', 'Regarde entre tes mains.', 'Lance la jambe forte vers le haut.', 'La seconde jambe suit, jusqu\'au mur.', 'Reste gainé, jambes serrées.'],
     er: 'Bras qui plient quand les jambes montent.',
     poseNames: ['Départ face au mur', 'Pied avant fléchi', 'Jambe arrière qui monte', 'Arrivée contre le mur'] },
-  handstand_mur: { n: 'Handstand au mur', fam: 'skills', p: ['delts', 'abs'], s2: ['triceps', 'traps', 'forearms'], u: 3, hold: true, pose: 'hand',
+  handstand_mur: { n: 'Handstand au mur', fam: 'skills', p: ['delts', 'abs'], s2: ['triceps', 'traps', 'forearms'], u: 1, hold: true, pose: 'hand',
     st: ['Après ton kick-up, mains à largeur d\'épaules.', 'Pousse le sol, épaules hautes, regard entre les mains.', 'Serre fessiers et abdos, talons contre le mur.'], er: 'Dos creusé en banane.' },
   handstand_libre: { n: 'Handstand libre', s: 'Handstand', fam: 'skills', p: ['delts', 'abs'], s2: ['triceps', 'traps', 'forearms', 'lowback'], hold: true, pose: 'hand',
     st: ['Mains à largeur d\'épaules, doigts bien écartés.', 'Pousse le sol, épaules hautes, corps en ligne.', 'Serre fessiers et abdos, regarde entre les mains.'], er: 'Dos creusé en banane.' },
-  human_flag: { n: 'Human flag', s: 'Human flag', fam: 'skills', p: ['obliques', 'lats'], s2: ['delts', 'abs', 'triceps', 'forearms'], hold: true,
+  human_flag: { n: 'Human flag', s: 'Human flag', fam: 'skills', p: ['obliques', 'lats'], s2: ['delts', 'abs', 'triceps', 'forearms'], hold: true, u: 6,
     st: ['Mains écartées sur un poteau vertical, une en haut.', 'Pousse avec la main du bas, tire avec celle du haut.', 'Lève le corps à l\'horizontale et tiens.'], er: 'Le bras du bas qui plie.' }
 };
 
@@ -1651,7 +1691,7 @@ const Troph = (() => {
       addItem(key, {
         ex, variant: v.variant, fam: lx.fam, name: LAD_NAME[ex] + ' ' + VAR_SHORT[v.variant], short: LAD_NAME[ex] + ' ' + VAR_SHORT[v.variant],
         p: lx.p, s: lx.s2, st: lx.st.map(t => (t === 'VAR' ? (lx.var2[v.variant] || 'Garde la position, corps gainé.') : t)), er: lx.er,
-        hold: true, ranked: true, pose: lx.poseFor[v.variant] || LADDER_POSE[key] || null, u: Math.max(4, L(v.entry_rank) - 1), unit: 's'   // les skills s'ouvrent au rang Or (niveau 4)
+        hold: true, ranked: true, pose: lx.poseFor[v.variant] || LADDER_POSE[key] || null, u: Math.max(1, L(v.entry_rank) - 1), unit: 's'
       });
     });
   });
@@ -1667,10 +1707,7 @@ const Troph = (() => {
     { id: 'pull2', cat: 'pull', pri: [['tractions_supination', 2, 3], ['muscle_up_strict', 4, 10]] },
     { id: 'legs1', cat: 'legs', pri: [['squat_bulgare', 2, 3], ['pistol_squat', 4, 7], ['dragon_squat', 8, 10]] },
     { id: 'core1', cat: 'core', pri: [['releves_de_jambes_tendues_suspendus', 2, 3], ['toes_to_bar_strict', 4, 4], ['l_sit', 5, 5], ['dragon_flag', 6, 7], ['v_sit', 8, 10]] },
-    /* les skills n'arrivent qu'à partir du niveau 4 (Or): le handstand d'abord, puis le front lever au niveau 5; deux classiques par niveau, de plus en plus durs.
-       Les marches intermédiaires (négatifs, advanced tuck...) servent à apprendre: elles ne sont jamais des trophées. */
-    { id: 'skill1', cat: 'skills', pri: [['handstand_libre', 4, 6], ['human_flag', 7, 10]] },
-    { id: 'skill2', cat: 'skills', pri: [['front_lever', 5, 5], ['planche', 6, 6], ['front_lever', 7, 7], ['traction_une_main', 8, 8], ['planche', 9, 9], ['traction_une_main', 10, 10]] }
+    /* les skills ne sont pas des trophées: ils sont conseillés selon ton niveau et rangés dans le dictionnaire (skills.js) */
   ];
   function buildLevel(lv) {
     const rank = RID[lv - 1], out = [], used = new Set();
@@ -1742,15 +1779,11 @@ const Troph = (() => {
     }
     return got;
   }
-  /* à partir du niveau 7, il faut aussi maîtriser un nombre de skills du dictionnaire (voir skills.js) */
-  const DICT_NEED = { 7: 2, 8: 3, 9: 5, 10: 7 };
-  const dictNeed = lv => DICT_NEED[lv] || 0;
-  const dictOk = (S, lv) => !dictNeed(lv) || (typeof Dict !== 'undefined' && Dict.count(S) >= dictNeed(lv));
   /** Monte de niveau tant que tous les trophees du niveau suivant sont obtenus. Retourne {from,to,rank} ou null. */
   function levelUp(S) {
     const from = level(S);
     let lv = from;
-    while (lv < 10 && trophiesOf(lv + 1).every(t => S.trophies[t.id] || t.level <= lv) && dictOk(S, lv + 1)) lv++;
+    while (lv < 10 && trophiesOf(lv + 1).every(t => S.trophies[t.id] || t.level <= lv)) lv++;
     if (lv === from) return null;
     S.earned = RID[lv - 1];
     S.protection = 3;
@@ -1885,7 +1918,7 @@ const Troph = (() => {
       eq('N' + lv + ': aucun doublon', new Set(keys).size, keys.length);
       eq('N' + lv + ': cibles = ancres du rang ' + RID[lv - 1],
         list.every(t => { const b = EX[t.ex]; return b.measure === 'variant' ? (t.target === 5 && Core.ladderFor(t.ex).variants.find(v => v.variant === t.variant).entry_rank === RID[lv - 1]) : b.anchors[RID[lv - 1]] === t.target; }), true);
-      eq('N' + lv + ': nombre de trophees (6 sans skill, 7 avec le handstand, 8 ensuite)', list.length, lv <= 3 ? 6 : lv === 4 ? 7 : 8);
+      eq('N' + lv + ': 6 trophees (pousser, tirer, jambes, abdos)', list.length, 6);
     }
     eq('N1: pas de trophees', BY_LEVEL[1].length, 0);
     eq('total trophees', ALL.length, Object.keys(BY_LEVEL).reduce((s, k) => s + BY_LEVEL[k].length, 0));
@@ -1930,29 +1963,20 @@ const Troph = (() => {
     S = startState(ans(0, 0), now);
     BY_LEVEL[2].concat(BY_LEVEL[3]).forEach(t => { S.trophies[t.id] = now; });
     eq('niveaux 2 et 3 complets: montee directe au niveau 3', levelUp(S).to, 3);
-    // skills: seulement à partir du niveau 4 (Or), deux classiques par niveau, jamais les marches intermédiaires
-    const skillsOf = l => BY_LEVEL[l].filter(t => t.cat === 'skills').map(t => t.key);
-    eq('niveaux 2 et 3: aucun skill en trophée', [skillsOf(2), skillsOf(3)], [[], []]);
-    eq('niveau 4 (Or): le handstand seulement', skillsOf(4), ['handstand_libre']);
-    eq('niveau 5 (Platine): handstand puis front lever straddle', skillsOf(5), ['handstand_libre', 'front_lever:straddle']);
-    eq('niveau 6 (Diamant): handstand 90 s et planche full', skillsOf(6), ['handstand_libre', 'planche:full']);
-    eq('niveaux 7 à 10: deux skills chacun', [7, 8, 9, 10].map(l => skillsOf(l).length), [2, 2, 2, 2]);
-    eq('jamais de marche intermédiaire en trophée (advanced tuck, tuck, négatifs)', ALL.filter(t => t.cat === 'skills').every(t => !['planche:adv tuck', 'planche:tuck', 'front_lever:tuck', 'front_lever:adv tuck', 'front_lever:une jambe'].includes(t.key)), true);
+    // les skills ne sont pas des trophées: ils sont conseillés selon le niveau (voir Coach.skillSuggestions) et rangés dans le dictionnaire
+    eq('aucun trophée de la famille skills', ALL.filter(t => t.cat === 'skills').length, 0);
     S = startState(ans(0, 0), now);
-    eq('planche tuck 5 s au niveau 1: aucun trophée (pas de skill avant Or)', award(S, 'planche', 'tuck', 5, now).length, 0);
-    eq('skills du dictionnaire à maîtriser: 0 jusqu\'au niveau 6, puis 2, 3, 5, 7', [6, 7, 8, 9, 10].map(dictNeed), [0, 2, 3, 5, 7]);
-    eq('ouverture des skills: tout skill de l\'échelle au niveau 4 minimum', ['planche:tuck', 'front_lever:tuck', 'planche:adv tuck'].every(k => unlockOf(k) >= 4), true);
-    // exemple
+    eq('planche tuck 5 s: aucun trophée (les skills sont dans le dictionnaire)', award(S, 'planche', 'tuck', 5, now).length, 0);    // exemple
     const ex = exampleState(now);
     const d = Core.derive(ex, now);
-    eq('exemple: Argent, 5/8 trophees du niveau 4', [ex.earned, doneCount(ex, 4)], ['argent', 5]);
+    eq('exemple: Argent, 4/6 objectifs du niveau 4', [ex.earned, doneCount(ex, 4)], ['argent', 4]);
     eq('exemple: porte de promotion ouverte', d.gateOpen, true);
     // niveaux d'ouverture
-    eq('ouverture: pompes strictes 1, pistol 3, handstand libre 3, human flag 6', [unlockOf('pompes_strictes'), unlockOf('pistol_squat'), unlockOf('handstand_libre'), unlockOf('human_flag')], [1, 3, 3, 6]);
+    eq('ouverture: pompes strictes 1, pistol 3, handstand libre 1, human flag 6', [unlockOf('pompes_strictes'), unlockOf('pistol_squat'), unlockOf('handstand_libre'), unlockOf('human_flag')], [1, 3, 1, 6]);
     return R;
   }
 
-  return { ITEMS, item, keyOf, SLOTS, BY_LEVEL, ALL, BY_ID, trophiesOf, unlockOf, level, isDone, doneCount, earnable, targetLevel, pending, award, levelUp, dictNeed, dictOk,
+  return { ITEMS, item, keyOf, SLOTS, BY_LEVEL, ALL, BY_ID, trophiesOf, unlockOf, level, isDone, doneCount, earnable, targetLevel, pending, award, levelUp,
     familyItems, suggest, Q, START_CAP, levelFromReps, levelFromAnswers, startState, firstThings, exampleState, listText, test };
 })();
 
@@ -1960,17 +1984,17 @@ const Troph = (() => {
    skills.js : dictionnaire des skills.
    Une liste de skills classiques, du plus facile au plus dur, chacun avec un critère de maîtrise (secondes tenues ou répétitions)
    et des points. Les skills maîtrisés restent dans le dictionnaire et donnent un BONUS au rang (ELO global):
-   bonus = 4 ELO par point, plafonné à 450. À partir du niveau 7, il faut aussi en maîtriser un certain nombre pour monter.
+   bonus = 4 ELO par point, plafonné à 450. Les skills ne comptent pas dans la moyenne des exercices.
    Un skill est maîtrisé si le joueur l'a réussi en série classée OU pendant une séance du Programme.
    Logique pure (aucun accès au DOM).
    ============================================================ */
 const Dict = (() => {
   'use strict';
   const FAMILIES = [
-    { id: 'handstand', label: 'Handstand' }, { id: 'planche', label: 'Planche' }, { id: 'front_lever', label: 'Front lever' },
-    { id: 'back_lever', label: 'Back lever' }, { id: 'muscle_up', label: 'Muscle-up' }, { id: 'human_flag', label: 'Human flag' },
-    { id: 'lsit', label: 'L-sit et V-sit' }, { id: 'dragon_flag', label: 'Dragon flag' }, { id: 'pistol', label: 'Pistol et jambes' },
-    { id: 'one_arm', label: 'Traction une main' }, { id: 'hspu', label: 'Poirier et pompe 90°' }
+    { id: 'handstand', label: 'Handstand', skill: 'handstand' }, { id: 'planche', label: 'Planche', skill: 'planche' }, { id: 'front_lever', label: 'Front lever', skill: 'front_lever' },
+    { id: 'back_lever', label: 'Back lever', skill: 'back_lever' }, { id: 'muscle_up', label: 'Muscle-up', skill: 'muscle_up' }, { id: 'human_flag', label: 'Human flag', skill: 'human_flag' },
+    { id: 'lsit', label: 'L-sit et V-sit', skill: 'lsit' }, { id: 'dragon_flag', label: 'Dragon flag', skill: 'dragon_flag' }, { id: 'pistol', label: 'Pistol et jambes', skill: 'pistol' },
+    { id: 'one_arm', label: 'Traction une main', skill: 'one_arm' }, { id: 'hspu', label: 'Poirier et pompe 90°', skill: 'hspu' }
   ];
   /* [identifiant, famille, nom, clé de l'exercice, critère, unité, points] */
   const RAW = [
@@ -2017,8 +2041,7 @@ const Dict = (() => {
     ['hp_10', 'hspu', '10 pompes en poirier', 'handstand_push_up_strict', 10, 'rép.', 11],
     ['p90', 'hspu', 'Pompe 90°', 'pompe_90', 1, 'rép.', 16]
   ];
-  const ENTRIES = RAW.map(r => ({ id: r[0], fam: r[1], name: r[2], key: r[3], crit: r[4], unit: r[5], pts: r[6] }));
-  const NEED = { 7: 2, 8: 3, 9: 5, 10: 7 };   // skills à maîtriser pour monter aux niveaux 7 à 10 (même table que trophies.js)
+  const ENTRIES = RAW.map(r => ({ id: r[0], fam: r[1], name: r[2], key: r[3], crit: r[4], unit: r[5], pts: r[6], skill: r[0] === 'p90' ? 'push90' : FAMILIES.find(f => f.id === r[1]).skill }));
   const CAP = 450, PER_PT = 4;
 
   /** Meilleure performance du joueur sur une clé d'exercice (série classée ou séance du Programme). */
@@ -2078,12 +2101,11 @@ const Dict = (() => {
     ok('bonus de rang: l\'ELO global monte de 4 par point', g0 != null && Math.round(d1.global - g0) === 32 && d1.bonus === 32, String(g0) + ' -> ' + String(d1.global));
     S2.plan.sessions[0].items[0].sets = [999];
     ok('plafond du bonus à 450', bonus(S2) <= CAP, String(bonus(S2)));
-    ok('niveaux 7 à 10: nombre de skills à maîtriser croissant', [7, 8, 9, 10].every((l, i, a) => i === 0 || Troph.dictNeed(l) > Troph.dictNeed(a[i - 1])) && Troph.dictNeed(6) === 0, '');
     ok('animation: chaque exercice a un jeu de poses du mannequin', Object.values(Troph.ITEMS).every(i => i.pose && typeof Mannequin !== 'undefined' && Mannequin.has(i.pose)), Object.values(Troph.ITEMS).filter(i => !i.pose || (typeof Mannequin !== 'undefined' && !Mannequin.has(i.pose))).map(i => i.key).join());
     ok('animation: chaque jeu de poses a autant de noms que de poses', typeof Mannequin === 'undefined' || [...new Set(Object.values(Troph.ITEMS).map(i => i.pose))].every(k => { const st = Mannequin.get(k); return st.names.length === st.poses.length; }), '');
     return R;
   }
-  return { FAMILIES, ENTRIES, NEED, best, status, points, count, bonus, test };
+  return { FAMILIES, ENTRIES, best, status, points, count, bonus, test };
 })();
 
 /* ============================================================
@@ -2766,6 +2788,30 @@ const Coach = (() => {
       : 'Tu es sur la dernière marche : travaille la qualité (position parfaite, durée plus longue).';
     return { id, label: sk.label, tip: sk.tip, steps, req: SKILL_REQ[id] || [], support: supp, drills, method: SKILL_METHOD[id] || [], unlock, work: ['3 à 4 fois par semaine, en premier dans la séance, quand tu es frais.', 'Séries courtes et propres (3 à 12 secondes de tenue, ou 1 à 5 répétitions), 4 à 8 séries.', 'Repos de 2 minutes à 2 minutes 30 entre les séries.', 'Jamais jusqu\'à l\'échec : arrête dès que la position se dégrade.'] };
   }
+  /* ---------- skills conseillés selon le niveau actuel ---------- */
+  /* bases à avoir pour s'y mettre: [exercice, minimum]. La préparation compare ces minimums au niveau estimé du joueur. */
+  const SKILL_READY = {
+    handstand: [['pompes_strictes', 10], ['gainage', 30]], planche: [['pompes_strictes', 20], ['pompes_pike', 8], ['dips_strictes', 5]],
+    front_lever: [['tractions_strictes', 8], ['releves_de_jambes_tendues_suspendus', 8]], back_lever: [['tractions_strictes', 8], ['dips_strictes', 10]],
+    muscle_up: [['tractions_strictes', 10], ['dips_strictes', 10]], human_flag: [['tractions_strictes', 10], ['dips_strictes', 10], ['planche_laterale', 30]],
+    lsit: [['gainage', 30], ['dips_strictes', 8]], dragon_flag: [['releves_de_jambes_tendues_suspendus', 10], ['gainage', 45]],
+    pistol: [['squat_bulgare', 15]], one_arm: [['tractions_strictes', 20], ['tractions_archer', 10]], hspu: [['pompes_pike', 10], ['pompes_strictes', 25]],
+    push90: [['handstand_push_up_strict', 8], ['pompes_pike', 15]]
+  };
+  /** Les skills à apprendre, du plus accessible au plus lointain, d'après le niveau actuel. [{ id, label, state: ready|soon|later, ready (0 à 1), next, missing:[{name, have, need}], mastered, total }] */
+  function skillSuggestions(S, D) {
+    const st = Dict.status(S, D.ex), out = [];
+    Object.keys(SKILLS).forEach(id => {
+      const entries = st.filter(e => e.skill === id);
+      if (!entries.length || entries.every(e => e.done)) return;
+      const reqs = (SKILL_READY[id] || []).map(r => ({ key: r[0], need: r[1], have: Math.round(expectedMax(S, D, r[0]) || 0) })).filter(r => TI[r.key]);
+      const ready = reqs.length ? reqs.reduce((a, r) => a + Math.min(1, r.have / r.need), 0) / reqs.length : 1;
+      const missing = reqs.filter(r => r.have < r.need * 0.9).map(r => ({ name: TI[r.key].name.toLowerCase(), have: r.have, need: r.need }));
+      const next = entries.find(e => !e.done);
+      out.push({ id, label: SKILLS[id].label, ready, state: ready >= 0.9 ? 'ready' : ready >= 0.6 ? 'soon' : 'later', next: next.name, nextPts: next.pts, missing, mastered: entries.filter(e => e.done).length, total: entries.length });
+    });
+    return out.sort((a, b) => (b.state === 'ready') - (a.state === 'ready') || b.ready - a.ready || a.nextPts - b.nextPts);
+  }
   /** Questionnaire de fin de séance: 'easy' | 'ok' | 'hard' | 'vhard'. Ajuste la difficulté des prochaines séances sur les muscles travaillés. */
   const FEEDBACK = { easy: { d: 1, txt: 'Noté : la prochaine séance sera un peu plus dure sur ces muscles.' }, ok: { d: 0, txt: 'Parfait : on garde ce niveau et on monte doucement.' }, hard: { d: 0, txt: 'Noté : dur mais jouable, on garde ce niveau.' }, vhard: { d: -1, txt: 'Noté : la prochaine séance sera un peu plus légère sur ces muscles.' } };
   function applyFeedback(S, session, fb) {
@@ -3154,16 +3200,25 @@ const Coach = (() => {
     // skills: négatifs et marches de progression dans chaque séance
     S = mk(60, 15, 1); S.plan.goals = ['masse', 'skills'];
     const fl = sess(S, { muscles: ['chest'], minutes: 60, skill: 'front_lever' }).items.filter(i => i.skill);
-    ok('front lever: la marche, le front lever négatif et le skin the cat dans la séance', fl[0].key.indexOf('front_lever:') === 0 && fl.some(i => i.key === 'front_lever_negatif' && i.drill) && fl.some(i => i.key === 'skin_the_cat'), fl.map(i => i.key).join());
+    ok('front lever: la marche, la marche d\'avant et le front lever négatif dans la séance', fl[0].key.indexOf('front_lever:') === 0 && fl.some(i => i.key === 'front_lever_negatif' && i.drill) && fl.some(i => i.drill && i.key.indexOf('front_lever:') === 0), fl.map(i => i.key).join());
     ['back_lever', 'lsit', 'dragon_flag', 'pistol', 'one_arm', 'hspu', 'push90', 'planche', 'handstand', 'muscle_up', 'human_flag'].forEach(id => {
       const it = sess(S, { muscles: ['chest'], minutes: 60, skill: id }).items.filter(i => i.skill);
       ok('skill ' + id + ': au moins une marche et un exercice de progression ou deux marches, tous connus', it.length >= 1 && it.every(i => Troph.ITEMS[i.key]) && (it.length >= 2 || id === 'back_lever'), it.map(i => i.key).join());
       ok('programme ' + id + ': marches, méthode et bases', (() => { const p = skillProgram(S, Core.derive(S, now), id); return p.steps.length >= 2 && p.method.length >= 4 && p.req.length >= 3 && p.steps.filter(s => s.state === 'current').length === 1; })(), '');
     });
+    // skills conseillés selon le niveau
+    S = mk(100, 20, 1); D = Core.derive(S, now);
+    const sg1 = skillSuggestions(S, D);
+    ok('100 pompes + 20 tractions: planche et muscle-up prêts, ordre prêt > bientôt > plus tard', sg1.find(x => x.id === 'muscle_up').state === 'ready' && ['ready', 'soon'].includes(sg1.find(x => x.id === 'planche').state) && sg1.map(x => x.state).join().indexOf('later,ready') < 0, sg1.map(x => x.id + ':' + x.state + ':' + x.ready.toFixed(2)).join(' '));
+    S = mk(3, 0, 1, { time: 0 }); D = Core.derive(S, now);
+    const sg0 = skillSuggestions(S, D);
+    ok('débutant: aucun skill difficile en « prêt » (planche, front lever, muscle-up, human flag, traction une main)', ['planche', 'front_lever', 'muscle_up', 'human_flag', 'one_arm', 'push90'].every(id => sg0.find(x => x.id === id).state !== 'ready'), sg0.map(x => x.id + ':' + x.state).join(' '));
+    ok('débutant: ce qui manque est expliqué (nom, valeur actuelle, valeur nécessaire)', sg0.find(x => x.id === 'muscle_up').missing.length >= 1 && sg0.find(x => x.id === 'muscle_up').missing[0].need > sg0.find(x => x.id === 'muscle_up').missing[0].have, JSON.stringify(sg0.find(x => x.id === 'muscle_up').missing));
+    ok('un skill entièrement maîtrisé n\'est plus proposé', (() => { const T = mk(100, 20, 1); T.plan.sessions.push({ ts: now, goal: 'skills', muscles: ['skill'], items: Dict.ENTRIES.filter(e => e.skill === 'lsit').map(e => ({ key: e.key, sets: [e.crit + 1], target: 1 })) }); return !skillSuggestions(T, Core.derive(T, now)).some(x => x.id === 'lsit'); })(), '');
     return R;
   }
 
-  return { calibrate, setMyMax, comboAdvice, skillProgram, SKILL_REQ, SKILL_METHOD, FEEDBACK, applyFeedback, goalAdvice, suggestMinutes, GOALS, GROUPS, GROUP_ORDER, INTENS, SKILLS, DAY_NAMES, settings, catElo, expectedMax, buildSession, week, recovery, conflicts, suggestToday, autoWeek, restInfo, tempoInfo, rirText, groupLabels, recordSession, exLevel, allLevels, dayIdx, dayNum, weekStart, test, isOpen };
+  return { skillSuggestions, SKILL_READY, calibrate, setMyMax, comboAdvice, skillProgram, SKILL_REQ, SKILL_METHOD, FEEDBACK, applyFeedback, goalAdvice, suggestMinutes, GOALS, GROUPS, GROUP_ORDER, INTENS, SKILLS, DAY_NAMES, settings, catElo, expectedMax, buildSession, week, recovery, conflicts, suggestToday, autoWeek, restInfo, tempoInfo, rirText, groupLabels, recordSession, exLevel, allLevels, dayIdx, dayNum, weekStart, test, isOpen };
 })();
 
 /* ============================================================
@@ -3402,8 +3457,8 @@ const Mannequin = (() => {
     rowing: { vb: '10 110 240 130', env: { rails: { y: 150, x0: 162, x1: 226 } }, poses: [LN([52, 209], 2.5, { hand: [192, 150] }), LN([52, 209], 15.5, { hand: [192, 150] })], names: ['Bras tendus', 'Poitrine à la barre'] },
     scap: { env: HANG, poses: [P({ sh: [138, 90], hip: [138, 140], hand: [140, 40], foot: [134, 190], pt: 0.5, hd: -60 }), P({ sh: [138, 97], hip: [138, 147], hand: [140, 40], foot: [134, 197], pt: 0.5, hd: -60 })], names: ['Hang passif : épaules relâchées', 'Hang actif : épaules basses'] },
     superman: { vb: '0 130 260 110', env: { floor: FL }, poses: [P({ sh: [172, 205], hip: [122, 205], hand: [226, 206], foot: [32, 207], pt: 1 }), PT({ sh: [172, 190], ang: 170, hand: [228, 174], foot: [36, 180], pt: 1 })], names: ['À plat sur le ventre', 'Bras, poitrine et jambes levés'] },
-    bridge: { vb: '20 120 230 120', env: { floor: FL }, poses: [P({ sh: [190, 205], hip: [140, 205], hand: [134, 208], foot: [96, 209] }), PT({ sh: [190, 205], ang: 215, hand: [134, 208], foot: [96, 209] })], names: ['Allongé, pieds à plat', 'Bassin en haut'] },
-    bridge1: { vb: '20 60 230 180', env: { floor: FL }, poses: [P({ sh: [190, 205], hip: [140, 205], hand: [134, 208], foot: [96, 209], foot2: [100, 150] }), PT({ sh: [190, 205], ang: 215, hand: [134, 208], foot: [96, 209], foot2: [118, 90] })], names: ['Une jambe tendue', 'Bassin en haut, jambe levée'] },
+    bridge: { vb: '20 80 240 160', env: { floor: FL }, poses: [P({ sh: [196, 208], hip: [146, 208], hand: [148, 217], foot: [102, 216], kb: 1 }), PT({ sh: [196, 208], ang: 215, hand: [150, 217], foot: [102, 216], kb: 1 })], names: ['Allongé sur le dos, pieds à plat', 'Bassin en haut, fessiers serrés'] },
+    bridge1: { vb: '20 50 240 190', env: { floor: FL }, poses: [P({ sh: [196, 208], hip: [146, 208], hand: [148, 217], foot: [102, 216], foot2: [146, 120], kb: 1 }), PT({ sh: [196, 208], ang: 215, hand: [150, 217], foot: [102, 216], foot2: [108, 98], kb: 1 })], names: ['Une jambe tendue en l\'air', 'Bassin en haut, jambe tendue'] },
     calf: { vb: '40 10 180 230', env: { floor: FL }, poses: [P({ sh: [110, 74], hip: [110, 124], hand: [118, 130], foot: [110, 210] }), P({ sh: [110, 60], hip: [110, 110], hand: [118, 116], foot: [110, 197], pt: 1 })], names: ['Talons au sol', 'Sur la pointe des pieds'] },
     calf1: { vb: '40 10 180 230', env: { floor: FL }, poses: [P({ sh: [110, 74], hip: [110, 124], hand: [118, 130], foot: [110, 210], foot2: [92, 176] }), P({ sh: [110, 60], hip: [110, 110], hand: [118, 116], foot: [110, 197], foot2: [92, 162], pt: 1 })], names: ['Talon au sol', 'Sur la pointe du pied'] },
     bulgare: { vb: '0 40 260 200', env: { floor: FL, box: [18, 170, 86] }, poses: [P({ sh: [128, 72], hip: [128, 122], hand: [170, 84], foot: [150, 210], foot2: [66, 160] }), P({ sh: [130, 130], hip: [124, 180], hand: [172, 134], foot: [150, 210], foot2: [66, 160] })], names: ['Debout', 'Genou arrière vers le sol'] },
@@ -3440,6 +3495,7 @@ const Mannequin = (() => {
     p90: { vb: '0 -10 260 250', env: { floor: FL }, poses: [P({ sh: [150, 166], hip: [150, 116], hand: [150, 222], foot: [150, 26], foot2: [147, 28], pt: 1 }), PT({ sh: [152, 168], ang: -135, hand: [150, 222], foot: pt2(pt2([152, 168], -135, 50), -135, 90), pt: 1 }), P({ sh: [158, 168], hip: [108, 168], hand: [148, 222], foot: [18, 170], pt: 1 })], names: ['Poirier', 'Le corps s\'incline', 'Corps horizontal, comme une planche'] }
   };
   Object.assign(SETS, MORE);
+  ['bridge', 'bridge1', 'rowing', 'dflag', 'fl', 'flAdv', 'flOne', 'flStr', 'flHalf', 'flFull', 'flneg'].forEach(k => { SETS[k].flip = true; });
   SETS.muneg = { vb: MORE.mu.vb, env: MORE.mu.env, poses: MORE.mu.poses.slice().reverse(), names: MORE.mu.names.slice().reverse() };
   SETS.pistolbox = { vb: SETS.pistol.vb, env: SETS.pistol.env, poses: SETS.pistol.poses, names: SETS.pistol.names };
   /* ---------- interpolation ---------- */
@@ -3477,7 +3533,7 @@ const Mannequin = (() => {
   function geo(p) {
     const S = p.sh, H = [S[0] + Math.cos(p.ta) * TOR, S[1] + Math.sin(p.ta) * TOR];
     const torsoDir = norm([H[0] - S[0], H[1] - S[1]]);
-    const front = [torsoDir[1], -torsoDir[0]];
+    const fr0 = [torsoDir[1], -torsoDir[0]], front = p.flip ? [-fr0[0], -fr0[1]] : fr0;   // flip: allongé sur le dos ou face vers le haut (poitrine vers le haut)
     const a1 = ik(S, p.hand, UA, FA, p.eb), a2 = ik([S[0] - 2, S[1] - 1], p.hand2 || [p.hand[0] + 3, p.hand[1] - 2], UA, FA, p.eb);
     const l1 = ik(H, p.foot, TH, SHN, p.kb), l2 = ik([H[0] - 2, H[1] - 1], p.foot2 || [p.foot[0] + 5, p.foot[1] - 1], TH, SHN, p.kb);
     const toe = (K, A) => {
@@ -3597,7 +3653,7 @@ const Mannequin = (() => {
     const set = SETS[setKey];
     if (!set) return '';
     o = o || {};
-    const p = sample(set.poses, s), G = geo(p), hl = o.hl || null;
+    const p = Object.assign({}, sample(set.poses, s), { flip: !!set.flip }), G = geo(p), hl = o.hl || null;
     let out = envSvg(set.env);
     if (o.skeleton) return out + skeleton(G);
     out += `<g class="mq-farg">${armSvg(G.arm2, G, hl)}${legSvg(G.leg2, G, hl)}</g>`;
@@ -3748,6 +3804,7 @@ function topHtml() {
 /* ---------- rendu ---------- */
 function render(opts) {
   opts = opts || {};
+  if (S.onboarded && Core.syncRank(S, nowMs())) save();   // le rang suit la moyenne de tes exercices
   D = Core.derive(S, nowMs());
   setAccent(S.onboarded ? S.earned : 'rookie');
   $('#app').dataset.immersive = IMMERSIVE.has(ui.route) ? '1' : '0';
@@ -3803,13 +3860,12 @@ function renderSheet() {
     <button class="ibtn closeb" type="button" data-act="sheet-close" aria-label="Fermer">${icon('cross')}</button>${sh}</div></div>`;
 }
 const INFO = {
-  train: ['Ton niveau va de 1 à 10, comme ton rang.', 'Chaque niveau a 8 trophées : un exercice, un objectif.', 'Réussis-les tous pour monter de niveau.', 'Les exercices grisés s\'ouvrent plus tard.'],
-  family: ['Voici les exercices de base de ton niveau.', 'Le médaillon indique un trophée à viser.', '« Voir les niveaux au-dessus » montre la suite.'],
+  train: ['Ton rang va de 1 à 10 : c\'est la moyenne de tous tes exercices.', 'Chaque exercice a son propre rang, d\'après ton record.', 'L\'objectif affiché est le record du rang suivant.', 'Les exercices grisés s\'ouvrent plus tard.'],
+  family: ['Voici les exercices de base de ton niveau.', 'L\'objectif indique le record du rang suivant.', '« Voir les niveaux au-dessus » montre la suite.'],
   exercise: ['La caméra compte tes répétitions pendant la série.', 'Douleur de tendon à 6 sur 10 ou plus : on arrête.', 'La fatigue des muscles ne compte pas.', 'Une série classée par exercice toutes les 48 h.'],
-  ranked: ['Les points montent avec tes meilleures performances.', 'À 100 points, le test de promotion s\'ouvre.', 'Test : 3 exercices de 3 familles, au niveau suivant.', 'Après un échec, attends 3 jours.'],
-  trophies: ['Un trophée = un exercice et un objectif.', 'Réussis un trophée du niveau au-dessus : il compte déjà.', 'Tous les trophées du niveau suivant : tu montes de niveau.']
-};
-function infoSheet(kind) {
+  ranked: ['Ton rang est la moyenne de tous tes exercices. Chaque exercice a son rang d\'après ton record, comme au jeu : plus ton record est haut, plus l\'ELO est haut.', 'On prend les meilleurs exercices de chaque famille (pousser, tirer, jambes, abdos), puis la moyenne des familles. Si tu es à peu près Platine partout, tu es Platine.', 'Il faut au moins 3 familles classées pour avoir un rang.', 'Les skills (handstand, planche, front lever…) ne comptent pas dans la moyenne : chaque skill maîtrisé du dictionnaire ajoute un bonus.', 'Une série classée par exercice toutes les 48 h. Si tu arrêtes de t\'entraîner, ton ELO baisse lentement.', 'Il n\'y a aucun test à passer : le rang monte tout seul quand ta moyenne monte.'],
+  trophies: ['Cette page montre ton niveau sur chaque exercice. Ton rang est la moyenne de tous.', 'Les skills conseillés dépendent de ton niveau actuel : touche-en un pour apprendre à le maîtriser, puis ajoute-le à ta séance.', 'Chaque skill maîtrisé reste dans le dictionnaire et donne un bonus à ton rang.']
+};function infoSheet(kind) {
   return `<h2 id="sheet-t">Comment ça marche</h2><ul class="lines">${(INFO[kind] || INFO.train).map(l => `<li>${esc(l)}</li>`).join('')}</ul>
     <div class="acts"><button class="btn focus-first" type="button" data-act="sheet-close">Compris</button></div>`;
 }
@@ -3833,7 +3889,7 @@ function familyView() {
     const it = TI[k], tp = locked ? null : pendingTrophy(k);
     let tg = '';
     if (locked) tg = `${icon('lock')}<span>Niveau ${Troph.unlockOf(k)}</span>`;
-    else if (tp) tg = `${icon('medal')}<span>Trophée : ${esc(medNum(tp))}</span>`;
+    else if (tp) tg = `${icon('medal')}<span>Objectif : ${esc(medNum(tp))}</span>`;
     else if (it.ranked && D.ex[it.ex] && D.ex[it.ex].pb) { const pb = D.ex[it.ex].pb; if (!it.variant || pb.variant === it.variant) tg = `<span class="dim">Record : ${esc(fmtNum(pb.perf))}${it.hold ? ' s' : ''}</span>`; }
     return `<button class="ex${locked ? ' locked' : ''}" type="button" data-act="open-ex" data-key="${esc(k)}" id="ex-${esc(k.replace(/[^a-z0-9]+/gi, '-'))}">
       <span class="thumb">${thumb(it)}</span><span><div class="nm">${esc(it.name)} ${locked ? '' : rkTag(k)}</div><div class="tg">${tg}</div></span>${icon('next', 'ch')}</button>`;
@@ -3860,7 +3916,7 @@ function exerciseView() {
   }
   const seg = hasPose ? `<div class="seg" role="group" aria-label="Affichage"><button type="button" id="mq-t-muscles" data-act="mq-tab" data-tab="muscles" aria-pressed="${tab === 'muscles'}">Muscles</button><button type="button" id="mq-t-move" data-act="mq-tab" data-tab="move" aria-pressed="${tab === 'move'}">Mouvement</button></div>` : '';
   const tp = pendingTrophy(ui.key);
-  const chip = tp ? `<div><span class="chip-t">${icon('medal')}Trophée : ${esc(medNum(tp))}</span></div>` : '';
+  const chip = tp ? `<div><span class="chip-t">${icon('medal')}Objectif : ${esc(medNum(tp))}</span></div>` : '';
   const kick = (ui.key === 'handstand_libre' || ui.key === 'handstand_mur') ? `<div><button class="link" type="button" data-act="open-ex" data-key="kickup">Apprendre le kick-up</button></div>` : '';
   return `<section class="stack"><div class="sub"><button class="ibtn" type="button" id="btn-back" data-act="back" aria-label="Retour">${icon('back')}</button><h1>${esc(it.name)}</h1>${infoBtn('exercise')}</div>
     ${lvlBlock(ui.key)}<div class="stage">${seg}${stage}</div>${chip}
@@ -4060,9 +4116,8 @@ function recordTraining(key, perf, ranked, free) {
   }
   S.log.push({ key, ts: now, perf });
   if (S.log.length > 200) S.log.shift();
-  const up = Troph.levelUp(S);
-  const auto = up ? null : Core.normalize(S, now);
-  const ev = up ? { type: 'promotion', rank: S.earned, from: up.from, to: up.to } : auto;
+  const sync = Core.syncRank(S, now);   // le rang suit la moyenne de tes exercices
+  const ev = sync && sync.up ? { type: 'promotion', rank: S.earned, from: sync.from, to: sync.to } : null;
   save();
   const after = Core.derive(S, now);
   ui.result = { key, perf, ranked: !!att, free: !!free, before, after, att, got, ev, lvBefore };
@@ -4085,9 +4140,9 @@ function resultSheet() {
     }
   } else if (R.free) bits.push(`<div class="notice" style="margin-top:12px">Série libre : non classée (une série classée par exercice toutes les 48 h).</div>`);
   else bits.push(`<p class="muted" style="margin-top:10px">Série enregistrée.</p>`);
-  R.got.forEach(t => bits.push(`<div class="trophy-note" style="margin-top:8px">${icon('trophies')}<span>Trophée obtenu : ${esc(TI[t.key].name)} · ${esc(medNum(t))}</span></div>`));
-  if (R.ranked && !R.got.length) { const tp = pendingTrophy(R.key); if (tp) bits.push(`<p class="dim" style="margin:10px 0 0">Trophée visé : ${esc(medNum(tp))}. Pas encore.</p>`); }
-  if (Troph.level(S) < 10) { const tl = Troph.targetLevel(S); bits.push(`<p class="muted" style="margin:12px 0 0">Niveau suivant : <b class="num">${Troph.doneCount(S, tl)}/${Troph.trophiesOf(tl).length}</b> trophées</p>`); }
+  R.got.forEach(t => bits.push(`<div class="trophy-note" style="margin-top:8px">${icon('trophies')}<span>Objectif atteint : ${esc(TI[t.key].name)} · ${esc(medNum(t))}</span></div>`));
+  if (R.ranked && !R.got.length) { const tp = pendingTrophy(R.key); if (tp) bits.push(`<p class="dim" style="margin:10px 0 0">Objectif visé : ${esc(medNum(tp))}. Pas encore.</p>`); }
+  if (R.after && R.after.global != null && Core.nextRank(S.earned)) bits.push(`<p class="muted" style="margin:12px 0 0">Rang : <b>${esc(Core.rName(S.earned))}</b> · ${R.after.points == null ? '–' : fmtDec(R.after.points)} / 100 points vers ${esc(Core.rName(Core.nextRank(S.earned)))}</p>`);
   bits.push(`<div class="acts"><button class="btn primary focus-first" type="button" id="btn-result-ok" data-act="result-ok">Continuer</button></div>`);
   return bits.join('');
 }
@@ -4108,16 +4163,18 @@ function leaderboard() {
   const from = Math.max(0, Math.min(rows.length - 5, i - 2));
   return rows.slice(from, from + 5).map((r, k) => `<li class="${r.me ? 'me' : ''}"><span class="ps">${from + k + 1}</span><span class="em">${emblem(r.me ? S.earned : Core.rankOfElo(r.e), 28)}</span><span>${esc(r.n)}</span><span class="el">${fmt(r.e)}</span></li>`).join('');
 }
+/* explication du Ranked, visible sur les onglets Ranked et Trophées */
+function howRankedHtml() {
+  return `<details class="howrank" id="how-ranked"><summary>Comment fonctionne le Ranked ?</summary><ul class="lines">${INFO.ranked.map(l => `<li>${esc(l)}</li>`).join('')}</ul></details>`;
+}
 function rankedView() {
-  const pts = D.points == null ? 0 : D.points;
-  const info = Core.promotionInfo(S, D, nowMs());
-  let btn = '';
-  if (D.gateOpen) btn = info.delay.ok ? `<button class="btn primary block" type="button" id="btn-promo" data-act="promo-open">Passer le test de promotion</button>`
-    : `<button class="btn block" type="button" id="btn-promo" disabled>Test disponible dans ${esc(durText(info.delay.remaining))}</button>`;
+  const pts = D.points == null ? 0 : D.points, nx = Core.nextRank(S.earned);
+  const avg = D.global == null ? '' : `<div class="avgl" id="avg-line">Moyenne de tes exercices : <b class="num">${fmt(D.global)}</b> ELO${D.bonus ? ` · dont <b class="num">+${fmt(D.bonus)}</b> de bonus skills` : ''}</div>`;
+  const nl = D.global == null ? `<div class="avgl">Fais des séries classées dans au moins 3 familles pour obtenir ton rang.</div>` : nx ? `<div class="avgl">${fmt(pts)} / 100 points vers <b>${esc(Core.rName(nx))}</b></div>` : '';
   return `<section class="stack"><div class="hero"><div class="emb">${emblem(S.earned, 250)}</div>
       <div class="who" id="who-name">${esc(accName())}</div><div class="rn">${esc(Core.rName(S.earned))}</div><div class="nv">Niveau ${Troph.level(S)}</div>
-      <div class="pts"><div class="pl"><b class="num" id="pts-val">${fmt(pts)}</b><span>/ 100 points</span></div><div class="bar" role="progressbar" aria-label="Points" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(pts)}"><i style="width:${pts.toFixed(1)}%"></i></div></div></div>
-    ${btn}
+      <div class="pts"><div class="pl"><b class="num" id="pts-val">${fmt(pts)}</b><span>/ 100 points</span></div><div class="bar" role="progressbar" aria-label="Points" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(pts)}"><i style="width:${pts.toFixed(1)}%"></i></div></div>${avg}${nl}</div>
+    ${howRankedHtml()}
     ${typeof exercisesRankedHtml === 'function' ? exercisesRankedHtml() : ''}
     <div class="lb"><div class="lb-h"><span>Classement</span><span id="lb-label">${lbLabel()}</span></div><ol id="lb-list">${leaderboard()}</ol></div></section>`;
 }
@@ -4375,7 +4432,16 @@ function planSheet(s) {
       <div class="lab" style="margin-top:12px">Les bases à avoir avant de t'y mettre</div><ul class="lines">${p.req.map(t => `<li>${esc(t)}</li>`).join('')}</ul>
       <div class="lab" style="margin-top:12px">Les exercices qui te rendent plus fort pour ce skill</div><ul class="skl">${sup}</ul>
       <div class="lab" style="margin-top:12px">Comment le travailler</div><ul class="lines">${p.work.map(t => `<li>${esc(t)}</li>`).join('')}</ul>
-      <div class="acts">${s.back ? `<button class="btn primary focus-first" type="button" id="btn-sk-back" data-act="skill-back">Retour à ma séance</button>` : ''}${planOf().skill !== p.id ? `<button class="btn" type="button" id="btn-sk-pick" data-act="skill-pick" data-id="${p.id}">En faire mon skill</button>` : ''}${s.back ? '' : `<button class="btn primary focus-first" type="button" data-act="sheet-close">Fermer</button>`}</div>`;
+      <div class="acts"><button class="btn primary focus-first" type="button" id="btn-sk-add" data-act="skill-add" data-id="${p.id}">Ajouter ce skill à ma semaine</button>
+        <button class="btn" type="button" id="btn-sk-now" data-act="skill-now" data-id="${p.id}">Faire une séance de ce skill maintenant</button>
+        ${planOf().skill !== p.id ? `<button class="btn" type="button" id="btn-sk-pick" data-act="skill-pick" data-id="${p.id}">En faire mon skill principal</button>` : ''}
+        ${s.back === 'day' || s.back === 'dict' ? `<button class="btn" type="button" id="btn-sk-back" data-act="skill-back">${s.back === 'dict' ? 'Retour au dictionnaire' : 'Retour à ma séance'}</button>` : `<button class="btn" type="button" data-act="sheet-close">Fermer</button>`}</div>`;
+  }
+  if (s.type === 'skilladd') {
+    const wk = Coach.week(S), sk = Coach.SKILLS[s.id];
+    return `<h2 id="sheet-t">Ajouter : ${esc(sk.label)}</h2><p class="muted" style="margin:0 0 8px">Choisis le jour. Le skill passe en premier dans la séance, avec ses exercices de progression. Si le jour a déjà une séance, le skill s'y ajoute.</p>
+      <ul class="dayopt" id="skadd-days">${wk.map((e, i) => `<li><button type="button" class="btn" data-act="skadd-day" data-d="${i}"><b>${esc(Coach.DAY_NAMES[i])}</b><span>${e ? esc(Coach.groupLabels(e.m)) : 'Repos'}</span></button></li>`).join('')}</ul>
+      <div class="acts"><button class="btn" type="button" data-act="skadd-back">Retour au programme du skill</button></div>`;
   }
   if (s.type === 'mymax') {
     const it = { key: s.key, name: s.name, hold: s.hold, perSide: s.perSide, expected: s.expected }, unit = it.hold ? 'secondes' : 'répétitions' + (it.perSide ? ' par côté' : ''), mine = S.plan && S.plan.myMax && S.plan.myMax[it.key];
@@ -4385,17 +4451,15 @@ function planSheet(s) {
       <div class="acts"><button class="btn primary focus-first" type="button" id="btn-mm-save" data-act="mm-save">Enregistrer</button>${mine ? `<button class="btn" type="button" id="btn-mm-reset" data-act="mm-reset">Revenir à l'estimation automatique</button>` : ''}</div>`;
   }
   if (s.type === 'dict') {
-    const st = Dict.status(S), done = st.filter(e => e.done), pts = done.reduce((a, e) => a + e.pts, 0), lv = Troph.level(S);
+    const st = Dict.status(S), done = st.filter(e => e.done);
     const fams = Dict.FAMILIES.map(f => {
       const list = st.filter(e => e.fam === f.id), n = list.filter(e => e.done).length;
-      const rows = list.map(e => `<li class="${e.done ? 'done' : ''}"><span class="nm">${e.done ? '✓ ' : ''}${esc(e.name)}</span><span class="st">${e.done ? '+' + e.pts + ' pts' : (e.best ? 'record ' + fmtNum(e.best) + ' / ' + e.crit : e.crit + ' ' + e.unit)}</span></li>`).join('');
+      const rows = list.map(e => `<li class="${e.done ? 'done' : ''}"><button type="button" class="dre" data-act="skill-open" data-id="${e.skill}" data-back="dict"><span class="nm">${e.done ? '✓ ' : ''}${esc(e.name)}</span><span class="st">${e.done ? '+' + e.pts + ' pts' : (e.best ? 'record ' + fmtNum(e.best) + ' / ' + e.crit : e.crit + ' ' + e.unit)}</span></button></li>`).join('');
       return `<details class="dfam"${n ? ' open' : ''}><summary><b>${esc(f.label)}</b><span>${n}/${list.length}</span></summary><ul class="skl">${rows}</ul></details>`;
     }).join('');
-    const need = [7, 8, 9, 10].map(l => ({ l, n: Troph.dictNeed(l) }));
     return `<h2 id="sheet-t">Dictionnaire des skills</h2>
       <div class="dtot" id="dict-total"><div><b class="num">${done.length}</b> / ${st.length}<span>skills maîtrisés</span></div><div><b class="num">+${Math.round(Dict.bonus(S))}</b><span>ELO de bonus sur ton rang</span></div></div>
-      <p class="hint">Chaque skill maîtrisé reste dans le dictionnaire et ajoute 4 ELO par point à ton rang. ${lv < 4 ? 'Les skills s\'ouvrent au niveau 4 (Or) : avant, concentre-toi sur la force de base.' : 'Réussis un skill pendant une séance ou en série classée pour le valider.'}</p>
-      <p class="hint" id="dict-need">Pour monter : niveau 7 = ${need[0].n} skills, niveau 8 = ${need[1].n}, niveau 9 = ${need[2].n}, niveau 10 = ${need[3].n}.</p>
+      <p class="hint">Touche un skill pour apprendre à le maîtriser : les marches, la méthode, les exercices de progression. Tu peux ensuite l'ajouter à ta séance. Chaque skill maîtrisé reste ici et ajoute 4 ELO par point à ton rang.</p>
       ${fams}
       <div class="acts"><button class="btn primary focus-first" type="button" data-act="sheet-close">Fermer</button></div>`;
   }
@@ -4566,9 +4630,19 @@ function planAct(a, el) {
     case 'dy-m': { const m = ui.day.m, k = m.indexOf(d.v); if (k >= 0) m.splice(k, 1); else m.push(d.v); renderSheet(); return true; }
     case 'dict-open': openSheet({ type: 'dict' }); return true;
     case 'dy-skill': ui.day.skill = d.v; renderSheet(); return true;
-    case 'skill-open': openSheet({ type: 'skill', id: d.id, back: ui.sheet && ui.sheet.type === 'day' ? 'day' : null }); return true;
+    case 'skill-open': openSheet({ type: 'skill', id: d.id, back: d.back || (ui.sheet && ui.sheet.type === 'day' ? 'day' : null) }); return true;
+    case 'skill-add': openSheet({ type: 'skilladd', id: d.id, back: ui.sheet && ui.sheet.back }); return true;
+    case 'skadd-back': { const s = ui.sheet; ui.sheet = { type: 'skill', id: s.id, back: s.back }; renderSheet(); return true; }
+    case 'skadd-day': {
+      const i = parseInt(d.d, 10), id = ui.sheet.id, p = ensurePlan();
+      p.week = Coach.week(S).map(e => e ? { m: e.m.slice(), min: e.min, goals: e.goals, skill: e.skill } : null);
+      const cur = p.week[i];
+      if (cur) { if (!cur.m.includes('skill')) cur.m.unshift('skill'); cur.skill = id; } else p.week[i] = { m: ['skill'], min: planOf().dur, goals: null, skill: id };
+      save(); closeSheet(); render(); toast(Coach.SKILLS[id].label + ' ajouté au ' + Coach.DAY_NAMES[i].toLowerCase()); return true;
+    }
+    case 'skill-now': askFeel({ muscles: ['skill'], minutes: planOf().dur, skill: d.id }); return true;
     case 'skill-ex': closeSheet(); openExercise(d.key); return true;
-    case 'skill-back': ui.sheet = { type: 'day' }; renderSheet(); return true;
+    case 'skill-back': ui.sheet = { type: ui.sheet && ui.sheet.back === 'dict' ? 'dict' : 'day' }; renderSheet(); return true;
     case 'skill-pick': { ensurePlan().skill = d.id; save(); closeSheet(); render(); toast('Skill choisi : ' + Coach.SKILLS[d.id].label); return true; }
     case 'mymax-open': { const it = ui.run && ui.run.s.items[parseInt(d.i, 10)]; if (it) openSheet({ type: 'mymax', from: 'run', key: it.key, name: it.name, hold: it.hold, perSide: it.perSide, expected: it.expected, val: it.expected || it.target }); return true; }
     case 'pv-mymax': { const t = TI[d.key], ex = Math.round(Coach.expectedMax(S, D, d.key) || 1); openSheet({ type: 'mymax', from: 'day', key: d.key, name: t.name, hold: !!t.hold, perSide: !!t.side, expected: ex, val: ex }); return true; }
@@ -6525,30 +6599,34 @@ function wheelSvg(lv, rid, list, status) {
     <g transform="translate(121 96)">${emblem(rid, 118)}</g>
     <text class="wh-count" x="${cx}" y="262">${done}/${list.length}</text>${meds}</svg>`;
 }
-/* skills: arrivent au niveau 4, puis un nombre de skills du dictionnaire à maîtriser à partir du niveau 7 */
-function skillLine(lv) {
-  const n = Dict.count(S), need = Troph.dictNeed(lv);
-  const note = lv <= 3 ? `Les skills arrivent au niveau 4 (Or) : le handstand d'abord, puis le front lever au niveau 5.` : need ? `Pour ce niveau, il faut aussi maîtriser <b class="num">${Math.min(n, need)}/${need}</b> skills du dictionnaire.` : '';
-  return `<div class="skillbar">${note ? `<p id="skill-note">${note}</p>` : ''}<button class="btn" type="button" id="btn-dict" data-act="dict-open">Dictionnaire des skills · ${n} maîtrisé${n > 1 ? 's' : ''} · +${Math.round(Dict.bonus(S))} ELO</button></div>`;
+/* ---------- onglet Trophées: niveau sur chaque exercice, skills conseillés, dictionnaire ---------- */
+function lvRow(x) {
+  const L = Coach.exLevel(S, D, x.key), pct = L ? L.pct : 0;
+  return `<li><button class="lvr" type="button" data-act="open-ex" data-key="${esc(x.key)}" aria-label="${esc(x.name)}, ${esc(Core.rName(x.rank))}">
+    <span class="em">${emblem(x.rank, 34)}</span><span class="bd"><span class="nm">${esc(x.name)}</span><span class="sm">${esc(Core.rName(x.rank))} · record ${esc(fmtNum(x.pb.perf))}${x.unit === 's' ? ' s' : ''}</span><span class="mini" aria-hidden="true"><i style="width:${pct}%"></i></span></span></button></li>`;
+}
+function skillSuggestHtml() {
+  const list = Coach.skillSuggestions(S, D).slice(0, 4);
+  if (!list.length) return '';
+  const lab = { ready: 'Prêt', soon: 'Bientôt', later: 'Plus tard' };
+  return `<div class="psec"><h2>Skills à apprendre</h2><p class="muted sub2">Choisis d'après ton niveau actuel : touche un skill pour apprendre à le maîtriser.</p><ul class="sugl" id="skill-sugg">${list.map(s => `<li class="${s.state}"><button type="button" class="sg" data-act="skill-open" data-id="${s.id}" data-back="trophies"><span class="t"><b>${esc(s.label)}</b><span class="chip3">${lab[s.state]}</span></span><span class="n">Prochaine étape : ${esc(s.next)}</span>${s.missing.length ? `<span class="m">Il te manque : ${esc(s.missing.map(m => m.name + ' (' + m.have + '/' + m.need + ')').join(', '))}</span>` : '<span class="m ok">Tu as le niveau de base pour t\'y mettre.</span>'}</button></li>`).join('')}</ul></div>`;
 }
 function trophiesView() {
-  let lv = ui.trophyLv == null ? Troph.targetLevel(S) : ui.trophyLv;
-  lv = Math.max(2, Math.min(10, lv));
-  if (lv < 2) lv = 2;
-  ui.trophyLv = lv;
-  const rid = Core.rankOfLevel(lv), list = Troph.trophiesOf(lv), cur = Troph.level(S);
-  const status = lv <= cur ? 'done' : lv === cur + 1 ? 'goal' : 'locked';
-  const done = list.filter(t => Troph.isDone(S, t)).length;
-  const sub = status === 'goal' ? 'Prochain niveau' : status === 'done' ? (lv === cur ? 'Ton niveau' : 'Terminé') : 'Verrouillé';
-  const line = status === 'goal' ? `Prochain niveau : <b class="num">${done}/${list.length}</b> trophées` : status === 'done' ? `Terminé : <b class="num">${done}/${list.length}</b>` : `<span class="dim">Verrouillé</span>`;
-  return `<section class="stack" style="${WHEEL_VAR(rid)}"><div class="lvnav">
-      <button class="ibtn" type="button" id="btn-lv-prev" data-act="lv-prev" aria-label="Niveau précédent"${lv <= 2 ? ' disabled' : ''}>${icon('back')}</button>
-      <div class="mid"><div class="t" id="lv-title">Niveau ${lv} · ${esc(Core.rName(rid))}</div><div class="s">${sub}</div></div>
-      <button class="ibtn" type="button" id="btn-lv-next" data-act="lv-next" aria-label="Niveau suivant"${lv >= 10 ? ' disabled' : ''}>${icon('next')}</button></div>
-    <div class="wheel" id="wheel">${wheelSvg(lv, rid, list, status)}</div>
-    <div class="nextline" id="next-line">${line}</div>${skillLine(lv)}</section>`;
-}
-function medSheet() {
+  const rid = S.earned, nx = Core.nextRank(rid), pts = D.points == null ? 0 : D.points, levels = Coach.allLevels(S, D);
+  const nDone = Dict.count(S), bonus = Math.round(Dict.bonus(S));
+  const hero = `<div class="lvhero" style="${WHEEL_VAR(rid)}"><div class="emb">${emblem(rid, 120)}</div><div class="bd"><div class="k">Ton niveau global</div><div class="v">${esc(Core.rName(rid))} · niveau ${Troph.level(S)}</div>
+    ${D.global == null ? `<p>Fais des séries classées dans au moins 3 familles pour obtenir ton rang.</p>` : `<p>Moyenne de tes exercices : <b class="num">${fmt(D.global)}</b> ELO${bonus ? ` (dont +${bonus} de bonus skills)` : ''}</p>${nx ? `<div class="bar" role="progressbar" aria-label="Progression vers ${esc(Core.rName(nx))}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(pts)}"><i style="width:${pts.toFixed(1)}%"></i></div><p class="dim">${fmt(pts)} / 100 points vers ${esc(Core.rName(nx))}</p>` : ''}`}</div></div>`;
+  const famAvg = Core.CATS.filter(c => c !== 'skills').map(c => { const ct = D.cats[c]; return ct && ct.ranked ? `<li><span class="nm">${esc(Core.CAT_LABEL[c])}</span><span class="rk">${emblem(Core.rankOfElo(ct.elo), 22)}${esc(Core.rName(Core.rankOfElo(ct.elo)))}</span></li>` : `<li class="off"><span class="nm">${esc(Core.CAT_LABEL[c])}</span><span class="rk">pas encore classé</span></li>`; }).join('');
+  const groups = FAM_ORDER.map(f => { const list = levels.filter(x => x.fam === f); if (!list.length) return ''; return `<div class="lvfam"><h3>${esc(FAM[f].label)}</h3><ul class="lvl-list">${list.map(lvRow).join('')}</ul></div>`; }).join('');
+  const done = new Set(levels.map(x => x.key));
+  const todo = Object.values(TI).filter(i => i.ranked && !done.has(i.key) && Troph.unlockOf(i.key) <= Troph.level(S) + 1 && i.fam !== 'skills').slice(0, 8);
+  const todoHtml = todo.length ? `<div class="psec"><h2>Pas encore classés</h2><p class="muted sub2">Fais une série classée pour connaître ton niveau.</p><div class="chips">${todo.map(i => `<button type="button" class="chipb sm" data-act="open-ex" data-key="${esc(i.key)}">${esc(i.name)}</button>`).join('')}</div></div>` : '';
+  return `<section class="stack trophies">${hero}${howRankedHtml()}
+    <div class="psec"><h2>Mes familles</h2><ul class="famavg">${famAvg}</ul></div>
+    ${skillSuggestHtml()}
+    <button class="btn" type="button" id="btn-dict" data-act="dict-open">Dictionnaire des skills · ${nDone} maîtrisé${nDone > 1 ? 's' : ''} · +${bonus} ELO</button>
+    <div class="psec"><h2>Mes niveaux par exercice</h2>${groups || '<p class="muted">Aucun exercice classé pour le moment : fais une première série classée.</p>'}</div>${todoHtml}</section>`;
+}function medSheet() {
   const t = Troph.BY_ID[ui.sheet.id], it = TI[t.key];
   const cur = Troph.level(S), dn = Troph.isDone(S, t), lock = t.level > cur + 1;
   const st = dn ? `<span class="chip-t">${icon('check')}Obtenu</span>` : lock ? `<span class="chip-t" style="color:var(--text-3);border-color:var(--line)">${icon('lock')}Se débloque au niveau ${t.level - 1}</span>` : `<span class="chip-t">À faire pour le niveau ${t.level}</span>`;
@@ -6625,7 +6703,7 @@ function intakeView() {
   const g = Troph.Q.goals.find(x => x.id === pl.goal);
   return `<section class="intake"><div>${dots}</div>
     <div class="res"><div class="emb">${emblem(S.earned, 230)}</div><div class="t1">Ton niveau : <b>${lv}</b></div><div class="muted" style="font-family:var(--f-display);font-size:26px;text-transform:uppercase;letter-spacing:.08em;margin-top:-6px">${esc(Core.rName(S.earned))}</div>
-      ${capped ? `<p class="dim" style="margin:0;font-size:15px">Plafonné au niveau ${Troph.START_CAP} pour commencer. Valide des trophées pour monter.</p>` : ''}
+      ${capped ? `<p class="dim" style="margin:0;font-size:15px">Plafonné au niveau ${Troph.START_CAP} pour commencer. Ton rang monte avec la moyenne de tes exercices.</p>` : ''}
       ${g ? `<p class="muted" style="margin:0">Ton plan : <b style="color:var(--accent)">${esc(g.l)}</b> · ${pl.days} séances de ${pl.dur} min par semaine</p>` : ''}
       <div class="first"><div class="hd">À faire d'abord</div>${first.map(t => `<div class="it"><div class="md">${esc(medNumShort(t))}</div><div class="t">${esc(TI[t.key].name)}</div></div>`).join('')}</div></div>
     <div style="display:grid;gap:10px"><button class="btn primary block" type="button" id="btn-intake-plan" data-act="intake-plan">Créer ma première séance</button><button class="btn block" type="button" id="btn-intake-go" data-act="intake-go">Voir mes exercices</button></div></section>`;
