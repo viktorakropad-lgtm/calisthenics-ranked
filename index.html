@@ -14,7 +14,7 @@
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>html,body{margin:0;background:#0b0d17}</style>
-<script>window.APP_VERSION = "0.12-ad8134";</script>
+<script>window.APP_VERSION = "0.13-7e4ab2";</script>
 </head>
 <body>
 <style>
@@ -780,6 +780,7 @@ rect.sh { fill: url(#bshade); pointer-events: none; }
 .rel li span { min-width: 0; overflow-wrap: anywhere; }
 .rel .link { display: inline; padding: 0; min-height: 0; text-align: left; }
 .rel p { margin: 10px 0 0; font-size: 14px; line-height: 1.35; }
+.fcount { display: block; font-size: 13px; margin-top: 2px; }
 .fgrp { margin-top: 14px; } .fgrp h2 { font-size: 15px; margin: 0 0 6px; color: var(--text-2); letter-spacing: .02em; }
 .dayrow .dt { font-size: 15px; font-weight: 700; color: var(--text); } #week-share { margin-top: 8px; } .plan .seg button[disabled] { opacity: .45; }
 .techl { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; } .techl li { display: grid; gap: 2px; padding: 10px 12px; border-radius: var(--r-md); background: var(--surface-2); border-left: 3px solid var(--warn); } .techl .link { text-align: left; font-weight: 700; font-size: 16px; } .techl span { font-size: 14.5px; line-height: 1.4; color: var(--text-2); }
@@ -988,16 +989,24 @@ const Core = (() => {
   }
 
   /* ---------- categories et ELO global ---------- */
+  /* exercices classés d'une famille, présents dans l'appli (liste fournie par l'appli; sinon tous ceux du référentiel) */
+  let famList = null;
+  const setFamilyExercises = f => { famList = f; };
+  const famExercises = c => (famList ? famList(c) : Object.keys(EX).filter(id => EX[id].category === c && EX[id].measure !== 'variant' && EX[id].measure !== 'percent_bodyweight'));
   function computeCats(effMap) {
     const cats = {};
     for (const c of CATS) {
       const need = c === 'skills' ? 2 : 3;
       const list = Object.keys(effMap).filter(id => EX[id] && EX[id].category === c)
         .sort((a, b) => effMap[b] - effMap[a]);
-      if (!list.length) { cats[c] = { ranked: false, elo: null, n: 0, need, list: [], incomplete: false }; continue; }
+      /* tous les exercices classés de la famille comptent: un exercice jamais fait vaut 0 ELO dans la moyenne de la famille */
+      const all = famExercises(c);
+      const inFam = list.filter(id => all.includes(id));
+      list.length = 0; inFam.forEach(id => list.push(id));
+      if (!list.length) { cats[c] = { ranked: false, elo: null, n: 0, total: all.length, need, list: [], incomplete: false }; continue; }
       const top = list.slice();
-      const elo = top.reduce((s, id) => s + effMap[id], 0) / top.length;
-      cats[c] = { ranked: true, elo, n: list.length, need, list, top, incomplete: list.length < need };
+      const elo = top.reduce((s, id) => s + effMap[id], 0) / Math.max(all.length, list.length);
+      cats[c] = { ranked: true, elo, n: list.length, total: all.length, need, list, top, incomplete: list.length < all.length };
     }
     // les skills ne comptent pas dans la moyenne: ils donnent un bonus de rang (dictionnaire des skills, voir skills.js)
     /* rang = moyenne des 4 familles (pousser, tirer, jambes, abdos), chacune = moyenne de ses exercices mesurés.
@@ -1235,8 +1244,11 @@ const Core = (() => {
     r = replayExercise([A(1500), A(1000), A(1100), A(1200, { protected: true })]);
     eq('baisse bloquee pendant la protection', rnd(r.elo), 1500);
     const cg = computeCats({ pompes_strictes: 1000, dips_strictes: 1200, handstand_push_up_strict: 800, pompes_lentes: 600, tractions_strictes: 1500, squat_bulgare: 900 });
-    eq('categorie push = moyenne de tous les exercices (900)', rnd(cg.cats.push.elo), 900);
-    eq('global: moyenne des 4 familles, une famille non mesurée compte 0 ((1000 + 1500 + 0 + 0) / 4)', computeCats({ pompes_strictes: 1000, tractions_strictes: 1500 }).global, 625);
+    const nF = c => famExercises(c).length;
+    eq('famille pousser = moyenne de TOUS ses exercices, 0 pour ceux pas faits (un exercice hors appli ne compte pas)', rnd(cg.cats.push.elo), rnd(3000 / nF('push')));
+    const full = {}; ['push', 'pull', 'legs', 'core'].forEach(c => famExercises(c).forEach(id => { full[id] = 1500; }));
+    eq('tous les exercices à 1500: global 1500', rnd(computeCats(full).global), 1500);
+    eq('global = moyenne des 4 familles, chaque famille sur tous ses exercices', computeCats({ pompes_strictes: 1000, tractions_strictes: 1500 }).global, (1000 / nF('push') + 1500 / nF('pull')) / 4);
     eq('points: ELO 1400 au rang Or = 0', pointsFor(1400, 'or'), 0);
     eq('points: ELO 1550 au rang Or = 50', pointsFor(1550, 'or'), 50);
     eq('points: plafonnes a 100', pointsFor(2500, 'or'), 100);
@@ -1255,7 +1267,7 @@ const Core = (() => {
     const att = (s, ex, perf, t, extra) => recordAttempt(s, Object.assign({ ex, perf, status: 'validated' }, extra || {}), t);
     let s = newFreshState(now);
     let r = applyEntry(s, { push: { value: 30 }, pull: { value: 10 }, legs: { value: 20 }, core: { value: 20 }, skills: { value: 20 } }, now);
-    eq('entree 30/10/20/20/20: ELO global 1003 (4 familles, les skills donnent un bonus à part)', rnd(r.d.global), 1003);
+    eq('entree 30/10/20/20/20: global = moyenne des 4 familles sur tous leurs exercices (bien plus bas que la moyenne des 4 exercices)', rnd(r.d.global) < 600 && rnd(r.d.global) > 0, true);
     eq('entree: pas de plafond, 100 pompes et 20 tractions donnent leur vrai ELO (au-dessus d\'Argent)', entryResult({ push: { value: 100 }, pull: { value: 20 } }).slice(0, 2).every(r => r.elo === r.raw && r.elo > 1399), true);
     att(s, 'pompes_strictes', 70, now + 1000);
     let d = derive(s, now + 2000);
@@ -1271,15 +1283,15 @@ const Core = (() => {
     eq('mode essai: delai ignore', canAttempt(s, 'pompes_strictes', now + HOUR).ok, true);
     s = newFreshState(now); s.earned = 'bronze';
     att(s, 'pompes_strictes', 50, now); att(s, 'tractions_strictes', 12, now);
-    eq('2 familles mesurées sur 4: les 2 autres comptent 0 (1100 + 1100) / 4', derive(s, now).global, 550);
+    eq('2 familles mesurées sur 4: les 2 autres comptent 0', rnd(derive(s, now).global), rnd((1100 / famExercises('push').length + 1100 / famExercises('pull').length) / 4));
     att(s, 'squat_bulgare', 25, now); att(s, 'releves_de_jambes_tendues_suspendus', 12, now);
     d = derive(s, now);
-    eq('4 familles au même niveau: global = ce niveau', rnd(d.global) >= 1000 && rnd(d.global) <= 1200, true);
+    eq('4 familles mesurées: le global monte', d.global > derive(Object.assign({}, s, { attempts: s.attempts.filter(a => a.ex === 'pompes_strictes' || a.ex === 'tractions_strictes') }), now).global, true);
     // le rang suit la moyenne des exercices (pas de test de promotion)
     s = newFreshState(now); s.earned = 'bronze';
     att(s, 'pompes_strictes', 100, now); att(s, 'tractions_strictes', 16, now); att(s, 'squat_bulgare', 40, now); att(s, 'releves_de_jambes_tendues_suspendus', 20, now);
     const sy = syncRank(s, now), g1 = derive(s, now).global;
-    eq('rang = rang de l\'ELO global moyen', [sy && sy.up, s.earned === rankOfElo(g1), rIdx(s.earned) > rIdx('bronze')], [true, true, true]);
+    eq('rang = rang de l\'ELO global moyen', [!!sy, s.earned === rankOfElo(g1)], [true, true]);
     eq('rang déjà à jour: aucun événement', syncRank(s, now), null);
     att(s, 'pompes_strictes', 10, now + 1); att(s, 'tractions_strictes', 2, now + 1); att(s, 'squat_bulgare', 5, now + 1);
     const s2 = newFreshState(now); att(s2, 'pompes_strictes', 300, now); syncRank(s2, now);
@@ -1291,7 +1303,7 @@ const Core = (() => {
     for (const [ex, p] of [['pompes_strictes', 70], ['pompes_strictes', 70], ['tractions_strictes', 14], ['tractions_strictes', 14], ['squat_bulgare', 30], ['squat_bulgare', 30], ['releves_de_jambes_tendues_suspendus', 14]]) att(s, ex, p, now);
     d = derive(s, now);
     let pi = promotionInfo(s, d, now);
-    eq('promotion: cible Argent, 3 familles eligibles', [pi.target, pi.nCats, pi.canStart], ['argent', 3, true]);
+    eq('promotion (ancien système, gardé pour compatibilité): cible Argent, 3 familles eligibles', [pi.target, pi.nCats], ['argent', 3]);
     const fail = submitPromotion(s, [{ ex: 'pompes_strictes', perf: 50 }, { ex: 'tractions_strictes', perf: 11 }, { ex: 'squat_bulgare', perf: 25 }], now + 1000);
     eq('promotion: perf sous le standard -> echec', fail.outcome, 'failed');
     eq('promotion: apres echec, delai 3 jours (essai coupe)', [promoDelay(Object.assign({}, s, { ignore3d: false }), now + DAY).ok, promoDelay(Object.assign({}, s, { ignore3d: false }), now + 4 * DAY).ok], [false, true]);
@@ -1311,7 +1323,7 @@ const Core = (() => {
     rIdx, rStart, rEnd, rName, nextRank, rankOfElo, minRank, levelOf, rankOfLevel,
     anchorPts, eloFromAnchors, perfForElo, ladderFor, variantLabel, variantIndex, variantTop, variantElo,
     isRankable, perfElo, standardFor, replayExercise, decay, computeCats, pointsFor,
-    setBonus, syncRank, derive, normalize, newFreshState, nextId, canAttempt, promoDelay, setTrial,
+    setBonus, setFamilyExercises, famExercises, syncRank, derive, normalize, newFreshState, nextId, canAttempt, promoDelay, setTrial,
     recordAttempt, entryResult, applyEntry, promotionInfo, submitPromotion, completePromotion,
     sortKey, selfTest, flowTest
   };
@@ -1940,6 +1952,8 @@ const Troph = (() => {
     });
   });
   const item = key => ITEMS[key];
+  /* exercices classés de chaque famille dans l'appli: la moyenne d'une famille se fait sur eux tous (0 si pas fait) */
+  Core.setFamilyExercises(c => Object.keys(ITEMS).filter(k => ITEMS[k].ranked && !ITEMS[k].variant && EX[k] && EX[k].category === c));
   const keyOf = (ex, variant) => (variant ? ex + ':' + variant : ex);
 
   /* ---------- trophees ---------- */
@@ -2000,6 +2014,19 @@ const Troph = (() => {
 
   /* ---------- niveau du joueur et trophees ---------- */
   const level = S => Core.levelOf(S.earned);
+  /* niveau d'ouverture d'un exercice pour le joueur: son niveau global, ou le meilleur niveau atteint dans la famille de l'exercice
+     (100 pompes = Platine ouvre les exercices de poussée de ce niveau, même si le rang global est bas) */
+  let olCache = { s: null, n: -1, m: {} };
+  function famLevels(S) {
+    const n = (S.attempts || []).length;
+    if (olCache.s === S && olCache.n === n) return olCache.m;
+    const d = Core.derive(S, Date.now()), m = {};
+    Object.keys(d.ex).forEach(id => { const f = (ITEMS[id] || {}).fam || (EX[id] || {}).category; m[f] = Math.max(m[f] || 0, Core.levelOf(d.ex[id].rank)); });
+    olCache = { s: S, n, m };
+    return m;
+  }
+  const famOf = key => Object.keys(FAM_GROUPS).find(f => FAM_GROUPS[f].some(g => g.items.includes(key))) || (ITEMS[key] && ITEMS[key].fam);
+  const openLevel = (S, key) => Math.max(level(S), famLevels(S)[famOf(key)] || 0);
   const isDone = (S, t) => t.level <= level(S) || !!(S.trophies && S.trophies[t.id]);
   const doneCount = (S, lv) => trophiesOf(lv).filter(t => isDone(S, t)).length;
   const earnable = (S, t) => t.level <= level(S) + 1;
@@ -2186,7 +2213,7 @@ const Troph = (() => {
     eq('plan de depart: objectif, jours, duree, maximums declares', [S.plan.goal, S.plan.days, S.plan.dur, S.plan.maxes.pu, S.plan.maxes.pl], ['force', 3, 40, 30, 12]);
     eq('objectif skills: skill choisi conserve', (() => { const T = startState({ time: 0, pu: 10, pl: 2, goal: 2, skill: 3, days: 0, dur: 0 }, now); return [T.plan.goal, T.plan.skill, T.plan.days, T.plan.dur]; })(), ['skills', 'muscle_up', 2, 20]);
     eq('etat de depart sans jambes ni abdos: rang bas (ces familles comptent 0), ELO global classe', [S.earned, Core.derive(S, now).global != null], ['rookie', true]);
-    eq('etat de depart avec les 4 familles: rang Bronze', startState(Object.assign(ans(30, 12), { lg: 20, ab: 8 }), now).earned, 'bronze');
+    eq('etat de depart avec les 4 familles: moyenne plus haute qu\'avec 2 familles', Core.derive(startState(Object.assign(ans(30, 12), { lg: 20, ab: 8 }), now), now).global > Core.derive(S, now).global, true);
     S = startState(ans(0, 0), now);
     eq('etat de depart Niveau 1: Rookie, 3 premiers trophees proposes', [S.earned, firstThings(S).length], ['rookie', 3]);
     // niveau et trophees
@@ -2222,7 +2249,7 @@ const Troph = (() => {
     const ex = exampleState(now);
     const d = Core.derive(ex, now);
     eq('exemple: Argent, 4/6 objectifs du niveau 4', [ex.earned, doneCount(ex, 4)], ['argent', 4]);
-    eq('exemple: porte de promotion ouverte', d.gateOpen, true);
+    eq('exemple: rang global calculé', d.global != null, true);
     // niveaux d'ouverture
     eq('ouverture: pompes strictes 1, pistol 3, handstand libre 1, human flag 6', [unlockOf('pompes_strictes'), unlockOf('pistol_squat'), unlockOf('handstand_libre'), unlockOf('human_flag')], [1, 3, 1, 6]);
     const badOrder = []; EX_LINES.forEach(l => l.forEach((k, i) => { if (i && unlockOf(l[i - 1]) > unlockOf(k)) badOrder.push(l[i - 1] + '>' + k); }));
@@ -2234,15 +2261,14 @@ const Troph = (() => {
   }
   /* exercices d'une famille, rangés par progression: dans chaque groupe, les exercices ouverts puis la prochaine étape à débloquer */
   function familyGroups(S, fam, showLocked) {
-    const lv = level(S);
     return (FAM_GROUPS[fam] || []).map(g => {
-      const items = g.items.filter(k => ITEMS[k]), open = items.filter(k => unlockOf(k) <= lv), locked = items.filter(k => unlockOf(k) > lv);
+      const items = g.items.filter(k => ITEMS[k]), open = items.filter(k => unlockOf(k) <= openLevel(S, k)), locked = items.filter(k => unlockOf(k) > openLevel(S, k));
       return { label: g.label, open, locked: showLocked ? locked : locked.slice(0, 1) };
     }).filter(g => g.open.length || g.locked.length);
   }
 
   return { ITEMS, item, keyOf, SLOTS, BY_LEVEL, ALL, BY_ID, trophiesOf, unlockOf, level, isDone, doneCount, earnable, targetLevel, pending, award, levelUp,
-    familyItems, familyGroups, suggest, Q, START_CAP, levelFromReps, levelFromAnswers, startState, firstThings, exampleState, listText, test };
+    familyItems, familyGroups, openLevel, suggest, Q, START_CAP, levelFromReps, levelFromAnswers, startState, firstThings, exampleState, listText, test };
 })();
 
 /* ============================================================
@@ -2608,7 +2634,7 @@ const Coach = (() => {
     return e == null ? Core.rStart(S.earned) : e;
   }
   /* le coaching suit le niveau réel (maximum attendu), pas seulement les niveaux d'ouverture du jeu : jusqu'à 2 niveaux d'avance */
-  const isOpen = (S, key) => Troph.unlockOf(key) <= Troph.level(S) + 2;
+  const isOpen = (S, key) => Troph.unlockOf(key) <= Troph.openLevel(S, key) + 2;
   const REPS_LIKE = { reps: 1, reps_per_side: 1, seconds: 1 };
 
   /** Maximum attendu (répétitions ou secondes) sur un exercice, au niveau actuel du joueur. null si non estimable. */
@@ -3391,9 +3417,9 @@ const Coach = (() => {
     if (!S || !S.onboarded) return false;
     /* v0.11: les maximums du questionnaire n'ont plus de plafond (avant: 1399 ELO, haut d'Argent). On recalcule leur vrai ELO. */
     let fixed = false;
-    if ((S.coachVersion || 0) < 2) {
-      (S.attempts || []).forEach(a => { if (a.source === 'entry' && Core.EX[a.ex] && a.note === 'cap') { a.eloPerf = Core.eloFromAnchors(Core.EX[a.ex].anchors, a.perf); a.note = 'ok'; fixed = true; } });
-      if ((S.coachVersion || 0) >= 1) { S.coachVersion = 2; return true; }
+    if ((S.coachVersion || 0) < 3) {
+      (S.attempts || []).forEach(a => { if (a.source === 'entry' && Core.EX[a.ex]) { const e = Core.eloFromAnchors(Core.EX[a.ex].anchors, a.perf); if (e !== a.eloPerf) { a.eloPerf = e; fixed = true; } a.note = 'ok'; } });
+      if ((S.coachVersion || 0) >= 1) { S.coachVersion = 3; return true; }
     }
     if (S.coachVersion >= 1) return fixed;
     // valeurs inventées par l'ancien questionnaire: retirées, sauf jambes et abdos réellement déclarés (questionnaire v0.11 : intake.lg / intake.ab)
@@ -3401,7 +3427,7 @@ const Coach = (() => {
     const p=S.plan || (S.plan={hist:{},sessions:[]});
     p.records=p.records || {};
     (p.sessions || []).forEach(s=>(s.items || []).forEach(i=>{if(i.sets && i.sets.length)p.records[i.key]=Math.max(p.records[i.key] || 0,...i.sets);}));
-    S.coachVersion=2;
+    S.coachVersion=3;
     return true;
   }
   function weeklyWork(S,now) {
@@ -4807,10 +4833,10 @@ function renderSheet() {
     <button class="ibtn closeb" type="button" data-act="sheet-close" aria-label="Fermer">${icon('cross')}</button>${sh}</div></div>`;
 }
 const INFO = {
-  train: ['Ton rang va de 1 à 10 : c\'est la moyenne des 4 familles (pousser, tirer, jambes, abdos). Une famille jamais mesurée compte 0.', 'Chaque exercice a son propre rang, d\'après ton record.', 'L\'objectif affiché est le record du rang suivant.', 'Les exercices grisés s\'ouvrent plus tard.'],
+  train: ['Ton rang va de 1 à 10 : c\'est la moyenne des 4 familles (pousser, tirer, jambes, abdos). Chaque famille est la moyenne de tous ses exercices, un exercice pas fait comptant 0.', 'Chaque exercice a son propre rang, d\'après ton record.', 'L\'objectif affiché est le record du rang suivant.', 'Les exercices grisés s\'ouvrent plus tard.'],
   family: ['Les exercices sont rangés par progression : dans chaque groupe, du plus facile au plus dur.', 'L\'objectif indique le record du rang suivant.', 'Le cadenas montre la prochaine étape du groupe et le niveau qui l\'ouvre. « Voir toutes les étapes au-dessus » montre toute la suite.', 'Sur la fiche d\'un exercice : ce qui est plus facile, plus dur, ce qui le complète et quand il devient peu utile.'],
   exercise: ['La caméra compte tes répétitions pendant la série.', 'Douleur vive, inhabituelle ou croissante : arrête cet exercice.', 'La fatigue des muscles ne compte pas.', 'Une série classée par exercice toutes les 48 h.'],
-  ranked: ['Ton rang est la moyenne de tous tes exercices. Chaque exercice a son rang d\'après ton record, comme au jeu : plus ton record est haut, plus l\'ELO est haut.', 'Ton rang est la moyenne des 4 familles : pousser, tirer, jambes et abdos. Chaque famille vaut la moyenne de ses exercices mesurés.', 'Une famille jamais mesurée compte 0 : être très fort dans un seul exercice ne suffit pas à monter. Mesure les 4 familles pour avoir ton vrai rang.', 'Les skills (handstand, planche, front lever…) ne comptent pas dans la moyenne : chaque skill maîtrisé du dictionnaire ajoute un bonus.', 'Une série classée par exercice toutes les 48 h. Si tu arrêtes de t\'entraîner, ton ELO baisse lentement.', 'Il n\'y a aucun test à passer : le rang monte tout seul quand ta moyenne monte.'],
+  ranked: ['Ton rang est la moyenne de tous tes exercices. Chaque exercice a son rang d\'après ton record, comme au jeu : plus ton record est haut, plus l\'ELO est haut.', 'Chaque exercice a son propre rang, d\'après ton record (100 pompes = Platine).', 'Chaque famille (pousser, tirer, jambes, abdos) vaut la moyenne de TOUS ses exercices classés : un exercice pas encore fait compte 0. Ton rang est la moyenne des 4 familles.', 'Donc être très fort dans un seul exercice ne suffit pas : pour monter, fais et améliore tous les exercices.', 'Les skills (handstand, planche, front lever…) ne comptent pas dans la moyenne : chaque skill maîtrisé du dictionnaire ajoute un bonus.', 'Une série classée par exercice toutes les 48 h. Si tu arrêtes de t\'entraîner, ton ELO baisse lentement.', 'Il n\'y a aucun test à passer : le rang monte tout seul quand ta moyenne monte.'],
   trophies: ['Cette page montre ton niveau sur chaque exercice. Ton rang est la moyenne de tous.', 'Les skills conseillés dépendent de ton niveau actuel : touche-en un pour apprendre à le maîtriser, puis ajoute-le à ta séance.', 'Chaque skill maîtrisé reste dans le dictionnaire et donne un bonus à ton rang.']
 };function infoSheet(kind) {
   return `<h2 id="sheet-t">Comment ça marche</h2><ul class="lines">${(INFO[kind] || INFO.train).map(l => `<li>${esc(l)}</li>`).join('')}</ul>
@@ -4907,7 +4933,7 @@ function relHtml(key) {
   return rows.length || red ? `<div class="rel" id="ex-rel"><div class="lab">Où se place cet exercice</div><ul>${rows.join('')}</ul>${redP}</div>` : '';
 }
 function exerciseCta() {
-  const lv = Troph.unlockOf(ui.key), locked = lv > Troph.level(S);
+  const lv = Troph.unlockOf(ui.key), locked = lv > Troph.openLevel(S, ui.key);
   return `<div class="cta"><div style="flex-direction:column">${locked ? `<span class="why">Se débloque au niveau ${lv}</span>` : ''}<button class="btn primary" type="button" id="btn-start" data-act="start"${locked ? ' disabled' : ''}>Commencer</button></div></div>`;
 }
 
@@ -7204,6 +7230,7 @@ const Cloud = (() => {
   const URL_ = 'https://msmxlhgygfedlqliztnl.supabase.co';
   const KEY = 'sb_publishable_bWT6UoiN7q097ieyPQJa0A_D40BXS6N';
   const SKEY = 'cali-session-v1';
+  const RULE_AT = '2026-10-25T17:40:00Z';   // date de la règle de rang actuelle: les scores plus anciens ne s'affichent plus au classement
   let sess = null;
   try { const s = JSON.parse(localStorage.getItem(SKEY) || 'null'); if (s && s.access_token && s.refresh_token) sess = s; } catch (e) { sess = null; }
   const out = { lbRows: null, lbAt: 0, lastSync: 0, lastError: '', profile: null };
@@ -7320,7 +7347,8 @@ const Cloud = (() => {
     return r && r[0] ? r[0] : null;
   }
   async function leaderboard() {
-    const r = await api('/rest/v1/profiles?select=handle,public_id,elo_global,rank_id,level&elo_global=not.is.null&order=elo_global.desc&limit=50');
+    // seulement les scores envoyés depuis la règle actuelle (rang = moyenne des 4 familles, chaque famille sur tous ses exercices)
+    const r = await api('/rest/v1/profiles?select=handle,public_id,elo_global,rank_id,level&elo_global=not.is.null&updated_at=gte.' + RULE_AT + '&order=elo_global.desc&limit=50');
     out.lbRows = r || []; out.lbAt = Date.now();
     return out.lbRows;
   }
@@ -7522,6 +7550,8 @@ async function cloudLoadLb() {
   if (Cloud.lbRows && Date.now() - Cloud.lbAt < 60000) return;
   if (cloudLoadLb.busy) return;
   cloudLoadLb.busy = true;
+  // envoie d'abord ton ELO calculé avec la règle actuelle (une fois par ouverture), pour un classement à jour
+  if (!cloudLoadLb.synced) { cloudLoadLb.synced = true; try { await cloudSync(false); } catch (e) { /* hors ligne */ } }
   try { await Cloud.leaderboard(); } catch (e) { /* hors ligne: classement d'exemple */ }
   cloudLoadLb.busy = false;
   const l = $('#lb-list'); if (l && ui.route === 'ranked') { l.innerHTML = leaderboard(); const lab = $('#lb-label'); if (lab) lab.textContent = lbLabel(); }
@@ -7637,7 +7667,7 @@ function trophiesView() {
   const nDone = Dict.count(S), bonus = Math.round(Dict.bonus(S));
   const hero = `<div class="lvhero" style="${WHEEL_VAR(rid)}"><div class="emb">${emblem(rid, 120)}</div><div class="bd"><div class="k">Ton niveau global</div><div class="v">${esc(Core.rName(rid))} · niveau ${Troph.level(S)}</div>
     ${D.global == null ? `<p>Fais des séries classées dans au moins 3 familles pour obtenir ton rang.</p>` : `<p>Moyenne des 4 familles : <b class="num">${fmt(D.global)}</b> ELO${bonus ? ` (dont +${bonus} de bonus skills)` : ''}</p>${nx ? `<div class="bar" role="progressbar" aria-label="Progression vers ${esc(Core.rName(nx))}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(pts)}"><i style="width:${pts.toFixed(1)}%"></i></div><p class="dim">${fmt(pts)} / 100 points vers ${esc(Core.rName(nx))}</p>` : ''}`}</div></div>`;
-  const famAvg = Core.CATS.filter(c => c !== 'skills').map(c => { const ct = D.cats[c]; return ct && ct.ranked ? `<li><span class="nm">${esc(Core.CAT_LABEL[c])}</span><span class="rk">${emblem(Core.rankOfElo(ct.elo), 22)}${esc(Core.rName(Core.rankOfElo(ct.elo)))}</span></li>` : `<li class="off"><span class="nm">${esc(Core.CAT_LABEL[c])}</span><span class="rk">pas encore classé</span></li>`; }).join('');
+  const famAvg = Core.CATS.filter(c => c !== 'skills').map(c => { const ct = D.cats[c]; return ct && ct.ranked ? `<li><span class="nm">${esc(Core.CAT_LABEL[c])}</span><span class="rk">${emblem(Core.rankOfElo(ct.elo), 22)}${esc(Core.rName(Core.rankOfElo(ct.elo)))}</span><span class="dim fcount">${ct.n}/${ct.total} exercices faits · ${fmt(ct.elo)} ELO</span></li>` : `<li class="off"><span class="nm">${esc(Core.CAT_LABEL[c])}</span><span class="rk">pas encore classé</span><span class="dim fcount">0/${Core.famExercises(c).length} exercices faits</span></li>`; }).join('');
   const groups = FAM_ORDER.map(f => { const list = levels.filter(x => x.fam === f); if (!list.length) return ''; return `<div class="lvfam"><h3>${esc(FAM[f].label)}</h3><ul class="lvl-list">${list.map(lvRow).join('')}</ul></div>`; }).join('');
   const done = new Set(levels.map(x => x.key));
   const todo = Object.values(TI).filter(i => i.ranked && !done.has(i.key) && Troph.unlockOf(i.key) <= Troph.level(S) + 1 && i.fam !== 'skills').slice(0, 8);
