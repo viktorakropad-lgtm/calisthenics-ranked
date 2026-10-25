@@ -1,7 +1,7 @@
 /* Service worker : l'appli marche hors ligne apres la premiere ouverture.
    Page et manifeste: reseau d'abord (toujours la derniere version si on est en ligne), cache en secours.
    Icones: cache d'abord. Bibliotheque d'IA, modele et polices: cache d'abord (gros fichiers, ne changent pas). */
-const CACHE = 'ranked-7ae3c9a118';
+const CACHE = 'ranked-de811a0936';
 const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => {

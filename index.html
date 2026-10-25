@@ -14,7 +14,7 @@
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>html,body{margin:0;background:#0b0d17}</style>
-<script>window.APP_VERSION = "0.9-7ae3c9";</script>
+<script>window.APP_VERSION = "0.10-de811a";</script>
 </head>
 <body>
 <style>
@@ -302,6 +302,7 @@ main { outline: none; padding-bottom: 12px; }
 }
 .sheet .grab { width: 44px; height: 5px; border-radius: 4px; background: var(--line); margin: 6px auto 14px; }
 .sheet h2 { font-size: 30px; margin-bottom: 12px; }
+.sheet > h2:first-of-type { padding-right: 46px; overflow-wrap: anywhere; }
 .sheet .row { display: flex; gap: 12px; align-items: center; }
 .sheet .acts { display: grid; gap: 10px; margin-top: 18px; }
 .sheet .closeb { position: absolute; right: 12px; top: 12px; }
@@ -771,6 +772,15 @@ rect.sh { fill: url(#bshade); pointer-events: none; }
 .share .bar { display: block; height: 8px; border-radius: 5px; background: var(--surface-3); overflow: hidden; } .share .bar i { display: block; height: 100%; background: #ff2d4d; }
 .share b { text-align: right; font-size: 14px; } .share p { margin: 4px 0 0; font-size: 13px; line-height: 1.35; }
 .exsk { display: grid; gap: 8px; } .exsk .btn { white-space: normal; line-height: 1.2; }
+/* où se place un exercice, familles rangées par progression */
+.rel { padding: 12px 14px; border-radius: var(--r-md); border: 1px solid var(--line-soft); background: var(--surface); }
+.rel ul { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 8px; }
+.rel li { display: grid; gap: 2px; font-size: 15px; line-height: 1.35; min-width: 0; }
+.rel li b { font-size: 13px; color: var(--text-2); font-weight: 600; }
+.rel li span { min-width: 0; overflow-wrap: anywhere; }
+.rel .link { display: inline; padding: 0; min-height: 0; text-align: left; }
+.rel p { margin: 10px 0 0; font-size: 14px; line-height: 1.35; }
+.fgrp { margin-top: 14px; } .fgrp h2 { font-size: 15px; margin: 0 0 6px; color: var(--text-2); letter-spacing: .02em; }
 .dayrow .dt { font-size: 15px; font-weight: 700; color: var(--text); } #week-share { margin-top: 8px; } .plan .seg button[disabled] { opacity: .45; }
 .techl { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; } .techl li { display: grid; gap: 2px; padding: 10px 12px; border-radius: var(--r-md); background: var(--surface-2); border-left: 3px solid var(--warn); } .techl .link { text-align: left; font-weight: 700; font-size: 16px; } .techl span { font-size: 14.5px; line-height: 1.4; color: var(--text-2); }
 .skcards { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
@@ -1628,23 +1638,23 @@ const XI = {
     st: ['Mains au sol, bras tendus, jambes devant.', 'Monte les jambes plus haut que l\'horizontale.', 'Penche le buste en arrière pour garder l\'équilibre.'], er: 'Jambes qui retombent trop bas.' },
 
   /* exercices de progression vers les skills (pas de trophées: ils servent à apprendre) */
-  wall_walk: { n: 'Marche au mur', fam: 'skills', p: ['delts', 'abs'], s2: ['triceps', 'forearms', 'traps'], u: 3, pose: 'wallwalk',
+  wall_walk: { n: 'Marche au mur', fam: 'skills', p: ['delts', 'abs'], s2: ['triceps', 'forearms', 'traps'], u: 1, pose: 'wallwalk',
     st: ['Allonge-toi face au sol, pieds contre le mur.', 'Marche avec les mains vers le mur en montant les pieds le long du mur.', 'Monte aussi haut que tu peux en gardant le corps gainé, puis redescends.'], er: 'Le dos qui se creuse en banane.' },
-  planche_lean: { n: 'Planche lean', fam: 'skills', p: ['delts', 'pecs'], s2: ['abs', 'triceps', 'forearms'], u: 3, hold: true, pose: 'plancheLean',
+  planche_lean: { n: 'Planche lean', fam: 'skills', p: ['delts', 'pecs'], s2: ['abs', 'triceps', 'forearms'], u: 1, hold: true, pose: 'plancheLean',
     st: ['Position de pompe, doigts tournés légèrement vers l\'extérieur.', 'Penche les épaules loin devant les mains, bras tendus.', 'Garde le corps gainé et tiens la position.'], er: 'Les coudes qui plient ou le bassin qui monte.' },
   pseudo_planche_pompes: { n: 'Pompes pseudo-planche', fam: 'skills', p: ['pecs', 'delts', 'triceps'], s2: ['abs', 'forearms'], u: 3, pose: 'pseudo',
     st: ['Position de pompe, mains près des hanches, doigts vers les pieds.', 'Épaules loin devant les mains, corps gainé.', 'Descends en gardant cette inclinaison, puis pousse.'], er: 'Revenir en arrière avec les épaules.' },
   front_lever_negatif: { n: 'Front lever négatif', fam: 'skills', p: ['lats', 'abs'], s2: ['biceps', 'forearms', 'delts'], u: 4, pose: 'flneg',
     st: ['Suspendu à la barre, monte les hanches pour être à l\'envers, corps replié.', 'Descends lentement le corps tendu vers l\'horizontale, en 5 secondes.', 'Termine bras tendus, corps en ligne, puis remonte et recommence.'], er: 'Plier les bras ou laisser le bassin tomber.' },
-  skin_the_cat: { n: 'Skin the cat', fam: 'skills', p: ['lats', 'delts'], s2: ['abs', 'biceps', 'forearms'], u: 4, pose: 'skin',
+  skin_the_cat: { n: 'Skin the cat', fam: 'skills', p: ['lats', 'delts'], s2: ['abs', 'biceps', 'forearms'], u: 3, pose: 'skin',
     st: ['Suspendu à la barre, monte les genoux vers la poitrine.', 'Passe les jambes entre les bras pour te retourner derrière la barre.', 'Redescends lentement dans l\'autre sens, sans lâcher.'], er: 'Aller trop vite et forcer sur les épaules.' },
   back_lever_tuck: { n: 'Back lever tuck', fam: 'skills', p: ['lats', 'delts'], s2: ['abs', 'biceps', 'forearms', 'lowback'], u: 4, hold: true, pose: 'bltuck',
     st: ['Après un skin the cat, reste retourné derrière la barre, bras tendus.', 'Garde les genoux serrés contre la poitrine, dos arrondi.', 'Tiens la position, épaules ouvertes et bras tendus.'], er: 'Plier les bras ou relâcher les épaules.' },
   back_lever: { n: 'Back lever', fam: 'skills', p: ['lats', 'delts'], s2: ['abs', 'biceps', 'forearms', 'lowback', 'glutes'], u: 5, hold: true, pose: 'bl',
     st: ['Retourne-toi derrière la barre, bras tendus.', 'Étire le corps à l\'horizontale, face au sol.', 'Garde fessiers et abdos serrés et tiens la ligne.'], er: 'Le bassin qui tombe ou les bras qui plient.' },
-  tractions_explosives: { n: 'Tractions explosives', fam: 'pull', p: ['lats', 'biceps'], s2: ['forearms', 'traps', 'abs'], u: 3, pose: 'pullExplosive',
+  tractions_explosives: { n: 'Tractions explosives', fam: 'pull', p: ['lats', 'biceps'], s2: ['forearms', 'traps', 'abs'], u: 2, pose: 'pullExplosive',
     st: ['Prise un peu plus large que les épaules, bras tendus.', 'Tire le plus vite possible pour amener le haut de la poitrine à la barre.', 'Redescends en contrôle, bras tendus.'], er: 'Balancer les jambes pour monter.' },
-  muscle_up_negatif: { n: 'Muscle-up négatif', fam: 'pull', p: ['lats', 'triceps'], s2: ['biceps', 'delts', 'pecs', 'abs'], u: 4, pose: 'muneg',
+  muscle_up_negatif: { n: 'Muscle-up négatif', fam: 'pull', p: ['lats', 'triceps'], s2: ['biceps', 'delts', 'pecs', 'abs'], u: 2, pose: 'muneg',
     st: ['Monte en appui au-dessus de la barre (saute ou aide-toi d\'un banc).', 'Descends lentement en passant les coudes sous la barre, en 4 secondes.', 'Finis suspendu bras tendus, puis recommence.'], er: 'Tomber d\'un coup dans la transition.' },
   human_flag_tuck: { n: 'Human flag tuck', fam: 'skills', p: ['obliques', 'lats'], s2: ['delts', 'abs', 'triceps', 'forearms'], u: 5, hold: true, side: true, pose: 'flagtuck',
     st: ['Mains écartées sur un poteau vertical, une main en haut, une en bas.', 'Pousse avec la main du bas, tire avec celle du haut, genoux repliés.', 'Lève les hanches à l\'horizontale et tiens.'], er: 'Le bras du bas qui plie.' },
@@ -1660,13 +1670,12 @@ const XI = {
     st: ['Prise large, bras tendus.', 'Tire vers une main en décalant le menton au-dessus de cette main.', 'Redescends, puis tire de l\'autre côté.'], er: 'Tirer avec les deux bras de façon égale.' },
   pike_pieds_hauts: { n: 'Pompes pike pieds surélevés', fam: 'push', p: ['delts', 'triceps'], s2: ['traps', 'pecs'], u: 3, pose: 'pikehigh',
     st: ['Pieds sur un banc, hanches hautes, mains au sol.', 'Plie les coudes, tête vers le sol entre les mains.', 'Repousse jusqu\'à tendre les bras.'], er: 'Hanches qui redescendent pendant la poussée.' },
-  hspu_negatif: { n: 'Poirier négatif au mur', fam: 'push', p: ['delts', 'triceps'], s2: ['traps', 'pecs', 'abs'], u: 4, pose: 'hspuNegative',
+  hspu_negatif: { n: 'Poirier négatif au mur', fam: 'push', p: ['delts', 'triceps'], s2: ['traps', 'pecs', 'abs'], u: 3, pose: 'hspuNegative',
     st: ['Monte en poirier contre le mur, bras tendus.', 'Descends lentement, en 5 secondes, jusqu\'à poser la tête.', 'Redescends en contrôle, puis replace-toi pour recommencer.'], er: 'Tomber d\'un coup sur la tête.' },
 
   kickup: { n: 'Kick-up au mur', fam: 'skills', p: ['delts', 'abs'], s2: ['triceps', 'traps', 'forearms', 'glutes'], u: 1, pose: 'kickup',
     st: ['Place tes mains à 20 cm du mur.', 'Regarde entre tes mains.', 'Lance la jambe forte vers le haut.', 'La seconde jambe suit, jusqu\'au mur.', 'Reste gainé, jambes serrées.'],
-    er: 'Bras qui plient quand les jambes montent.',
-    poseNames: ['Départ face au mur', 'Pied avant fléchi', 'Jambe arrière qui monte', 'Arrivée contre le mur'] },
+    er: 'Bras qui plient quand les jambes montent.' },
   handstand_mur: { n: 'Handstand au mur', fam: 'skills', p: ['delts', 'abs'], s2: ['triceps', 'traps', 'forearms'], u: 1, hold: true, pose: 'hand',
     st: ['Après ton kick-up, mains à largeur d\'épaules.', 'Pousse le sol, épaules hautes, regard entre les mains.', 'Serre fessiers et abdos, talons contre le mur.'], er: 'Dos creusé en banane.' },
   handstand_libre: { n: 'Handstand libre', s: 'Handstand', fam: 'skills', p: ['delts', 'abs'], s2: ['triceps', 'traps', 'forearms', 'lowback'], hold: true, pose: 'hand',
@@ -1701,6 +1710,103 @@ const FAM_ITEMS = {
 };
 /* poses de repli pour l'apercu camera (squelette) */
 const FAM_POSE = { push: 'push', pull: 'pullup', legs: 'squat', core: 'lsit', skills: 'handFree' };
+
+/* familles rangées par progression: chaque groupe va du plus facile au plus dur (les skills sont des cartes, voir Coach.SKILLS) */
+const FAM_GROUPS = {
+  push: [
+    { label: 'Pompes', items: ['pompes_inclinees', 'pompes_strictes', 'pompes_declinees', 'pompes_diamant', 'pompes_archer', 'pompes_une_main'] },
+    { label: 'Dips', items: ['dips_banc', 'dips_strictes'] },
+    { label: 'Épaules : vers la pompe en poirier', items: ['pompes_pike', 'pike_pieds_hauts', 'hspu_negatif', 'handstand_push_up_strict'] },
+    { label: 'Vers la planche', items: ['pseudo_planche_pompes'] }
+  ],
+  pull: [
+    { label: 'Bases du dos et de la prise', items: ['suspension', 'tractions_scapulaires', 'rowing_inverse', 'rowing_supination', 'extension_dos'] },
+    { label: 'Tractions', items: ['tractions_strictes', 'tractions_supination', 'traction_decalee', 'tractions_archer', 'traction_une_main'] },
+    { label: 'Vers le muscle-up', items: ['tractions_explosives', 'muscle_up_negatif', 'muscle_up_strict'] }
+  ],
+  legs: [
+    { label: 'Squats', items: ['squat', 'squat_bulgare', 'squat_cossack'] },
+    { label: 'Sur une jambe', items: ['pistol_assiste', 'pistol_squat', 'shrimp_squat', 'dragon_squat'] },
+    { label: 'Fessiers et arrière des cuisses', items: ['pont_fessier', 'pont_fessier_une_jambe', 'nordic_curl'] },
+    { label: 'Mollets', items: ['mollets', 'mollets_une_jambe'] }
+  ],
+  core: [
+    { label: 'Gainage', items: ['gainage', 'planche_laterale'] },
+    { label: 'Suspendu à la barre', items: ['releves_de_genoux', 'releves_de_jambes_tendues_suspendus', 'toes_to_bar_strict'] },
+    { label: 'Assis en appui : vers le L-sit', items: ['tuck_sit', 'l_sit', 'v_sit'] },
+    { label: 'Dragon flag', items: ['dragon_flag_negatif', 'dragon_flag'] }
+  ]
+};
+
+/* ---------- comment les exercices se situent les uns par rapport aux autres ----------
+   EX_LINES: progressions d'un même mouvement, du plus facile au plus dur (une préparation ne s'ouvre jamais après ce qu'elle prépare).
+   EX_PAIRS: exercices qui se complètent (ils ne travaillent pas la même chose).
+   EX_REDUNDANT: quand un exercice devient peu utile (un autre, plus dur, travaille déjà la même chose). */
+const EX_LINES = [
+  ['pompes_inclinees', 'pompes_strictes', 'pompes_archer', 'pompes_une_main'],
+  ['pompes_strictes', 'pompes_declinees'], ['pompes_strictes', 'pompes_diamant'], ['dips_banc', 'dips_strictes'],
+  ['pompes_pike', 'pike_pieds_hauts', 'hspu_negatif', 'handstand_push_up_strict', 'pompe_90'],
+  ['planche_lean', 'pseudo_planche_pompes'],
+  ['suspension', 'tractions_scapulaires', 'tractions_strictes'], ['rowing_inverse', 'tractions_strictes'], ['rowing_supination', 'tractions_supination'],
+  ['tractions_strictes', 'traction_decalee', 'tractions_archer', 'traction_une_main'],
+  ['tractions_strictes', 'tractions_explosives', 'muscle_up_negatif', 'muscle_up_strict'],
+  ['squat', 'squat_bulgare', 'pistol_assiste', 'pistol_squat', 'shrimp_squat', 'dragon_squat'], ['squat', 'squat_cossack'],
+  ['pont_fessier', 'pont_fessier_une_jambe', 'nordic_curl'], ['mollets', 'mollets_une_jambe'],
+  ['gainage', 'planche_laterale'], ['releves_de_genoux', 'releves_de_jambes_tendues_suspendus', 'toes_to_bar_strict'],
+  ['tuck_sit', 'l_sit', 'v_sit'], ['dragon_flag_negatif', 'dragon_flag'],
+  ['kickup', 'handstand_mur', 'handstand_libre'], ['wall_walk', 'handstand_mur'],
+  ['skin_the_cat', 'back_lever_tuck', 'back_lever'], ['human_flag_tuck', 'human_flag'],
+  ['planche_lean', 'planche:tuck', 'planche:adv tuck', 'planche:straddle', 'planche:full', 'planche:maltese'],
+  ['front_lever:tuck', 'front_lever:adv tuck', 'front_lever:une jambe', 'front_lever:straddle', 'front_lever:half lay', 'front_lever:full'],
+  ['front_lever_negatif', 'front_lever:full']
+];
+const EX_PAIRS = [
+  ['tractions_strictes', 'suspension', 'Les tractions font travailler le dos et les bras ; la suspension renforce la prise et les avant-bras, et détend les épaules.'],
+  ['tractions_strictes', 'rowing_inverse', 'Tirer vers le haut, puis tirer à l\'horizontale : tout le dos, du haut jusqu\'au milieu.'],
+  ['tractions_strictes', 'dips_strictes', 'Le duo de base du haut du corps : tirer, puis pousser.'],
+  ['pompes_strictes', 'rowing_inverse', 'Pousser et tirer à l\'horizontale : des épaules équilibrées.'],
+  ['pompes_strictes', 'pompes_pike', 'Les pompes ciblent les pectoraux, les pompes pike les épaules.'],
+  ['dips_strictes', 'pompes_pike', 'Les dips ciblent pectoraux et triceps, les pompes pike les épaules.'],
+  ['tractions_supination', 'pompes_diamant', 'Biceps d\'un côté, triceps de l\'autre : des bras complets.'],
+  ['rowing_supination', 'dips_banc', 'Biceps et triceps, au même niveau de difficulté.'],
+  ['handstand_mur', 'pompes_pike', 'L\'équilibre à l\'envers et la force des épaules : les deux moitiés du poirier.'],
+  ['tractions_explosives', 'dips_strictes', 'Les deux moitiés du muscle-up : tirer haut, puis pousser au-dessus de la barre.'],
+  ['squat', 'pont_fessier', 'Le squat cible surtout l\'avant des cuisses, le pont les fessiers.'],
+  ['squat_bulgare', 'nordic_curl', 'L\'avant et l\'arrière des cuisses : des genoux mieux protégés.'],
+  ['pistol_squat', 'nordic_curl', 'Quadriceps et ischio-jambiers, chacun à un niveau avancé.'],
+  ['pistol_squat', 'mollets_une_jambe', 'Sur une jambe : cuisses, mollets et équilibre.'],
+  ['squat_cossack', 'squat_bulgare', 'Le cossack travaille sur le côté et assouplit les hanches, le bulgare renforce en fente.'],
+  ['gainage', 'extension_dos', 'L\'avant et l\'arrière du tronc : un dos solide.'],
+  ['gainage', 'releves_de_jambes_tendues_suspendus', 'Abdos immobiles (gainage) et abdos en mouvement (relevés).'],
+  ['planche_laterale', 'releves_de_genoux', 'Les obliques sur le côté, les grands droits devant.'],
+  ['l_sit', 'toes_to_bar_strict', 'Le L-sit tient les jambes, le toes to bar les monte : la compression complète.'],
+  ['front_lever:tuck', 'planche:tuck', 'Un levier en tirant, un levier en poussant : les épaules restent équilibrées.'],
+  ['back_lever_tuck', 'front_lever:tuck', 'Face au sol et face au ciel : les deux leviers se préparent ensemble.'],
+  ['skin_the_cat', 'suspension', 'La suspension prépare les épaules à tourner dans le skin the cat.'],
+  ['human_flag_tuck', 'planche_laterale', 'Les obliques en appui au sol, puis en drapeau.']
+];
+/* key/n: l'exercice plus dur et le record à partir duquel celui-ci devient peu utile; why: pourquoi, et ce qu'on en garde */
+const EX_REDUNDANT = {
+  tractions_scapulaires: { key: 'tractions_strictes', n: 15, why: 'Les tractions travaillent déjà les omoplates. Garde-les seulement pour t\'échauffer (1 ou 2 séries).' },
+  pompes_inclinees: { key: 'pompes_strictes', n: 20, why: 'Trop facile : garde-les pour t\'échauffer.' },
+  dips_banc: { key: 'dips_strictes', n: 12, why: 'Les dips aux barres travaillent davantage les mêmes muscles.' },
+  releves_de_genoux: { key: 'releves_de_jambes_tendues_suspendus', n: 10, why: 'Les jambes tendues travaillent davantage les abdos.' },
+  tuck_sit: { key: 'l_sit', n: 15, why: 'Le L-sit travaille déjà la même position, en plus dur.' },
+  pistol_assiste: { key: 'pistol_squat', n: 5, why: 'Tu n\'as plus besoin de l\'aide.' },
+  squat: { key: 'pistol_squat', n: 5, why: 'Le squat à deux jambes devient un échauffement.' },
+  mollets: { key: 'mollets_une_jambe', n: 15, why: 'La version sur une jambe travaille davantage.' },
+  pont_fessier: { key: 'pont_fessier_une_jambe', n: 15, why: 'La version sur une jambe travaille davantage.' },
+  dragon_flag_negatif: { key: 'dragon_flag', n: 5, why: 'Les répétitions complètes travaillent déjà la descente.' },
+  muscle_up_negatif: { key: 'muscle_up_strict', n: 3, why: 'Les muscle-ups complets travaillent déjà la transition.' },
+  hspu_negatif: { key: 'handstand_push_up_strict', n: 3, why: 'Les répétitions complètes travaillent déjà la descente.' }
+};
+/** Voisins d'un exercice: plus facile, plus dur, ce qui le complète, quand il devient peu utile. */
+function relOf(key) {
+  const easier = new Set(), harder = new Set();
+  EX_LINES.forEach(l => { const i = l.indexOf(key); if (i < 0) return; if (i > 0) easier.add(l[i - 1]); if (i < l.length - 1) harder.add(l[i + 1]); });
+  const pairs = EX_PAIRS.filter(p => p[0] === key || p[1] === key).map(p => ({ key: p[0] === key ? p[1] : p[0], why: p[2] }));
+  return { easier: [...easier], harder: [...harder], pairs, redundant: EX_REDUNDANT[key] || null };
+}
 
 /* animation de chaque exercice (mouvement du mannequin 3D, voir mannequin.js) */
 const POSE_OF = {
@@ -2110,11 +2216,24 @@ const Troph = (() => {
     eq('exemple: porte de promotion ouverte', d.gateOpen, true);
     // niveaux d'ouverture
     eq('ouverture: pompes strictes 1, pistol 3, handstand libre 1, human flag 6', [unlockOf('pompes_strictes'), unlockOf('pistol_squat'), unlockOf('handstand_libre'), unlockOf('human_flag')], [1, 3, 1, 6]);
+    const badOrder = []; EX_LINES.forEach(l => l.forEach((k, i) => { if (i && unlockOf(l[i - 1]) > unlockOf(k)) badOrder.push(l[i - 1] + '>' + k); }));
+    eq('ouverture: une préparation ne s\'ouvre jamais après ce qu\'elle prépare (ex. muscle-up négatif avant le strict)', badOrder, []);
+    eq('ouverture: muscle-up négatif et tractions explosives avant le muscle-up strict', [unlockOf('tractions_explosives') <= unlockOf('muscle_up_strict'), unlockOf('muscle_up_negatif') <= unlockOf('muscle_up_strict'), unlockOf('hspu_negatif') < unlockOf('handstand_push_up_strict')], [true, true, true]);
+    const missing = FAM_ORDER.filter(f => FAM_GROUPS[f]).map(f => FAM_ITEMS[f].filter(k => !FAM_GROUPS[f].some(g => g.items.includes(k)))).flat();
+    eq('familles: chaque exercice est rangé dans un groupe de progression', missing, []);
     return R;
+  }
+  /* exercices d'une famille, rangés par progression: dans chaque groupe, les exercices ouverts puis la prochaine étape à débloquer */
+  function familyGroups(S, fam, showLocked) {
+    const lv = level(S);
+    return (FAM_GROUPS[fam] || []).map(g => {
+      const items = g.items.filter(k => ITEMS[k]), open = items.filter(k => unlockOf(k) <= lv), locked = items.filter(k => unlockOf(k) > lv);
+      return { label: g.label, open, locked: showLocked ? locked : locked.slice(0, 1) };
+    }).filter(g => g.open.length || g.locked.length);
   }
 
   return { ITEMS, item, keyOf, SLOTS, BY_LEVEL, ALL, BY_ID, trophiesOf, unlockOf, level, isDone, doneCount, earnable, targetLevel, pending, award, levelUp,
-    familyItems, suggest, Q, START_CAP, levelFromReps, levelFromAnswers, startState, firstThings, exampleState, listText, test };
+    familyItems, familyGroups, suggest, Q, START_CAP, levelFromReps, levelFromAnswers, startState, firstThings, exampleState, listText, test };
 })();
 
 /* ============================================================
@@ -2517,9 +2636,11 @@ const Coach = (() => {
   }
 
   /* meilleur exercice d'un emplacement pour un objectif */
+  /* exercice devenu peu utile pour le joueur: un exercice plus dur, qu'il maîtrise, travaille déjà la même chose (voir EX_REDUNDANT) */
+  function redundant(S, D, key) { const r = EX_REDUNDANT[key]; return !!r && observedMax(S, D, r.key) >= r.n; }
   function evalCandidate(S, D, key, g, pendingKeys, recent, ad) {
     const it = TI[key];
-    if (!it || !isOpen(S, key)) return null;
+    if (!it || !isOpen(S, key) || redundant(S, D, key)) return null;
     const r = expectedMax(S, D, key);
     if (r == null || r < 1) return null;
     const noMods = it.hold || it.fam === 'core' || it.fam === 'skills';
@@ -2698,10 +2819,10 @@ const Coach = (() => {
     };
     const nTech = nDrills == null || nDrills >= 2 ? 2 : 1;
     const ready = (SKILL_READY[id] || []).every(([key,n]) => observedMax(S,D,key) >= n);
-    (SKILL_TECH[id] || []).filter(t => TI[t.key] && (ready || !t.adv)).slice(0, nTech).forEach(t => out.push(mkItem(t.key, { sets: t.sets, target: t.n, rest: t.rest, hold: t.hold, note: t.text, why: 'Technique : on apprend le geste à chaque séance, frais, sans aller à l\'échec.', drill: true, tech: true, name: TI[t.key].name + ' (technique)' })));
+    (SKILL_TECH[id] || []).filter(t => TI[t.key] && (ready || !t.adv) && !redundant(S, D, t.key)).slice(0, nTech).forEach(t => out.push(mkItem(t.key, { sets: t.sets, target: t.n, rest: t.rest, hold: t.hold, note: t.text, why: 'Technique : on apprend le geste à chaque séance, frais, sans aller à l\'échec.', drill: true, tech: true, name: TI[t.key].name + ' (technique)' })));
     if (!ready) {
       const prep = PREP[id] || ['gainage','pompes_inclinees'];
-      prep.filter(key => out.every(x => x.key !== key)).slice(0, 3).forEach(key => {
+      prep.filter(key => out.every(x => x.key !== key) && !redundant(S, D, key)).slice(0, 3).forEach(key => {
         const exp = expectedMax(S,D,key);
         if (exp === 0) return;
         out.push(mkItem(key, {sets:3,target:clamp(Math.round((exp || (TI[key].hold ? 10 : 5))*0.6),1,TI[key].hold ? 20 : 10),rest:90,note:'Préparation : confirme les bases dans le programme du skill avant les essais avancés.',why:sk.tip,drill:true}));
@@ -2969,7 +3090,7 @@ const Coach = (() => {
     const unlock = next ? (next.state === 'locked' ? 'Pour débloquer « ' + next.name + ' » : atteins le niveau ' + (next.unlock - 1) + ' (tu es niveau ' + lvl + '), en montant tes exercices de renfort.'
       : '« ' + next.name + ' » est la prochaine marche : quand tu atteins ' + curStep.crit + unit + ' propres sur « ' + curStep.name + ' » (ton record : ' + curStep.best + '), passe à la suivante.')
       : 'Tu es sur la dernière marche : travaille la qualité (position parfaite, durée plus longue).';
-    const tech = (SKILL_TECH[id] || []).filter(t => TI[t.key]).map(t => ({ key: t.key, name: TI[t.key].name, text: t.text }));
+    const tech = (SKILL_TECH[id] || []).filter(t => TI[t.key] && !redundant(S, D, t.key)).map(t => ({ key: t.key, name: TI[t.key].name, text: t.text, adv: !!t.adv }));
     return { id, label: sk.label, tip: sk.tip, steps, tech, req: SKILL_REQ[id] || [], support: supp, drills, method: SKILL_METHOD[id] || [], unlock, work: ['3 à 4 fois par semaine, en premier dans la séance, quand tu es frais.', 'Séries courtes et propres (3 à 12 secondes de tenue, ou 1 à 5 répétitions), 4 à 8 séries.', 'Repos de 2 minutes à 2 minutes 30 entre les séries.', 'Jamais jusqu\'à l\'échec : arrête dès que la position se dégrade.'] };
   }
   function observedMax(S,D,key) {
@@ -3532,6 +3653,15 @@ const Coach = (() => {
     ok('débutant: aucun skill difficile en « prêt » (planche, front lever, muscle-up, human flag, traction une main)', ['planche', 'front_lever', 'muscle_up', 'human_flag', 'one_arm', 'push90'].every(id => sg0.find(x => x.id === id).state !== 'ready'), sg0.map(x => x.id + ':' + x.state).join(' '));
     ok('débutant: ce qui manque est expliqué (nom, valeur actuelle, valeur nécessaire)', sg0.find(x => x.id === 'muscle_up').missing.length >= 1 && sg0.find(x => x.id === 'muscle_up').missing[0].need > sg0.find(x => x.id === 'muscle_up').missing[0].have, JSON.stringify(sg0.find(x => x.id === 'muscle_up').missing));
     ok('un skill entièrement maîtrisé n\'est plus proposé', (() => { const T = mk(100, 20, 1); T.plan.sessions.push({ ts: now, goal: 'skills', muscles: ['skill'], items: Dict.ENTRIES.filter(e => e.skill === 'lsit').map(e => ({ key: e.key, sets: [e.crit + 1], target: 1 })) }); return !skillSuggestions(T, Core.derive(T, now)).some(x => x.id === 'lsit'); })(), '');
+    // un exercice devenu peu utile n'est plus donné en séries de travail
+    (() => {
+      const T = mk(40, 20, 1); T.plan.myMax = { tractions_strictes: 20 };
+      const keys = [60, 90].map(min => sess(T, { muscles: ['back'], minutes: min }).items.map(i => i.key)).flat();
+      ok('20 tractions: plus de tractions scapulaires en séries de travail (la suspension, qui complète, reste possible)', !keys.includes('tractions_scapulaires') && redundant(T, Core.derive(T, now), 'tractions_scapulaires'), keys.join());
+      const B = mk(5, 3, 1); ok('5 tractions: les tractions scapulaires restent utiles', !redundant(B, Core.derive(B, now), 'tractions_scapulaires'), '');
+      const fl = skillProgram(T, Core.derive(T, now), 'front_lever').tech.map(t => t.key);
+      ok('front lever avec 20 tractions: pas de tractions scapulaires dans la technique', !fl.includes('tractions_scapulaires'), fl.join());
+    })();
     return R;
   }
 
@@ -3725,12 +3855,31 @@ const Mannequin = (() => {
   function line(ankleMid, Sc, hint) { const fr = UF(sub(Sc, ankleMid), hint); return { root: add(ankleMid, mul(fr.up, LEG)), up: fr.up, fwd: fr.fwd }; }
   /* points du corps calculés depuis une pose (pour poser une main sur le corps, etc.) */
   function bodyPt(k, a, b, c) { const fr = UF(k.up, k.fwd), r = cross(fr.up, fr.fwd); return add(add(add(k.root, mul(fr.up, a)), mul(fr.fwd, b)), mul(r, c)); }
+  /* paire de points symétriques du corps (c > 0 = côté droit de l'athlète), lue telle quelle même si le corps est retourné */
+  const pair = (k, a, b, c) => ({ r: bodyPt(k, a, b, c), l: bodyPt(k, a, b, -c), rel: 1 });
   const armsDown = (k, ahead) => { const fr = UF(k.up, k.fwd), r = cross(fr.up, fr.fwd), sc = add(k.root, mul(fr.up, SHH)); const t = s => add(add(add(sc, mul(r, s * (L.SHW + 3))), mul(fr.up, -ARM + 2)), mul(fr.fwd, ahead || 4)); return { r: t(1), l: t(-1) }; };
 
-  /* ---------- directions des coudes, des genoux, des pieds ---------- */
-  function armPole(p, side, up, fwd, out) {
-    if (Array.isArray(p)) return side > 0 ? p : mirror(p);
+  /* ---------- directions des coudes, des genoux, des pieds ----------
+     Une direction peut être: un nom (relatif au corps), un vecteur du monde (en miroir pour le côté gauche),
+     un objet {r, l} (la valeur de chaque côté, vecteurs pris tels quels) ou, pendant une transition, le mélange
+     de deux directions (on interpole les vecteurs: pas de genou qui se retourne d'un coup). */
+  function resolveDir(p, side, named, lit) {
+    if (p == null) return named(null);
+    if (p._mix) { const a = resolveDir(p.a, side, named, lit), b = resolveDir(p.b, side, named, lit); return norm(lerp(a, b, p.t), a); }
+    if (Array.isArray(p)) return norm(side > 0 || lit ? p : mirror(p));
+    if (typeof p === 'object') return resolveDir(p[side > 0 ? 'r' : 'l'], side, named, true);
+    return named(p);
+  }
+  /* position d'une main ou d'un pied pour un côté */
+  function posOf(o, side) {
+    if (o == null) return null;
+    if (o._mix) { const a = posOf(o.a, side), b = posOf(o.b, side); return a && b ? lerp(a, b, o.t) : a || b; }
+    if (Array.isArray(o)) return o;
+    return posOf(o[side > 0 ? 'r' : 'l'], side);
+  }
+  function armPole(p, up, fwd, out) {
     switch (p) {
+      case 'hs': return norm(add(mul(fwd, -0.55), mul(out, 0.85)));
       case 'tuck': return norm(add(add(mul(up, -0.9), mul(fwd, -0.35)), mul(out, 0.15)));
       case 'back': return norm(add(add(mul(fwd, -1), mul(out, 0.15)), mul(up, -0.1)));
       case 'dip': return norm(add(mul(fwd, -1), mul(out, 0.25)));
@@ -3745,23 +3894,38 @@ const Mannequin = (() => {
       default: return norm(add(add(mul(fwd, -0.5), mul(up, -0.7)), mul(out, 0.5)));   // 'push'
     }
   }
-  function kneePole(p, side, up, fwd, out) {
-    if (Array.isArray(p)) return side > 0 ? p : mirror(p);
+  /* lf = l'avant de la jambe (la rotule regarde par là): calculé depuis la direction de la jambe et l'axe des hanches,
+     donc juste aussi quand la jambe est levée devant, au-dessus de la tête ou derrière */
+  function kneePole(p, up, fwd, out, lf) {
     switch (p) {
       case 'down': return norm(add([0, -1, 0], mul(fwd, 0.3)));
       case 'up': return norm(add(up, fwd));
-      case 'out': return norm(add(fwd, mul(out, 0.6)));
-      case 'back': return norm(mul(fwd, -1));
-      default: return norm(add(fwd, mul(out, 0.12)));
+      case 'out': return norm(add(lf, mul(out, 0.6)));
+      case 'back': return norm(mul(lf, -1));
+      default: return norm(add(lf, mul(out, 0.12)));   // 'fwd'
     }
   }
-  function toeDir(p, side, fwd, out, J, Ek) {
-    if (Array.isArray(p)) return side > 0 ? p : mirror(p);
-    if (p === 'point') return norm(sub(Ek, J));
-    if (p === 'up') return norm([0.25, 1, 0]);
-    if (p === 'down') return norm([0.6, -0.8, 0]);
-    if (Math.abs(fwd[1]) < 0.75) return norm(add([fwd[0], 0, fwd[2]], mul(out, 0.12)));
-    return fwd;
+  /* le pied: f = direction des orteils, n = côté de la plante. L'avant du pied suit toujours l'avant du tibia
+     (donc la rotule): un pied ne peut pas être à l'envers. Valeurs: 'flat' (à plat au sol), 'tip' (sur la pointe),
+     'point' (pointe tendue), 'up' (orteils relevés), un angle en degrés (0 = pied à angle droit, > 0 = pointé),
+     ou une direction du monde. Par défaut: à plat quand le pied est au sol, sinon légèrement pointé. */
+  function footFN(p, side, A, sd, ant, lit) {
+    const shin = b => { const c = Math.cos(b * D2R), s = Math.sin(b * D2R); return { f: norm(add(mul(ant, c), mul(sd, s))), n: norm(add(mul(sd, c), mul(ant, -s))) }; };
+    const floorRel = a => { const h = norm([ant[0], 0, ant[2]], norm([sd[0], 0, sd[2]], [1, 0, 0])), c = Math.cos(a * D2R), s = Math.sin(a * D2R); return { f: norm(add(mul(h, c), [0, -s, 0])), n: norm(add([0, -c, 0], mul(h, -s))) }; };
+    if (p != null && p._mix) { const a = footFN(p.a, side, A, sd, ant, lit), b = footFN(p.b, side, A, sd, ant, lit); return { f: norm(lerp(a.f, b.f, p.t), a.f), n: norm(lerp(a.n, b.n, p.t), a.n) }; }
+    if (p != null && typeof p === 'object' && !Array.isArray(p)) return footFN(p[side > 0 ? 'r' : 'l'], side, A, sd, ant, true);
+    if (Array.isArray(p)) {
+      let f = norm(side > 0 || lit ? p : mirror(p));
+      if (dot(f, ant) < -0.05) f = norm(sub(f, mul(ant, 2 * dot(f, ant))));   // jamais d'orteils vers l'arrière du tibia
+      const n = norm(ortho(sd, f), mul(ant, -1));
+      return { f, n };
+    }
+    if (typeof p === 'number') return shin(p);
+    if (p === 'point') return shin(65);
+    if (p === 'up') return shin(-12);
+    if (p === 'flat') return floorRel(0);
+    if (p === 'tip') return floorRel(48);
+    return A[1] < 15 && Math.abs(sd[1]) > 0.5 ? floorRel(0) : shin(A[1] < 15 ? 16 : 22);
   }
   /* cinématique inverse à deux os en 3D: S -> W, coude/genou du côté de 'pole' */
   function ik3(S, W, a, b, pole) {
@@ -3771,8 +3935,6 @@ const Mannequin = (() => {
     let v = ortho(pole, u); v = len(v) < 1e-6 ? norm(ortho([0, 0, 1], u), [1, 0, 0]) : norm(v);
     return { J: add(add(S, mul(u, x)), mul(v, h)), E: add(S, mul(u, D)), v };
   }
-  const pick = (o, side) => (o && typeof o === 'object' && !Array.isArray(o) ? o[side > 0 ? 'r' : 'l'] : o);
-
   /* ---------- squelette complet d'une pose ---------- */
   function solve(k) {
     const fr = UF(k.up, k.fwd), up = fr.up, fwd = fr.fwd, right = norm(cross(up, fwd));
@@ -3781,39 +3943,85 @@ const Mannequin = (() => {
     const headC = add(neck, mul(hUp, L.NECK + L.HEAD));
     const arm = side => {
       const out = mul(right, side), S = add(shC, mul(out, L.SHW));
-      const tgt = pick(k.hand, side) || add(add(S, mul(up, -ARM + 2)), mul(fwd, 4));
-      const ik = ik3(S, tgt, L.UA, L.FA, armPole(pick(k.elb, side), side, up, fwd, out));
-      const g = pick(k.grip, side);
-      const gd = g ? (side > 0 ? norm(g) : norm(mirror(g))) : norm(sub(ik.E, ik.J));
+      const tgt = posOf(k.hand, side) || add(add(S, mul(up, -ARM + 2)), mul(fwd, 4));
+      const ik = ik3(S, tgt, L.UA, L.FA, resolveDir(k.elb, side, p => armPole(p, up, fwd, out)));
+      const fa = norm(sub(ik.E, ik.J));
+      let gd;
+      if (k.grip != null) gd = resolveDir(k.grip, side, () => fa);
+      else {   // près du sol, la main se pose à plat, doigts vers la tête (pompes) ou vers le côté du dos (poirier, pike)
+        const w = Math.max(0, Math.min(1, (13 - ik.E[1]) / 8)), h = norm([up[0] - fwd[0], 0, up[2] - fwd[2]], [1, 0, 0]);
+        gd = w > 0 ? norm(lerp(fa, h, w), h) : fa;
+      }
       return { S, J: ik.J, W: ik.E, T: add(ik.E, mul(gd, L.HAND)), v: ik.v };
     };
     const leg = side => {
       const out = mul(right, side), H = add(add(pel, mul(out, L.HIPW)), mul(up, -2));
-      const tgt = pick(k.foot, side) || add(add(H, mul(up, -LEG)), mul(out, 2));
-      const ik = ik3(H, tgt, L.TH, L.SHN, kneePole(pick(k.knee, side), side, up, fwd, out));
-      const fu = norm(sub(ik.J, ik.E));
-      let td = toeDir(pick(k.toe, side), side, fwd, out, ik.J, ik.E);
-      td = norm(ortho(td, fu), norm(ortho(fwd, fu), [1, 0, 0]));
-      return { H, J: ik.J, A: ik.E, heel: add(sub(ik.E, mul(td, 4)), mul(fu, -5)), tip: add(add(ik.E, mul(td, 15)), mul(fu, -5)), v: ik.v };
+      const tgt = posOf(k.foot, side) || add(add(H, mul(up, -LEG)), mul(out, 2));
+      /* avant de la jambe: d'après sa direction; quand le pied est près de la hanche (jambe très pliée), la direction
+         hanche -> pied ne veut plus rien dire: le genou va alors vers l'avant et le haut du corps */
+      const dv = sub(tgt, H), d = norm(dv, mul(up, -1)), c = cross(d, right), lf0 = len(c) > 0.35 ? norm(c) : norm(ortho(fwd, d), fwd);
+      const wf = Math.max(0, Math.min(1, (62 - len(dv)) / 26)), lf = wf > 0 ? norm(lerp(lf0, norm(add(up, fwd)), wf), lf0) : lf0;
+      const ik = ik3(H, tgt, L.TH, L.SHN, resolveDir(k.knee, side, p => kneePole(p, up, fwd, out, lf)));
+      /* avant du tibia: perpendiculaire au tibia dans le plan de la jambe, du côté de la rotule (stable même genou très plié) */
+      const sd = norm(sub(ik.E, ik.J)), ant = norm(cross(cross(norm(sub(ik.E, H)), ik.v), sd), lf);
+      const ft = footFN(k.toe, side, ik.E, sd, ant);
+      const sole = add(ik.E, mul(ft.n, 5));
+      return { H, J: ik.J, A: ik.E, heel: add(sole, mul(ft.f, -4)), tip: add(sole, mul(ft.f, 15)), v: ik.v };
     };
     return { pel, neck, shC, up, fwd, right, headC, hUp, face, arms: { r: arm(1), l: arm(-1) }, legs: { r: leg(1), l: leg(-1) } };
   }
 
   /* ---------- interpolation entre deux poses ---------- */
+  const isSide = o => o != null && typeof o === 'object' && !Array.isArray(o) && !o._mix;
   function mixV(a, b, t) {
     if (a == null) return b; if (b == null) return a;
-    if (Array.isArray(a) && Array.isArray(b)) return typeof a[0] === 'number' ? lerp(a, b, t) : a;
     if (typeof a === 'number' && typeof b === 'number') return a + (b - a) * t;
-    if (typeof a === 'object' && typeof b === 'object' && !Array.isArray(a) && !Array.isArray(b)) return { l: mixV(a.l, b.l, t), r: mixV(a.r, b.r, t) };
-    return t < 0.5 ? a : b;
+    if (Array.isArray(a) && Array.isArray(b) && typeof a[0] === 'number') return lerp(a, b, t);
+    if (isSide(a) && isSide(b)) return { l: mixV(a.l, b.l, t), r: mixV(a.r, b.r, t) };
+    if (a === b) return a;
+    return { _mix: 1, a, b, t };
   }
-  function mix(A, B, t) { const o = {}; new Set(Object.keys(A).concat(Object.keys(B))).forEach(key => { o[key] = mixV(A[key], B[key], t); }); return o; }
+  const frameOf = k => { const fr = UF(k.up, k.fwd); return { up: fr.up, fwd: fr.fwd, right: norm(cross(fr.up, fr.fwd)) }; };
+  const toRel = (k, F, p) => { const q = sub(p, k.root); return [dot(q, F.up), dot(q, F.fwd), dot(q, F.right)]; };
+  const fromRel = (root, F, r) => add(add(add(root, mul(F.up, r[0])), mul(F.fwd, r[1])), mul(F.right, r[2]));
+  function mix(A, B, t, set) {
+    const o = {};
+    new Set(Object.keys(A).concat(Object.keys(B))).forEach(key => { o[key] = mixV(A[key], B[key], t); });
+    const FA = frameOf(A), FB = frameOf(B), F = frameOf(o);
+    /* rotation autour des épaules (barre fixe): on interpole le centre des épaules, pas le bassin */
+    if (set && set.pivot === 'sh') o.root = sub(lerp(add(A.root, mul(FA.up, SHH)), add(B.root, mul(FB.up, SHH)), t), mul(F.up, SHH));
+    /* un pied en l'air suit le corps (repère du bassin); un pied posé au sol reste à sa place */
+    ['foot'].concat(set && set.relHands ? ['hand'] : []).forEach(f => {
+      if (!isSide(A[f]) || !isSide(B[f])) return;
+      const res = {};
+      ['r', 'l'].forEach(sd => {
+        const pa = posOf(A[f], sd === 'r' ? 1 : -1), pb = posOf(B[f], sd === 'r' ? 1 : -1);
+        if (!pa || !pb || len(sub(pa, pb)) < 3 || (pa[1] < 14 && pb[1] < 14 && f === 'foot')) { res[sd] = o[f][sd]; return; }
+        res[sd] = fromRel(o.root, F, lerp(toRel(A, FA, pa), toRel(B, FB, pb), t));
+      });
+      o[f] = res;
+    });
+    return o;
+  }
   const ease = t => t * t * (3 - 2 * t);
-  function sample(poses, s) {
+  function sample(poses, s, set) {
     const n = poses.length;
     if (n === 1) return poses[0];
     const x = Math.max(0, Math.min(1, s)) * (n - 1), i = Math.min(n - 2, Math.floor(x));
-    return mix(poses[i], poses[i + 1], ease(x - i));
+    return mix(poses[i], poses[i + 1], ease(x - i), set);
+  }
+  /* une pose retournée (corps à l'envers ou sur le dos: le côté droit de l'athlète regarde vers +z) est écrite avec les
+     côtés du monde (r = côté -z). On la remet dans les côtés de l'athlète, sinon les bras et les jambes se croisent. */
+  function fixSides(k) {
+    if (!k.up || !k.fwd || frameOf(k).right[2] <= 0.25) return k;
+    const o = Object.assign({}, k);
+    ['hand', 'foot', 'elb', 'knee', 'toe', 'grip'].forEach(f => {
+      const v = k[f];
+      if (v == null || v.rel) return;
+      if (isSide(v)) o[f] = { r: v.l, l: v.r };
+      else if (Array.isArray(v) && typeof v[0] === 'number' && f !== 'hand' && f !== 'foot') o[f] = mirror(v);
+    });
+    return o;
   }
 
   /* ---------- décor en 3D ---------- */
@@ -3831,7 +4039,12 @@ const Mannequin = (() => {
   const SETS = {};
   const VIEW = { side: 0, front3q: 40, back3q: -40, back: -90, front: 90 };
   const VLAB = { side: 'Profil', front3q: '3/4', back3q: '3/4 dos', back: 'Dos', front: 'Face' };
-  function def(key, o) { const s = Object.assign({ views: ['side', 'front3q', 'back3q'], env: [], floor: true }, o); if (s.env.some(e => e.t === 'bar' && e.posts === 'up')) s.floor = false; SETS[key] = s; }   // suspendu à une barre: pas de sol, cadre serré sur le corps
+  function def(key, o) {
+    const s = Object.assign({ views: ['side', 'front3q', 'back3q'], env: [], floor: true }, o);
+    if (s.env.some(e => e.t === 'bar' && e.posts === 'up')) { s.floor = false; if (!s.pivot) s.pivot = 'sh'; }   // suspendu à une barre: pas de sol, cadre serré, rotation autour des épaules
+    s.poses = s.poses.map(fixSides);
+    SETS[key] = s;
+  }
   const PRONE = [0, -1, 0], SUPINE = [0, 1, 0];
 
   /* ===== pompes ===== */
@@ -3848,7 +4061,7 @@ const Mannequin = (() => {
     def('pushArcher', { poses: [top, bot], names: ['Un bras tendu sur le côté', 'Descente vers la main qui travaille'], views: ['front3q', 'front', 'side'] });
   })();
   (() => {
-    const mk = (shY) => { const k = pushPose([-70, 12, 0], shY, null); k.foot = FZ(-70, 12, 28); k.hand = { r: [57, 2, -3], l: bodyPt(k, 14, -13, -8) }; k.elb = { r: 'tuck', l: 'back' }; return k; };
+    const mk = (shY) => { const k = pushPose([-70, 12, 0], shY, null); k.foot = FZ(-70, 12, 28); k.hand = { r: [57, 2, -3], l: bodyPt(k, 3, -12, -11) }; k.elb = { r: 'tuck', l: 'back' }; k.grip = { r: [1, 0, 0.15], l: [-1, 0, 0] }; return k; };
     def('pushOne', { poses: [mk(58), mk(24)], names: ['Une main sous la poitrine, pieds écartés', 'Descente sans tourner'], views: ['front3q', 'front', 'side'] });
   })();
   (() => {
@@ -3857,7 +4070,7 @@ const Mannequin = (() => {
     def('pushInc', { poses: [k(56), k(22)], names: ['Mains sur le banc, bras tendus', 'Poitrine vers le banc'], env: [E.box(48, 92, 45, -40, 40)], views: ['side', 'front3q'] });
   })();
   (() => {
-    const A = [-75, 55, 0], H = [60, 2, 0];
+    const A = [-75, 59, 0], H = [60, 2, 0];
     const k = (d) => Object.assign(line(A, tri(A, H, BODY, d, 1), PRONE), { hand: HZ(60, 2, 21), foot: FZ(A[0], A[1], 8), elb: 'push' });
     def('pushDec', { poses: [k(56), k(20)], names: ['Pieds sur le banc, bras tendus', 'Poitrine vers le sol'], env: [E.box(-100, -52, 45, -35, 35)], views: ['side', 'front3q'] });
   })();
@@ -3865,13 +4078,19 @@ const Mannequin = (() => {
     const pk = (Sc, hip, A, hands) => Object.assign({ root: hip }, UF(sub(Sc, hip), [-0.3, -1, 0]), { hand: hands, foot: FZ(A[0], A[1], 8), elb: 'push', knee: 'fwd' });
     const H = [42, 2, 0], hipT = [-6, 88, 0], A = [-50, 10, 0];
     def('pike', { poses: [pk(tri(hipT, H, SHH, ARM, 1), hipT, A, HZ(42, 2, 20)), pk([36, 31, 0], [16, 75, 0], A, HZ(42, 2, 20))], names: ['Hanches hautes, bras tendus', 'Tête vers le sol entre les mains'], views: ['side', 'front3q'] });
-    const A2 = [-58, 58, 0], hip2 = [16, 100, 0];
-    def('pikeHigh', { poses: [pk(tri(hip2, H, SHH, ARM, 1), hip2, A2, HZ(42, 2, 20)), pk([36, 31, 0], [20, 78, 0], A2, HZ(42, 2, 20))], names: ['Pieds sur le banc, hanches hautes', 'Tête vers le sol'], env: [E.box(-95, -40, 50, -35, 35)], views: ['side', 'front3q'] });
+    /* pieds sur le banc, posés sur la pointe (orteils vers les mains) */
+    const A2 = [-58, 64, 0], hip2 = [16, 100, 0];
+    def('pikeHigh', { poses: [pk(tri(hip2, H, SHH, ARM, 1), hip2, A2, HZ(42, 2, 20)), pk([36, 31, 0], [20, 78, 0], A2, HZ(42, 2, 20))].map(p => Object.assign(p, { toe: 'tip' })), names: ['Pieds sur le banc, hanches hautes', 'Tête vers le sol'], env: [E.box(-95, -40, 50, -35, 35)], views: ['side', 'front3q', 'back3q'] });
   })();
+  /* corps tendu des chevilles aux épaules, les épaules en Sc, les pieds à la hauteur ay (le corps garde sa longueur) */
+  const leanLine = (Sc, ay, hint) => line([Sc[0] - Math.sqrt(Math.max(1, BODY * BODY - (Sc[1] - ay) * (Sc[1] - ay))), ay, Sc[2] || 0], Sc, hint || PRONE);
+  /* poirier: le corps descend des chevilles (en haut) aux épaules, poitrine vers -x, dos vers +x (côté du mur) */
+  const HSF = [-1, 0, 0];
+  const hsLine = (Sc, A, extra) => Object.assign(line(A, Sc, HSF), { hand: HZ(Sc[0], 2, 17), foot: FZ(A[0], A[1], 4), toe: 'point', elb: 'hs', head: -18 }, extra || {});
   /* pompes en poirier contre le mur (dos au mur) */
   (() => {
-    const k = (shY) => ({ root: [0, shY + SHH, 0], up: [0, -1, 0], fwd: [1, 0, 0], hand: HZ(0, 2, 20), foot: FZ(-6, shY + SHH + LEG, 4), toe: 'point', elb: [0.5, 0, -0.8], knee: 'fwd' });
-    def('hspu', { poses: [k(58), k(33)], names: ['Bras tendus, dos au mur', 'Tête qui frôle le sol'], env: [E.wall(-24)], views: ['side', 'front3q', 'front'] });
+    const k = (Sc, tilt) => hsLine(Sc, [Sc[0] + BODY * Math.sin(tilt * D2R), Sc[1] + BODY * Math.cos(tilt * D2R), 0], { hand: HZ(0, 2, 20) });
+    def('hspu', { poses: [k([-2, 57, 0], 6), k([-8, 34, 0], 10)], names: ['Bras tendus, dos au mur', 'Tête qui frôle le sol, devant les mains'], env: [E.wall(22)], views: ['side', 'front3q', 'front'] });
   })();
   /* dips aux barres */
   (() => {
@@ -3882,24 +4101,25 @@ const Mannequin = (() => {
     const k = (Sc, A) => Object.assign(fromShoulders(Sc, TP(-3)), { hand: HZ(-24, 47, 18), grip: [1, 0, 0], foot: FZ(A[0], A[1], 9), elb: 'back', toe: 'up', knee: 'fwd' });
     def('dipBench', { poses: [k([-18, 101, 0], [58, 8.5]), k([-16, 74, 0], [58, 8.5])], names: ['Bras tendus, mains sur le banc', 'Coudes à 90°'], env: [E.box(-66, -22, 45, -32, 32)], views: ['side', 'front3q'] });
   })();
-  /* pseudo-planche et planche lean */
+  /* pseudo-planche et planche lean: mains au niveau de la taille, doigts tournés vers l'extérieur, épaules loin devant */
+  const GRIPOUT = [-0.25, 0, -0.97];
   (() => {
-    const A = [-60, 12, 0];
-    const k = (Sc, hx) => Object.assign(line(A, Sc, PRONE), { hand: HZ(hx, 2, 20), foot: FZ(A[0], A[1], 8), elb: 'tuck', grip: [-0.3, 0, -0.95] });
-    def('pseudo', { poses: [k([77, 52, 0], 62), k([80, 22, 0], 62)], names: ['Épaules devant les mains', 'Descente en gardant l\'inclinaison'], views: ['side', 'front3q'] });
-    const A2 = [-95, 12, 0];
-    def('plLean', { poses: [Object.assign(line(A2, [32, 58, 0], PRONE), { hand: HZ(32, 2, 20), foot: FZ(A2[0], A2[1], 8) }), Object.assign(line(A2, [40, 55, 0], PRONE), { hand: HZ(28, 2, 20), foot: FZ(A2[0], A2[1], 8) })], names: ['Position de pompe', 'Épaules loin devant les mains'], views: ['side', 'front3q'] });
+    const k = (Sc, elb) => { const o = leanLine(Sc, 10), a = sub(o.root, mul(o.up, LEG)); return Object.assign(o, { hand: HZ(0, 2, 18), foot: FZ(a[0], 10, 8), elb, grip: GRIPOUT, head: -8 }); };
+    def('pseudo', { poses: [k([25, 52, 0], 'tuck'), k([33, 21, 0], 'tuck')], names: ['Mains près de la taille, épaules loin devant', 'Descente en gardant les épaules devant les mains'], views: ['side', 'front3q', 'back3q'] });
+    def('plLean', { poses: [k([22, 52, 0], 'push'), k([31, 49, 0], 'push')], names: ['Mains près de la taille, bras tendus', 'Les épaules avancent loin devant les mains'], views: ['side', 'front3q', 'back3q'] });
   })();
 
-  /* ===== planche ===== */
+  /* ===== planche: épaules bien devant les mains (les mains sous le ventre), bras tendus ===== */
   (() => {
-    const lean = Object.assign(line([-113, 12, 0], [15, 56, 0], PRONE), { hand: HZ(0, 2, 18), foot: FZ(-113, 12, 8) });
-    const base = (fr, Sc) => Object.assign(fromShoulders(Sc, fr), { hand: HZ(0, 2, 18) });
-    const tk = (() => { const fr = UF([0.97, -0.25, 0], PRONE), k = base(fr, [14, 57, 0]); k.foot = { r: bodyPt(k, 8, 10, 6), l: bodyPt(k, 8, 10, -6) }; k.knee = 'up'; return k; })();
-    const adv = (() => { const k = base(TP(90), [14, 57, 0]); k.foot = { r: bodyPt(k, -38, 20, 6), l: bodyPt(k, -38, 20, -6) }; k.knee = [0.3, -1, 0]; k.toe = 'point'; return k; })();
-    const str = (() => { const k = base(TP(90), [14, 57, 0]); k.foot = FZ(-118, 58, 34); k.toe = 'point'; return k; })();
-    const full = (() => { const k = base(TP(90), [14, 57, 0]); k.foot = FZ(-121, 57, 4); k.toe = 'point'; return k; })();
-    const mal = Object.assign(fromShoulders([2, 30, 0], TP(90)), { hand: HZ(-6, 2, 60), elb: 'out', foot: FZ(-133, 32, 4), toe: 'point' });
+    const lean = (() => { const o = leanLine([24, 51, 0], 10), a = sub(o.root, mul(o.up, LEG)); return Object.assign(o, { hand: HZ(0, 2, 18), foot: FZ(a[0], 10, 8), grip: GRIPOUT }); })();
+    const base = (fr, Sc) => Object.assign(fromShoulders(Sc, fr), { hand: HZ(0, 2, 18), grip: GRIPOUT, head: -6 });
+    /* tuck: genoux sous la poitrine (cuisses vers l'avant), pieds repliés sous les fesses, décollés du sol */
+    const tk = (() => { const k = base(UF([0.97, -0.22, 0], PRONE), [20, 52, 0]); k.foot = pair(k, -8, 8, 7); k.knee = [1, -0.2, 0]; k.toe = 'point'; return k; })();
+    /* tuck avancé: dos plat, cuisses vers le bas et l'arrière, genoux pliés à 90°, pieds en arrière à hauteur des hanches */
+    const adv = (() => { const k = base(TP(90), [26, 51, 0]); k.foot = pair(k, -61, 1, 6); k.knee = [0.1, -1, 0]; k.toe = 'point'; return k; })();
+    const str = (() => { const k = base(TP(90), [28, 50, 0]); k.foot = pair(k, -129, 0, 34); k.toe = 'point'; return k; })();
+    const full = (() => { const k = base(TP(90), [28, 50, 0]); k.foot = pair(k, -135, 0, 4); k.toe = 'point'; return k; })();
+    const mal = Object.assign(fromShoulders([14, 30, 0], TP(90)), { hand: HZ(-8, 2, 60), elb: 'out', grip: [0.2, 0, -1], toe: 'point' }); mal.foot = pair(mal, -135, 0, 4);
     const V = ['side', 'front3q', 'back3q'];
     def('plTuck', { poses: [lean, tk], names: ['Planche lean', 'Genoux contre la poitrine, pieds décollés'], views: V });
     def('plAdv', { poses: [lean, adv], names: ['Planche lean', 'Dos plat, genoux repliés'], views: V });
@@ -3929,9 +4149,13 @@ const Mannequin = (() => {
     def('pullArcher', { poses: [hang, top], names: ['Prise très large', 'Tirage vers une main, l\'autre bras tendu'], env: BAR, views: PULLV });
   })();
   (() => {
-    const hang = hangPose(10); hang.hand = { r: [0, HB, -10], l: null };
-    const top = topPose(10, [-3, 214, -6], -10); top.hand = { r: [0, HB, -10], l: null };
-    def('pullOne', { poses: [hang, top], names: ['Une main sur la barre', 'Menton au-dessus de la barre, sans tourner'], env: BAR, views: PULLV });
+    /* une main au centre de la barre, le corps aligné sous elle; l'autre bras écarté vers le bas pour l'équilibre */
+    const hz = 6, free = k => bodyPt(k, SHH - 52, 10, -40);
+    const hang = Object.assign(fromShoulders([0, HB - ARM + 1, 11], TP(-4)), { hand: { r: [0, HB, -hz], l: null }, elb: { r: 'pull', l: 'out' }, toe: 'point', knee: 'fwd', grip: [0.7, 0.7, 0] });
+    hang.hand.l = free(hang); hang.foot = pair(hang, -LEG + 4, 8, 6);
+    const top = Object.assign(fromShoulders([-4, 210, 4], TP(-10)), { hand: { r: [0, HB, -hz], l: null }, elb: { r: 'pull', l: 'out' }, toe: 'point', knee: 'fwd', head: -12, grip: [0.7, 0.7, 0] });
+    top.hand.l = free(top); top.foot = pair(top, -LEG + 4, 10, 6);
+    def('pullOne', { poses: [hang, top], names: ['Une seule main au centre de la barre, l\'autre bras écarté', 'Menton au-dessus de la barre, sans tourner le corps'], env: BAR, views: PULLV, relHands: true });
   })();
   (() => {
     const hz = 45;
@@ -3943,14 +4167,16 @@ const Mannequin = (() => {
     const passive = hangPose(26, { shrug: 5 }); passive.root = [passive.root[0], sy - SHH - 5, 0]; passive.foot = FZ(6, sy - SHH - 5 - LEG + 4, 7);
     const active = hangPose(26, { shrug: -3 }); active.root = [active.root[0], sy - SHH + 3, 0]; active.foot = FZ(6, sy - SHH + 3 - LEG + 4, 7);
     def('scap', { poses: [passive, active], names: ['Épaules relâchées, vers les oreilles', 'Épaules tirées vers le bas, bras tendus'], env: BAR, views: PULLV });
-    def('hang', { poses: [passive, active], names: ['Suspendu, bras tendus', 'Épaules actives'], env: BAR, views: PULLV });
+    /* suspension: on ne bouge pas (seule la respiration se voit à peine) */
+    const still = hangPose(26, { shrug: 1 }), breath = hangPose(26, { shrug: 1, head: -3 });
+    def('hang', { poses: [still, breath], names: ['Suspendu, bras tendus, tu ne bouges pas', 'Tu tiens, épaules légèrement engagées, tu respires'], env: BAR, views: PULLV });
   })();
   /* muscle-up */
   (() => {
     const hz = 22, hang = hangPose(hz);
     const pull = topPose(hz, [-8, 222, 0], -20);
-    const tr = Object.assign(fromShoulders([8, 236, 0], TP(35)), { hand: HZ(0, HB, hz), elb: 'mu', toe: 'point' }); tr.foot = { r: bodyPt(tr, -LEG + 4, 6, 7), l: bodyPt(tr, -LEG + 4, 6, -7) };
-    const sup = Object.assign(fromShoulders([4, 280, 0], TP(10)), { hand: HZ(0, HB, hz), elb: 'back', toe: 'point' }); sup.foot = { r: bodyPt(sup, -LEG + 3, 6, 7), l: bodyPt(sup, -LEG + 3, 6, -7) };
+    const tr = Object.assign(fromShoulders([8, 236, 0], TP(35)), { hand: HZ(0, HB, hz), elb: 'mu', toe: 'point', grip: [0.95, 0.2, 0] }); tr.foot = { r: bodyPt(tr, -LEG + 4, 6, 7), l: bodyPt(tr, -LEG + 4, 6, -7) };
+    const sup = Object.assign(fromShoulders([4, 280, 0], TP(10)), { hand: HZ(0, HB, hz), elb: 'back', toe: 'point', grip: [0.6, -0.8, 0] }); sup.foot = { r: bodyPt(sup, -LEG + 3, 6, 7), l: bodyPt(sup, -LEG + 3, 6, -7) };
     def('mu', { poses: [hang, pull, tr, sup], names: ['Suspendu', 'Tirage explosif, poitrine vers la barre', 'Transition : coudes au-dessus de la barre', 'Appui, bras tendus'], env: BAR, views: ['side', 'back3q', 'back'] });
     def('muNeg', { poses: [sup, tr, pull, hang], names: ['Appui au-dessus de la barre', 'Descente lente dans la transition', 'Coudes sous la barre', 'Suspendu, bras tendus'], env: BAR, views: ['side', 'back3q', 'back'] });
   })();
@@ -3965,11 +4191,13 @@ const Mannequin = (() => {
     const hz = 22, hang = hangPose(hz);
     const knee = (() => { const k = fromShoulders([0, shYFor(hz, L.SHW), 0], TP(-6)); return Object.assign(k, { hand: HZ(0, HB, hz), elb: 'pull', foot: { r: bodyPt(k, 4, 26, 7), l: bodyPt(k, 4, 26, -7) }, knee: 'up', toe: 'point' }); })();
     const legs = (() => { const k = fromShoulders([0, shYFor(hz, L.SHW), 0], TP(-10)); return Object.assign(k, { hand: HZ(0, HB, hz), elb: 'pull', foot: { r: bodyPt(k, -4, 88, 6), l: bodyPt(k, -4, 88, -6) }, toe: 'point' }); })();
-    const t2b = (() => { const k = fromShoulders([8, shYFor(hz, L.SHW) + 1, 0], TP(-35)); return Object.assign(k, { hand: HZ(0, HB, hz), elb: 'pull', foot: FZ(12, 224, 6), toe: 'point' }); })();
+    /* toes to bar: jambes presque tendues tout du long (cible un peu au-delà de leur longueur), le bassin passe devant */
+    const t2bMid = (() => { const k = fromShoulders([2, shYFor(hz, L.SHW), 0], TP(-16)); return Object.assign(k, { hand: HZ(0, HB, hz), elb: 'pull', foot: pair(k, -6, 92, 6), toe: 'point' }); })();
+    const t2b = (() => { const k = fromShoulders([8, shYFor(hz, L.SHW) + 1, 0], TP(-35)); return Object.assign(k, { hand: HZ(0, HB, hz), elb: 'pull', foot: FZ(12, 226, 6), toe: 'point' }); })();
     const V = ['side', 'back3q', 'front3q'];
     def('kneeRaise', { poses: [hang, knee], names: ['Suspendu, épaules actives', 'Genoux vers la poitrine'], env: BAR, views: V });
     def('legRaise', { poses: [hang, legs], names: ['Suspendu, jambes tendues', 'Jambes à l\'horizontale'], env: BAR, views: V });
-    def('t2b', { poses: [hang, t2b], names: ['Suspendu, bras tendus', 'Orteils à la barre'], env: BAR, views: V });
+    def('t2b', { poses: [hang, t2bMid, t2b], names: ['Suspendu, bras tendus', 'Jambes tendues qui montent', 'Orteils à la barre'], env: BAR, views: V });
   })();
 
   /* ===== levers et skin the cat ===== */
@@ -3980,7 +4208,8 @@ const Mannequin = (() => {
     const legsAlong = (k, d, spread) => ({ r: bodyPt(k, -d - 2, 0, spread || 5), l: bodyPt(k, -d - 2, 0, -(spread || 5)) });
     const fl = (feet, knee) => { const k = at(90, [-10, 174, 0]); k.foot = feet(k); if (knee) k.knee = knee; return k; };
     const FLV = ['side', 'back3q', 'front3q'];
-    const tuckFeet = k => ({ r: bodyPt(k, 6, -3, 6), l: bodyPt(k, 6, -3, -6) });
+    /* groupé: talons près des fesses, sous la hanche (le pied ne passe jamais au ras de la hanche: le genou ne se retourne pas) */
+    const tuckFeet = k => ({ r: bodyPt(k, -12, 6, 7), l: bodyPt(k, -12, 6, -7) });
     def('flTuck', { poses: [hang, fl(tuckFeet, 'up')], names: ['Suspendu', 'Genoux contre la poitrine, dos à l\'horizontale'], env: BAR, views: FLV });
     def('flAdv', { poses: [hang, fl(k => ({ r: bodyPt(k, -43, 45, 6), l: bodyPt(k, -43, 45, -6) }), [0, 1, 0])], names: ['Suspendu', 'Dos plat, genoux repliés'], env: BAR, views: FLV });
     def('flOne', { poses: [hang, fl(k => ({ r: bodyPt(k, -90, 0, 5), l: bodyPt(k, -43, 45, -6) }), { r: 'fwd', l: [0, 1, 0] })], names: ['Suspendu', 'Une jambe tendue, l\'autre repliée'], env: BAR, views: FLV });
@@ -3989,13 +4218,16 @@ const Mannequin = (() => {
     def('flFull', { poses: [hang, fl(k => legsAlong(k, 88, 5))], names: ['Suspendu', 'Corps tendu à l\'horizontale'], env: BAR, views: FLV });
     const inv = (() => { const k = at(180, [0, sy, 0]); k.foot = legsAlong(k, 88, 5); return k; })();
     def('flNeg', { poses: [inv, fl(k => legsAlong(k, 88, 5))], names: ['À l\'envers, hanches au niveau de la barre', 'Descente lente jusqu\'à l\'horizontale'], env: BAR, views: FLV });
+    /* skin the cat et back lever: le corps tourne autour des épaules, les jambes repliées passent entre les bras */
     const tuck90 = (() => { const k = at(90, [-8, 174, 0]); k.foot = tuckFeet(k); k.knee = 'up'; return k; })();
     const invTuck = (() => { const k = at(180, [0, sy, 0]); k.foot = tuckFeet(k); k.knee = 'up'; return k; })();
-    const german = (() => { const k = at(300, [14, 172, 0]); k.foot = legsAlong(k, 84, 5); k.elb = 'back'; return k; })();
-    def('skin', { poses: [hang, tuck90, invTuck, german], names: ['Suspendu', 'Genoux vers la poitrine', 'À l\'envers, les jambes passent entre les bras', 'Retourné derrière la barre'], env: BAR, views: ['side', 'back3q', 'front3q'] });
+    const invStr = (() => { const k = at(180, [0, sy, 0]); k.foot = legsAlong(k, 88, 5); return k; })();
+    const behind = (() => { const k = at(250, [8, 178, 0]); k.foot = tuckFeet(k); k.knee = 'up'; k.elb = 'back'; return k; })();
+    const german = (() => { const k = at(325, [12, 176, 0]); k.foot = legsAlong(k, 86, 5); k.elb = 'back'; k.head = 8; return k; })();
+    def('skin', { poses: [hang, tuck90, invTuck, behind, german], names: ['Suspendu, bras tendus', 'Genoux vers la poitrine, le bassin monte', 'À l\'envers, genoux groupés', 'Les jambes passent derrière, entre les bras', 'Suspendu derrière la barre, pieds vers le sol'], env: BAR, views: ['side', 'back3q', 'front3q'] });
     const bl = (feet, knee) => { const k = at(270, [8, 175, 0]); k.foot = feet(k); k.elb = 'back'; if (knee) k.knee = knee; return k; };
-    def('blTuck', { poses: [hang, tuck90, invTuck, bl(tuckFeet, 'up')], names: ['Suspendu', 'Genoux vers la poitrine', 'À l\'envers', 'Tuck derrière la barre, face au sol'], env: BAR, views: ['side', 'back3q', 'front3q'] });
-    def('bl', { poses: [hang, tuck90, invTuck, bl(k => legsAlong(k, 88, 5))], names: ['Suspendu', 'Genoux vers la poitrine', 'À l\'envers', 'Corps horizontal, face au sol'], env: BAR, views: ['side', 'back3q', 'front3q'] });
+    def('blTuck', { poses: [hang, tuck90, invTuck, bl(tuckFeet, 'up')], names: ['Suspendu', 'Genoux vers la poitrine', 'À l\'envers, genoux groupés', 'Tuck derrière la barre, dos à l\'horizontale, face au sol'], env: BAR, views: ['side', 'back3q', 'front3q'] });
+    def('bl', { poses: [hang, tuck90, invTuck, invStr, bl(k => legsAlong(k, 88, 5))], names: ['Suspendu', 'Genoux vers la poitrine', 'À l\'envers, genoux groupés', 'Jambes tendues vers le ciel', 'Descente lente : corps horizontal, face au sol'], env: BAR, views: ['side', 'back3q', 'front3q'] });
   })();
 
   /* ===== jambes ===== */
@@ -4011,15 +4243,20 @@ const Mannequin = (() => {
     const k = (pel, p) => { const o = Object.assign({ root: pel }, TP(p)); return Object.assign(o, { foot: feet, toe: { r: [1, 0, 0], l: [-1, -0.2, 0] }, knee: { r: 'fwd', l: 'down' }, hand: armsDown(o, 6) }); };
     def('bulgarian', { poses: [k([-22, 92, 0], 4), k([-20, 52, 0], 12)], names: ['Pied arrière sur le banc', 'Genou arrière vers le sol'], env: [E.box(-105, -58, 44, -6, 26)], views: ['side', 'front3q', 'back3q'] });
   })();
+  /* squat cossack: pieds très écartés, on descend sur une jambe (genou au-dessus des orteils), l'autre reste tendue,
+     talon au sol et orteils vers le ciel; puis de l'autre côté */
   (() => {
-    const feet = { r: [0, L.ANK, -45], l: [0, L.ANK, 45] };
-    const top = { root: [-4, 86, 0], up: [0, 1, 0], fwd: [1, 0, 0], foot: feet, toe: TOEOUT, knee: 'out', hand: HZ(34, 118, 6), elb: 'down' };
-    const bot = Object.assign({ root: [-12, 42, -28] }, TP(25), { foot: feet, toe: { r: [1, 0, -0.5], l: [0.3, 1, 0.3] }, knee: { r: 'out', l: 'fwd' }, hand: { r: [34, 82, -32], l: [34, 82, -20] }, elb: 'down' });
-    def('cossack', { poses: [top, bot], names: ['Jambes très écartées', 'Assis sur une jambe, l\'autre tendue'], views: ['front', 'front3q', 'side'] });
+    const feet = { r: [0, L.ANK, -55], l: [0, L.ANK, 55] };
+    const hands = k => pair(k, SHH - 14, 26, 5);
+    const top = (() => { const k = { root: [-2, 85, 0], up: [0, 1, 0], fwd: [1, 0, 0], foot: feet, toe: 'flat', knee: 'out', elb: 'down' }; k.hand = hands(k); return k; })();
+    const down = sd => { const k = Object.assign({ root: [-8, 40, 36 * sd] }, TP(22), { foot: feet, elb: 'down' }); const bent = { knee: 'out', toe: 'flat' }, str = { knee: [0.1, 1, 0], toe: 'up' };
+      const R = sd < 0 ? bent : str, Lf = sd < 0 ? str : bent; k.knee = { r: R.knee, l: Lf.knee }; k.toe = { r: R.toe, l: Lf.toe }; k.hand = hands(k); return k; };
+    def('cossack', { poses: [top, down(-1), top, down(1)], names: ['Debout, pieds très écartés', 'Assis sur la jambe droite, la gauche tendue', 'On remonte au centre', 'Puis assis sur la jambe gauche'], views: ['front', 'front3q', 'back3q'], relHands: true });
   })();
   (() => {
-    const top = { root: [-2, 95, 0], up: [0, 1, 0], fwd: [1, 0, 0], foot: { r: [2, L.ANK, -9], l: [56, 52, 10] }, toe: { r: [1, 0, 0], l: 'up' }, hand: HZ(52, 138, 15), elb: 'down' };
-    const bot = Object.assign(fromShoulders([13, 71, -3], TP(45)), { foot: { r: [2, L.ANK, -9], l: [66, 40, 10] }, toe: { r: [1, 0, 0], l: 'up' }, hand: HZ(66, 72, 15), elb: 'down', knee: 'fwd' });
+    /* la jambe libre reste tendue devant (cible un peu au-delà de sa longueur), rotule vers le haut */
+    const top = { root: [-2, 95, 0], up: [0, 1, 0], fwd: [1, 0, 0], foot: { r: [2, L.ANK, -9], l: [78, 47, 10] }, toe: { r: 'flat', l: 'up' }, hand: HZ(52, 138, 15), elb: 'down' };
+    const bot = Object.assign(fromShoulders([13, 71, -3], TP(45)), { foot: { r: [2, L.ANK, -9], l: [71, 38, 10] }, toe: { r: 'flat', l: 'up' }, hand: HZ(66, 72, 15), elb: 'down', knee: 'fwd' });
     def('pistol', { poses: [top, bot], names: ['Debout sur une jambe, l\'autre devant', 'Assis sur le talon, jambe libre tendue'], views: ['side', 'front3q', 'front'] });
     const tA = Object.assign({}, top, { hand: { r: [30, 110, -40], l: [52, 138, 15] } }), bA = Object.assign({}, bot, { hand: { r: [30, 70, -40], l: [66, 72, 15] } });
     def('pistolAssist', { poses: [tA, bA], names: ['Une main sur un appui', 'Descente en t\'aidant le moins possible'], env: [E.pole(30, -44, 160)], views: ['side', 'front3q', 'front'] });
@@ -4029,29 +4266,49 @@ const Mannequin = (() => {
     const bot = Object.assign(fromShoulders([10, 82, -2], TP(35)), { foot: { r: [2, L.ANK, -9], l: [-48, 24, 9] }, knee: { r: 'fwd', l: 'down' }, toe: { r: [1, 0, 0], l: 'point' }, hand: { r: [62, 82, -15], l: [-46, 28, 14] }, elb: { r: 'down', l: 'back' } });
     def('shrimp', { poses: [top, bot], names: ['Debout, pied tenu derrière toi', 'Genou arrière qui frôle le sol'], views: ['side', 'front3q', 'back3q'] });
   })();
+  /* dragon squat: appui sur la jambe droite; la jambe gauche passe DERRIÈRE la jambe d'appui et s'allonge, presque tendue,
+     de l'autre côté, au ras du sol. Le buste penche en avant et vers la gauche pour l'équilibre, bras écartés. */
   (() => {
-    const top = { root: [-2, 95, 0], up: [0, 1, 0], fwd: [1, 0, 0], foot: { r: [2, L.ANK, -6], l: [-20, 40, -40] }, knee: { r: 'fwd', l: 'down' }, toe: { r: [1, 0, 0], l: [0, 0, -1] }, hand: { r: [30, 130, -45], l: [30, 130, 45] }, elb: 'down' };
-    const bot = Object.assign(fromShoulders([6, 82, 0], TP(30)), { foot: { r: [2, L.ANK, -6], l: [-34, 14, -55] }, knee: { r: 'fwd', l: 'down' }, toe: { r: [1, 0, 0], l: [0, 0, -1] }, hand: { r: [36, 88, -45], l: [36, 88, 45] }, elb: 'down' });
-    def('dragonSquat', { poses: [top, bot], names: ['Jambe libre derrière la jambe d\'appui', 'Descente, dos droit'], views: ['front3q', 'side', 'front'] });
+    const stand = [0, L.ANK, -6];
+    const top = { root: [-2, 95, 0], up: [0, 1, 0], fwd: [1, 0, 0], foot: { r: stand, l: [-26, 42, -24] }, knee: { r: 'fwd', l: 'down' }, toe: { r: 'flat', l: 'point' }, hand: { r: [8, 128, -70], l: [8, 128, 70] }, elb: 'down' };
+    const mid = Object.assign({ root: [-6, 72, 2] }, UF([0.3, 0.92, 0.1], [1, -0.3, 0]), { foot: { r: stand, l: [-22, 22, -50] }, knee: { r: 'fwd', l: [0.6, 0.5, 0] }, toe: { r: 'flat', l: 20 }, hand: { r: [4, 104, -74], l: [40, 96, 50] }, elb: 'down' });
+    const bot = Object.assign({ root: [-10, 47, 4] }, UF([0.55, 0.8, 0.2], [1, -0.4, 0]), { foot: { r: stand, l: [-16, 10, -76] }, knee: { r: 'fwd', l: [0.6, 0.6, 0] }, toe: { r: 'flat', l: 0 }, hand: { r: [-2, 66, -72], l: [56, 64, 22] }, elb: 'down' });
+    def('dragonSquat', { poses: [top, mid, bot], names: ['Debout sur la jambe droite, la gauche croisée derrière', 'La jambe gauche glisse derrière et s\'allonge', 'En bas : jambe libre tendue au ras du sol, buste penché'], views: ['front', 'front3q', 'side'] });
+  })();
+  /* Nordic curl: les genoux restent posés au sol, les chevilles bloquées; le corps (cuisses + tronc) bascule d'un bloc vers l'avant */
+  (() => {
+    const knee = [0, 6, 0];
+    const at = (th, hands) => { const fr = TP(th), k = Object.assign({ root: add(knee, mul(fr.up, L.TH + 2)) }, fr, { foot: FZ(-43, L.ANK, 10), knee: [0.55, -1, 0], toe: 'point' }); k.hand = hands(k); return k; };
+    const chest = k => pair(k, SHH - 13, 22, 4);
+    const a = Object.assign(at(0, chest), { elb: 'tuck' });
+    const b = Object.assign(at(42, chest), { elb: 'tuck' });
+    const c = Object.assign(at(70, () => HZ(100, 2, 22)), { elb: 'push', head: -10 });
+    def('nordic', { poses: [a, b, c], names: ['À genoux, corps droit, chevilles bloquées', 'Descente lente, genoux au sol, hanches tendues', 'En bas, les mains amortissent'], env: [E.anchor(-48, 17, 25)], views: ['side', 'front3q', 'back3q'], relHands: true });
   })();
   (() => {
-    const chest = k => ({ r: bodyPt(k, SHH - 14, 12, 4), l: bodyPt(k, SHH - 14, 12, -4) });
-    const a = { root: [0, 52, 0], up: [0, 1, 0], fwd: [1, 0, 0], foot: FZ(-46, 10, 10), knee: 'fwd', toe: [-1, -0.2, 0], elb: 'tuck' }; a.hand = chest(a);
-    const b = Object.assign({ root: [43, 28.5, 0] }, UF([Math.cos(30 * D2R), Math.sin(30 * D2R), 0], PRONE), { foot: FZ(-46, 10, 10), knee: 'fwd', toe: [-1, -0.2, 0], hand: HZ(100, 22, 18), elb: 'push' });
-    def('nordic', { poses: [a, b], names: ['À genoux, corps droit, chevilles bloquées', 'Le corps descend lentement, droit'], env: [E.anchor(-52, 16, 25)], views: ['side', 'front3q'] });
-  })();
-  (() => {
-    const flat = { root: [-7, 11, 0], up: [1, 0, 0], fwd: [0, 1, 0], foot: FZ(-48, L.ANK, 12), toe: [-1, 0, 0], knee: 'fwd', hand: HZ(-4, 3, 22), elb: 'back' };
-    const upP = (() => { const Sc = [40, 11, 0], pel = add(Sc, mul(norm([-45, 31, 0]), SHH)); return Object.assign({ root: pel }, UF(sub(Sc, pel), [0.5, 1, 0]), { foot: FZ(-48, L.ANK, 12), toe: [-1, 0, 0], knee: 'fwd', hand: HZ(-4, 3, 22), elb: 'back' }); })();
+    /* pont fessier: allongé sur le dos (tête vers +x), pieds à plat près des fesses, bras posés au sol le long du corps */
+    const flat = { root: [-7, 11, 0], up: [1, 0, 0], fwd: [0, 1, 0], foot: FZ(-48, L.ANK, 12), toe: 'flat', knee: 'fwd', hand: HZ(-15, 3, 24), elb: 'out', grip: [-1, 0, 0] };
+    const upP = (() => { const Sc = [40, 11, 0], pel = add(Sc, mul(norm([-45, 31, 0]), SHH)); return Object.assign({ root: pel }, UF(sub(Sc, pel), [0.5, 1, 0]), { foot: FZ(-48, L.ANK, 12), toe: 'flat', knee: 'fwd', hand: HZ(-15, 3, 24), elb: 'out', grip: [-1, 0, 0] }); })();
     def('bridge', { poses: [flat, upP], names: ['Sur le dos, pieds à plat', 'Bassin en haut, fessiers serrés'], views: ['side', 'front3q', 'back3q'] });
-    const f1L = Object.assign({}, flat, { foot: { r: [-48, L.ANK, -12], l: [-55, 90, 10] }, toe: { r: [-1, 0, 0], l: 'point' } });
-    const u1L = Object.assign({}, upP, { foot: { r: [-48, L.ANK, -12], l: [-30, 120, 10] }, toe: { r: [-1, 0, 0], l: 'point' } });
+    const f1L = Object.assign({}, flat, { foot: { r: [-48, L.ANK, -12], l: [-55, 90, 10] }, toe: { r: 'flat', l: 'point' } });
+    const u1L = Object.assign({}, upP, { foot: { r: [-48, L.ANK, -12], l: [-30, 120, 10] }, toe: { r: 'flat', l: 'point' } });
     def('bridge1', { poses: [f1L, u1L], names: ['Une jambe tendue vers le haut', 'Bassin en haut, jambe toujours tendue'], views: ['side', 'front3q', 'back3q'] });
   })();
+  /* mollets: l'avant du pied posé sur le bord d'une marche, le talon dans le vide; les mains contre le mur pour l'équilibre.
+     Le bout du pied reste au même endroit: seule la cheville monte et descend. */
   (() => {
-    const mk = (h, foot2) => { const k = { root: [-2, 95 + h, 0], up: [0, 1, 0], fwd: [1, 0, 0], foot: { r: [2, L.ANK + h, -10], l: foot2 || [2, L.ANK + h, 10] }, toe: h ? { r: 'down', l: foot2 ? 'point' : 'down' } : (foot2 ? { r: undefined, l: 'point' } : undefined), knee: 'fwd' }; k.hand = armsDown(k, 4); return k; };
-    def('calf', { poses: [mk(0), mk(8.5)], names: ['Talons au sol', 'Sur la pointe des pieds'], views: ['side', 'front3q', 'back3q'] });
-    def('calf1', { poses: [mk(0, [-30, 45, 10]), mk(8.5, [-30, 53, 10])], names: ['Une jambe, talon au sol', 'Sur la pointe du pied'], views: ['side', 'front3q', 'back3q'] });
+    const STEP = 14, tipX = 10;
+    const ankleFor = b => { const c = Math.cos(b * D2R), s = Math.sin(b * D2R), f = [c, -s], n = [-s, -c]; return [tipX - f[0] * 15 - n[0] * 5, STEP + 3 - f[1] * 15 - n[1] * 5]; };
+    const mk = (b, one) => {
+      const a = ankleFor(b), A = z => [a[0], a[1], z];
+      const k = { root: [a[0], a[1] + LEG + 1.5, 0], up: [0, 1, 0], fwd: [1, 0, 0], knee: 'fwd', elb: 'down', hand: HZ(44, 138 + (a[1] - 17) * 0.6, 20), grip: [0.15, 1, 0] };
+      k.foot = one ? { r: A(-9), l: [a[0] - 24, a[1] + 30, 8] } : { r: A(-10), l: A(10) };
+      k.toe = one ? { r: b, l: 'point' } : b; k.knee = one ? { r: 'fwd', l: 'down' } : 'fwd';
+      return k;
+    };
+    const env = [E.box(-6, 34, STEP, -30, 30), E.wall(48)];
+    def('calf', { poses: [mk(-20), mk(45)], names: ['Talons sous le bord de la marche', 'Monte le plus haut possible sur la pointe des pieds'], env, views: ['side', 'front3q', 'back3q'] });
+    def('calf1', { poses: [mk(-20, true), mk(45, true)], names: ['Sur une jambe, talon sous le bord de la marche', 'Monte sur la pointe du pied, l\'autre pied derrière'], env, views: ['side', 'back3q', 'front3q'] });
   })();
 
   /* ===== abdos ===== */
@@ -4093,21 +4350,24 @@ const Mannequin = (() => {
 
   /* ===== équilibres et skills ===== */
   (() => {
-    const hs = (x, sway, wall) => ({ root: [x, 105, 0], up: [0, -1, 0], fwd: [1, 0, 0], hand: HZ(x, 2, 17), elb: [0.5, 0, -0.8], foot: FZ(x - (wall ? 8 : 0) + sway, 193, 4), toe: 'point' });
-    def('handWall', { poses: [hs(0, 0, true), hs(0, -2, true)], names: ['Dos au mur, corps droit', 'Pousse le sol, épaules hautes'], env: [E.wall(-22)], views: ['side', 'front3q', 'front'] });
-    def('handFree', { poses: [hs(0, 0), hs(0, 4)], names: ['Corps aligné', 'Petites corrections avec les doigts'], views: ['side', 'front3q', 'front'] });
-    const lunge = { root: [10, 92, 0], up: [0, 1, 0], fwd: [1, 0, 0], foot: { r: [34, L.ANK, -9], l: [-24, L.ANK + 4, 9] }, toe: { r: [1, 0, 0], l: [1, -0.4, 0] }, hand: HZ(22, 196, 14), elb: 'out', knee: 'fwd' };
-    const kick = { root: [80, 104, 0], up: norm([0.05, -1, 0]), fwd: [1, 0, 0], hand: HZ(86, 2, 17), elb: [0.5, 0, -0.8], foot: { r: [52, 44, -9], l: [62, 186, 9] }, toe: 'point', knee: { r: 'back', l: 'fwd' } };
-    const top = { root: [88, 105, 0], up: [0, -1, 0], fwd: [1, 0, 0], hand: HZ(86, 2, 17), elb: [0.5, 0, -0.8], foot: FZ(102, 191, 4), toe: 'point' };
-    def('kickup', { poses: [lunge, kick, top], names: ['Fente, bras tendus', 'Mains au sol, une jambe lance', 'Pieds contre le mur'], env: [E.wall(116)], views: ['side', 'front3q'] });
-    const ww1 = Object.assign(line([-14, 14, 0], [113, 60, 0], PRONE), { hand: HZ(113, 2, 20), foot: FZ(-14, 14, 8), toe: [-0.3, -1, 0] });
-    const wwK = (A, H) => Object.assign(line(A, tri(A, H, BODY, ARM, 1), PRONE), { hand: HZ(H[0], 2, 20), foot: FZ(A[0], A[1], 8), toe: [-1, 0, 0] });
-    def('wallWalk', { poses: [ww1, wwK([-16, 92, 0], [62, 2, 0]), wwK([-16, 170, 0], [18, 2, 0])], names: ['Pieds contre le mur', 'Les pieds montent, les mains reculent', 'Presque à la verticale'], env: [E.wall(-24)], views: ['side', 'front3q'] });
-    const u45 = norm([0.707, -0.707, 0]);
-    const p2 = { root: sub([8, 48, 0], mul(u45, SHH)), up: u45, fwd: norm([0.707, 0.707, 0]), hand: HZ(0, 2, 18), elb: 'push', toe: 'point' };
-    p2.foot = FZ(p2.root[0] - 0.707 * LEG, p2.root[1] + 0.707 * LEG, 4);
-    const p3 = Object.assign(fromShoulders([12, 34, 0], TP(90)), { hand: HZ(0, 2, 18), elb: 'push', foot: FZ(-123, 36, 4), toe: 'point' });
-    def('p90', { poses: [hs(0, 0), p2, p3], names: ['Poirier', 'Le corps s\'incline, coudes qui plient', 'Corps horizontal, coudes à 90°'], views: ['side', 'front3q'] });
+    /* poirier: épaules au-dessus des mains, poitrine vers -x; contre le mur, le dos et les talons sont côté mur (+x) */
+    const hs = (dx, sway) => hsLine([0, 57, 0], [dx + sway, 57 + Math.sqrt(BODY * BODY - (dx + sway) * (dx + sway)), 0]);
+    def('handWall', { poses: [hs(9, 0), hs(9, -1.5)], names: ['Dos au mur, talons contre le mur, corps droit', 'Pousse le sol, épaules vers les oreilles'], env: [E.wall(17)], views: ['side', 'front3q', 'front'] });
+    def('handFree', { poses: [hs(0, -2), hs(0, 2.5)], names: ['Corps aligné, épaules ouvertes', 'Petites corrections avec les doigts'], views: ['side', 'front3q', 'front'] });
+    /* kick-up face au mur: on bascule vers l'avant (le corps tourne autour de l'axe des épaules, sans se vriller) */
+    const lunge = { root: [10, 92, 0], up: [0, 1, 0], fwd: [1, 0, 0], foot: { r: [34, L.ANK, -9], l: [-24, L.ANK + 4, 9] }, toe: { r: 'flat', l: 'tip' }, hand: HZ(22, 196, 14), elb: 'out', knee: 'fwd' };
+    const reach = Object.assign(fromShoulders([72, 50, 0], TP(118)), { hand: HZ(86, 2, 17), elb: 'hs', foot: { r: [34, L.ANK, -9], l: [-28, 132, 9] }, toe: { r: 'flat', l: 'point' }, knee: 'fwd', head: -20 });
+    const kick = Object.assign(fromShoulders([83, 56, 0], TP(163)), { hand: HZ(86, 2, 17), elb: 'hs', foot: { r: [28, 70, -9], l: [96, 186, 9] }, toe: 'point', knee: 'fwd', head: -18 });
+    const top = hsLine([86, 57, 0], [95, 57 + Math.sqrt(BODY * BODY - 81), 0]);
+    def('kickup', { poses: [lunge, reach, kick, top], names: ['Fente face au mur, bras tendus', 'Mains au sol, la jambe arrière lance', 'L\'autre jambe suit', 'Talons contre le mur, corps droit'], env: [E.wall(103)], views: ['side', 'front3q', 'back3q'], relHands: true });
+    /* marche au mur: ventre face au mur, les pieds montent le mur pendant que les mains reculent vers lui */
+    const ww1 = Object.assign(line([-14, 14, 0], [113, 60, 0], PRONE), { hand: HZ(113, 2, 20), foot: FZ(-14, 14, 8), toe: 0 });
+    const wwK = (A, H) => Object.assign(line(A, tri(A, H, BODY, ARM, 1), PRONE), { hand: HZ(H[0], 2, 20), foot: FZ(A[0], A[1], 8), toe: 10 });
+    def('wallWalk', { poses: [ww1, wwK([-16, 92, 0], [62, 2, 0]), wwK([-16, 170, 0], [18, 2, 0])], names: ['Pieds contre le mur, position de pompe', 'Les pieds montent, les mains reculent', 'Presque à la verticale, ventre face au mur'], env: [E.wall(-24)], views: ['side', 'front3q', 'back3q'] });
+    /* pompe à 90°: depuis le poirier, les jambes descendent côté ventre pendant que les épaules avancent */
+    const p2 = Object.assign(fromShoulders([7, 46, 0], TP(135)), { hand: HZ(0, 2, 18), elb: 'push', toe: 'point', head: -14 }); p2.foot = pair(p2, -LEG - 1, 0, 4);
+    const p3 = Object.assign(fromShoulders([14, 34, 0], TP(90)), { hand: HZ(0, 2, 18), elb: 'push', toe: 'point', head: -8 }); p3.foot = pair(p3, -LEG - 1, 0, 4);
+    def('p90', { poses: [hs(0, 0), p2, p3], names: ['Poirier', 'Le corps s\'incline, les coudes plient', 'Corps horizontal, coudes à 90°'], views: ['side', 'front3q', 'back3q'] });
   })();
   (() => {
     const pole = [E.pole(-22, 0)];
@@ -4173,26 +4433,28 @@ const Mannequin = (() => {
     if (s === 0 && v < 0.12) return '';
     return ell(M2, Math.max(half, w * 0.6), w * (0.35 + 0.65 * v), ang, mcls(s), s ? 0.55 + 0.45 * v : 0.4 + 0.6 * v);
   }
-  function armSvg(C, A, hl) {
+  function armParts(C, A, hl) {
     const pole = A.v, ant = mul(pole, -1);
     const s2 = C.P(A.S), j2 = C.P(A.J), w2 = C.P(A.W), t2 = C.P(A.T), ds = stM(hl, 'delts');
-    let s = `<path class="mq-sk" d="${circ(s2, 7.2)}"/><path class="${mcls(ds)}" d="${circ(s2, 6.1)}"${ds ? '' : ' opacity="0.7"'}/>`;
-    s += `<path class="mq-sk" d="${capP(s2, j2, 6.4, 4.8)}"/><path class="mq-sk" d="${capP(j2, w2, 4.8, 3.4)}"/><path class="mq-sk" d="${circ(j2, 4.9)}"/><path class="mq-sk" d="${capP(w2, t2, 3.5, 2.9)}"/>`;
-    s += limbMuscle(C, A.S, A.J, 6.4, 4.8, 0.18, 0.84, ant, 3.4, 'biceps', hl);
-    s += limbMuscle(C, A.S, A.J, 6.4, 4.8, 0.12, 0.86, pole, 3.6, 'triceps', hl);
-    s += limbMuscle(C, A.J, A.W, 4.8, 3.4, 0.06, 0.72, ant, 3, 'forearms', hl);
-    s += limbMuscle(C, A.J, A.W, 4.8, 3.4, 0.06, 0.66, pole, 2.6, 'forearms', hl);
-    return s;
+    let upper = `<path class="mq-sk" d="${circ(s2, 7.2)}"/><path class="${mcls(ds)}" d="${circ(s2, 6.1)}"${ds ? '' : ' opacity="0.7"'}/>`;
+    upper += `<path class="mq-sk" d="${capP(s2, j2, 6.4, 4.8)}"/>`;
+    upper += limbMuscle(C, A.S, A.J, 6.4, 4.8, 0.18, 0.84, ant, 3.4, 'biceps', hl);
+    upper += limbMuscle(C, A.S, A.J, 6.4, 4.8, 0.12, 0.86, pole, 3.6, 'triceps', hl);
+    let lower = `<path class="mq-sk" d="${capP(j2, w2, 4.8, 3.4)}"/><path class="mq-sk" d="${circ(j2, 4.9)}"/><path class="mq-sk" d="${capP(w2, t2, 3.5, 2.9)}"/>`;
+    lower += limbMuscle(C, A.J, A.W, 4.8, 3.4, 0.06, 0.72, ant, 3, 'forearms', hl);
+    lower += limbMuscle(C, A.J, A.W, 4.8, 3.4, 0.06, 0.66, pole, 2.6, 'forearms', hl);
+    return { upper, lower };
   }
-  function legSvg(C, Lg, hl) {
+  function legParts(C, Lg, hl) {
     const pole = Lg.v, back = mul(pole, -1);
     const h2 = C.P(Lg.H), k2 = C.P(Lg.J), a2 = C.P(Lg.A), he2 = C.P(Lg.heel), ti2 = C.P(Lg.tip);
-    let s = `<path class="mq-sk" d="${capP(h2, k2, 9.6, 6)}"/><path class="mq-sk" d="${capP(k2, a2, 6, 3.8)}"/><path class="mq-sk" d="${circ(k2, 6.2)}"/>`;
-    s += `<path class="mq-sk" d="${capP(he2, ti2, 3.9, 2.9)}"/><path class="mq-sk" d="${circ(a2, 4)}"/>`;
-    s += limbMuscle(C, Lg.H, Lg.J, 9.6, 6, 0.1, 0.88, pole, 5.2, 'quads', hl);
-    s += limbMuscle(C, Lg.H, Lg.J, 9.6, 6, 0.14, 0.86, back, 4.6, 'hams', hl);
-    s += limbMuscle(C, Lg.J, Lg.A, 6, 3.8, 0.08, 0.62, back, 4.2, 'calves', hl);
-    return s;
+    let thigh = `<path class="mq-sk" d="${capP(h2, k2, 9.6, 6)}"/>`;
+    thigh += limbMuscle(C, Lg.H, Lg.J, 9.6, 6, 0.1, 0.88, pole, 5.2, 'quads', hl);
+    thigh += limbMuscle(C, Lg.H, Lg.J, 9.6, 6, 0.14, 0.86, back, 4.6, 'hams', hl);
+    let shank = `<path class="mq-sk" d="${capP(k2, a2, 6, 3.8)}"/><path class="mq-sk" d="${circ(k2, 6.2)}"/>`;
+    shank += `<path class="mq-sk" d="${capP(he2, ti2, 3.9, 2.9)}"/><path class="mq-sk" d="${circ(a2, 4)}"/>`;
+    shank += limbMuscle(C, Lg.J, Lg.A, 6, 3.8, 0.08, 0.62, back, 4.2, 'calves', hl);
+    return { thigh, shank };
   }
   /* tronc: sections elliptiques du bassin aux épaules (t, demi-largeur, demi-profondeur) */
   const SECT = [[-0.16, 12.5, 10.5], [0, 13, 10], [0.3, 11.6, 8.6], [0.55, 13, 9.6], [0.8, 15.6, 10.2], [0.94, 16.4, 8.6], [1.0, 11, 6.5]];
@@ -4272,28 +4534,31 @@ const Mannequin = (() => {
   function setRange(key) {
     if (xRange[key]) return xRange[key];
     const set = SETS[key]; let x0 = 1e9, x1 = -1e9;
-    for (let i = 0; i <= 8; i++) { const G = solve(sample(set.poses, i / 8)); [G.pel, G.headC, G.legs.r.tip, G.legs.l.tip, G.arms.r.T, G.arms.l.T, G.legs.r.heel].forEach(p => { x0 = Math.min(x0, p[0]); x1 = Math.max(x1, p[0]); }); }
+    for (let i = 0; i <= 8; i++) { const G = solve(sample(set.poses, i / 8, set)); [G.pel, G.headC, G.legs.r.tip, G.legs.l.tip, G.arms.r.T, G.arms.l.T, G.legs.r.heel].forEach(p => { x0 = Math.min(x0, p[0]); x1 = Math.max(x1, p[0]); }); }
     return (xRange[key] = { x0: x0 - 25, x1: x1 + 25 });
   }
   function frame(key, s, o) {
     const set = SETS[key]; if (!set) return '';
     o = o || {};
-    const G = solve(sample(set.poses, s));
+    const G = solve(sample(set.poses, s, set));
     if (o.skeleton) return skeleton(key, G);
     const C = cam(viewPhi(o.view != null ? o.view : set.views[0])), hl = o.hl || null;
     let out = set.floor ? floorSvg(C, set.env, setRange(key)) : '';
     const sh = C.P([G.pel[0], 0, G.pel[2]]);
     if (set.floor) out += `<ellipse class="mq-sh" cx="${f1(sh[0])}" cy="${f1(sh[1])}" rx="46" ry="5"/>`;
     const parts = envParts(C, set.env);
+    /* chaque segment (bras, avant-bras, cuisse, jambe, tronc, tête) a sa profondeur: on peint du plus loin au plus proche.
+       À profondeur presque égale, les bras passent devant le tronc et les cuisses derrière le bassin. */
     const dep = (...ps) => ps.reduce((a, p) => a + C.P(p)[2], 0) / ps.length;
     const tD = dep(G.pel, G.neck);
-    const limb = (svg, d) => ({ d, svg: d > tD + 3 ? `<g class="mq-far">${svg}</g>` : svg });
-    parts.push(limb(armSvg(C, G.arms.r, hl), dep(G.arms.r.S, G.arms.r.J, G.arms.r.W)));
-    parts.push(limb(armSvg(C, G.arms.l, hl), dep(G.arms.l.S, G.arms.l.J, G.arms.l.W)));
-    parts.push(limb(legSvg(C, G.legs.r, hl), dep(G.legs.r.H, G.legs.r.J, G.legs.r.A)));
-    parts.push(limb(legSvg(C, G.legs.l, hl), dep(G.legs.l.H, G.legs.l.J, G.legs.l.A)));
-    const headBehind = dot(G.face, C.to) < -0.3 && dot(G.hUp, C.to) < 0;
-    parts.push({ d: tD, svg: headBehind ? headSvg(C, G) + torsoSvg(C, G, hl) : torsoSvg(C, G, hl) + headSvg(C, G) });
+    const seg = (svg, d, bias) => ({ d: d + bias, svg: d > tD + 6 ? `<g class="mq-far">${svg}</g>` : svg });
+    ['r', 'l'].forEach(sd => {
+      const A = G.arms[sd], Lg = G.legs[sd], a = armParts(C, A, hl), g = legParts(C, Lg, hl);
+      parts.push(seg(a.upper, dep(A.S, A.J), -4), seg(a.lower, dep(A.J, A.W, A.T), -3));
+      parts.push(seg(g.thigh, dep(Lg.H, Lg.J), 3), seg(g.shank, dep(Lg.J, Lg.A, Lg.tip), 0));
+    });
+    parts.push({ d: tD, svg: torsoSvg(C, G, hl) });
+    parts.push({ d: dep(G.headC) - 3, svg: headSvg(C, G) });
     parts.sort((a, c) => c.d - a.d);
     return out + parts.map(p => p.svg).join('');
   }
@@ -4306,7 +4571,7 @@ const Mannequin = (() => {
     const C = cam(phi); let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
     const acc = (p, r) => { const q = C.P(p); x0 = Math.min(x0, q[0] - r); x1 = Math.max(x1, q[0] + r); y0 = Math.min(y0, q[1] - r); y1 = Math.max(y1, q[1] + r); };
     for (let i = 0; i <= 12; i++) {
-      const G = solve(sample(set.poses, i / 12));
+      const G = solve(sample(set.poses, i / 12, set));
       acc(G.headC, 13); acc(G.pel, 14); acc(G.neck, 12);
       ['r', 'l'].forEach(sd => { const A = G.arms[sd], Lg = G.legs[sd]; [A.S, A.J, A.W, A.T].forEach(p => acc(p, 7)); [Lg.H, Lg.J, Lg.A, Lg.heel, Lg.tip].forEach(p => acc(p, 9)); });
     }
@@ -4526,7 +4791,7 @@ function renderSheet() {
 }
 const INFO = {
   train: ['Ton rang va de 1 à 10 : c\'est la moyenne de tous tes exercices.', 'Chaque exercice a son propre rang, d\'après ton record.', 'L\'objectif affiché est le record du rang suivant.', 'Les exercices grisés s\'ouvrent plus tard.'],
-  family: ['Voici les exercices de base de ton niveau.', 'L\'objectif indique le record du rang suivant.', '« Voir les niveaux au-dessus » montre la suite.'],
+  family: ['Les exercices sont rangés par progression : dans chaque groupe, du plus facile au plus dur.', 'L\'objectif indique le record du rang suivant.', 'Le cadenas montre la prochaine étape du groupe et le niveau qui l\'ouvre. « Voir toutes les étapes au-dessus » montre toute la suite.', 'Sur la fiche d\'un exercice : ce qui est plus facile, plus dur, ce qui le complète et quand il devient peu utile.'],
   exercise: ['La caméra compte tes répétitions pendant la série.', 'Douleur vive, inhabituelle ou croissante : arrête cet exercice.', 'La fatigue des muscles ne compte pas.', 'Une série classée par exercice toutes les 48 h.'],
   ranked: ['Ton rang est la moyenne de tous tes exercices. Chaque exercice a son rang d\'après ton record, comme au jeu : plus ton record est haut, plus l\'ELO est haut.', 'Chaque exercice mesuré de poussée, tirage, jambes et abdos compte autant dans la moyenne. Les exercices jamais mesurés ne comptent pas comme des zéros.', 'Le rang apparaît dès les premières performances. Il reste partiel tant que tu n’as pas mesuré toutes les familles.', 'Les skills (handstand, planche, front lever…) ne comptent pas dans la moyenne : chaque skill maîtrisé du dictionnaire ajoute un bonus.', 'Une série classée par exercice toutes les 48 h. Si tu arrêtes de t\'entraîner, ton ELO baisse lentement.', 'Il n\'y a aucun test à passer : le rang monte tout seul quand ta moyenne monte.'],
   trophies: ['Cette page montre ton niveau sur chaque exercice. Ton rang est la moyenne de tous.', 'Les skills conseillés dépendent de ton niveau actuel : touche-en un pour apprendre à le maîtriser, puis ajoute-le à ta séance.', 'Chaque skill maîtrisé reste dans le dictionnaire et donne un bonus à ton rang.']
@@ -4556,10 +4821,10 @@ function skillCardsHtml() {
     const state = s ? s.state : 'done', txt = s ? lab[s.state] + (s.missing.length ? ' · il te manque ' + s.missing.map(m => m.name).join(', ') : '') : 'Maîtrisé';
     return `<li class="${state}"><button type="button" class="skc" data-act="skill-open" data-id="${id}" data-back="fam"><b>${esc(Coach.SKILLS[id].label)}</b><span class="st">${esc(txt)}</span><span class="pr">${done}/${ent.length} étapes du dictionnaire</span></button></li>`;
   }).join('');
-  return `<div class="psec"><h2>Les skills</h2><p class="muted sub2">Touche un skill : la méthode pour l'apprendre étape par étape, puis ajoute-le à ta semaine.</p><ul class="skcards" id="skill-cards">${cards}</ul><h2 style="margin-top:14px">Les exercices de skill</h2></div>`;
+  return `<div class="psec"><p class="muted sub2">Chaque skill regroupe toutes ses étapes (tuck, advanced tuck…). Touche un skill : les étapes pour le débloquer, la technique à pratiquer, puis ajoute-le à ta semaine.</p><ul class="skcards" id="skill-cards">${cards}</ul></div>`;
 }
 function familyView() {
-  const f = ui.fam, fi = Troph.familyItems(S, f, S.prefs.showLocked);
+  const f = ui.fam;
   const card = (k, locked) => {
     const it = TI[k], tp = locked ? null : pendingTrophy(k);
     let tg = '';
@@ -4569,11 +4834,12 @@ function familyView() {
     return `<button class="ex${locked ? ' locked' : ''}" type="button" data-act="open-ex" data-key="${esc(k)}" id="ex-${esc(k.replace(/[^a-z0-9]+/gi, '-'))}">
       <span class="thumb">${thumb(it)}</span><span><div class="nm">${esc(it.name)} ${locked ? '' : rkTag(k)}</div><div class="tg">${tg}</div></span>${icon('next', 'ch')}</button>`;
   };
-  return `<section><div class="sub"><button class="ibtn" type="button" id="btn-back" data-act="back" aria-label="Retour">${icon('back')}</button><h1>${FAM[f].label}</h1></div>
-    ${f === 'skills' ? skillCardsHtml() : ''}
-    <div class="list">${fi.open.map(k => card(k, false)).join('')}</div>
-    ${fi.locked.length ? `<div class="list" style="margin-top:12px">${fi.locked.map(k => card(k, true)).join('')}</div>` : ''}
-    <div style="margin-top:14px"><button class="sw" type="button" role="switch" id="sw-locked" data-act="toggle-locked" aria-checked="${S.prefs.showLocked ? 'true' : 'false'}"><span class="tr"></span><span>Voir les niveaux au-dessus</span></button></div></section>`;
+  const head = `<div class="sub"><button class="ibtn" type="button" id="btn-back" data-act="back" aria-label="Retour">${icon('back')}</button><h1>${FAM[f].label}</h1>${infoBtn('family')}</div>`;
+  if (f === 'skills') return `<section>${head}${skillCardsHtml()}</section>`;
+  /* une famille = des progressions: chaque groupe va du plus facile au plus dur, avec la prochaine étape à débloquer */
+  const groups = Troph.familyGroups(S, f, S.prefs.showLocked).map(g => `<div class="fgrp"><h2>${esc(g.label)}</h2><div class="list">${g.open.map(k => card(k, false)).join('')}${g.locked.map(k => card(k, true)).join('')}</div></div>`).join('');
+  return `<section>${head}<p class="muted sub2">Dans chaque groupe, du plus facile au plus dur. Le cadenas montre la prochaine étape et le niveau qui l'ouvre.</p>${groups}
+    <div style="margin-top:14px"><button class="sw" type="button" role="switch" id="sw-locked" data-act="toggle-locked" aria-checked="${S.prefs.showLocked ? 'true' : 'false'}"><span class="tr"></span><span>Voir toutes les étapes au-dessus</span></button></div></section>`;
 }
 
 /* ---------- ecran d'un exercice ---------- */
@@ -4601,9 +4867,27 @@ function exerciseView() {
   const sks = skillsOfKey(ui.key);
   const skHtml = sks.length ? `<div class="exsk">${sks.map(s => `<button class="btn" type="button" data-act="skill-open" data-id="${s.id}">Méthode pour apprendre : ${esc(s.label)}</button>`).join('')}</div>` : '';
   return `<section class="stack"><div class="sub"><button class="ibtn" type="button" id="btn-back" data-act="back" aria-label="Retour">${icon('back')}</button><h1>${esc(it.name)}</h1>${infoBtn('exercise')}</div>
-    ${lvlBlock(ui.key)}<div class="stage">${seg}${stage}</div>${chip}${skHtml}${shareHtml}
+    ${lvlBlock(ui.key)}<div class="stage">${seg}${stage}</div>${chip}${skHtml}${shareHtml}${relHtml(ui.key)}
     <ol class="steps">${it.st.map(s => `<li>${esc(s)}</li>`).join('')}</ol>
     <div class="err">${icon('warn')}<div><b>Erreur à éviter</b>${esc(it.er)}</div></div>${kick}</section>`;
+}
+/* où se place un exercice: plus facile, plus dur, ce qui le complète, ce qui cible davantage son muscle principal, quand il devient peu utile */
+function relHtml(key) {
+  const it = TI[key], rel = relOf(key), btn = k => `<button class="link" type="button" data-act="open-ex" data-key="${esc(k)}">${esc(TI[k].name)}</button>`;
+  const rows = [], ok = k => !!TI[k];
+  if (rel.easier.some(ok)) rows.push(`<li><b>Plus facile</b><span>${rel.easier.filter(ok).map(btn).join(' · ')}</span></li>`);
+  if (rel.harder.some(ok)) rows.push(`<li><b>Plus dur</b><span>${rel.harder.filter(ok).map(btn).join(' · ')}</span></li>`);
+  rel.pairs.filter(p => ok(p.key)).slice(0, 3).forEach(p => rows.push(`<li><b>Se complète avec</b><span>${btn(p.key)} : ${esc(p.why)}</span></li>`));
+  const sh = shareOf(key);
+  if (sh.length) {
+    const m = sh[0].m, mine = sh[0].pct; let best = null;
+    Object.keys(MUSCLE_SHARE).forEach(k => { if (k === key || !ok(k) || TI[k].fam !== it.fam) return; const v = MUSCLE_SHARE[k][m] || 0; if (v >= mine + 8 && (!best || v > best.v)) best = { k, v }; });
+    if (best) rows.push(`<li><b>Cible encore plus : ${esc(MUSCLES[m])}</b><span>${btn(best.k)} (${best.v} % du travail)</span></li>`);
+  }
+  const red = rel.redundant, rMax = red ? Coach.observedMax(S, D, red.key) : 0, redOn = red && rMax >= red.n;
+  const rIt = red && TI[red.key], rU = rIt && rIt.hold ? ' s' : '';
+  const redP = red && rIt ? `<p class="${redOn ? 'notice' : 'dim'}" id="ex-redundant">${redOn ? `Pour toi, il est devenu peu utile : ton record en ${esc(rIt.name)} est de ${rMax}${rU} (repère : ${red.n}${rU}). ${esc(red.why)} Le programme ne te le donne plus en séries de travail.` : `Devient peu utile à partir de ${red.n}${rU} en ${esc(rIt.name)}. ${esc(red.why)}`}</p>` : '';
+  return rows.length || red ? `<div class="rel" id="ex-rel"><div class="lab">Où se place cet exercice</div><ul>${rows.join('')}</ul>${redP}</div>` : '';
 }
 function exerciseCta() {
   const lv = Troph.unlockOf(ui.key), locked = lv > Troph.level(S);
@@ -5125,14 +5409,15 @@ function planSheet(s) {
   if (s.type === 'skill') {
     const p = Coach.skillProgram(S, D, s.id); const bases=(Coach.SKILL_READY[s.id] || []).map(([key,need])=>({key,need,have:Coach.observedMax(S,D,key)}));
     const lab = { done: 'Passé', current: 'Ton niveau', next: 'Prochaine', locked: 'Verrouillé' };
-    const stp = p.steps.map(x => `<li class="sk ${x.state}"><button class="link" type="button" data-act="skill-ex" data-key="${esc(x.key)}">${esc(x.name)}</button><span class="st">${lab[x.state]}${x.state === 'locked' ? ' · niveau ' + (x.unlock - 1) : ''}${x.best ? ' · record ' + x.best + (x.hold ? ' s' : ' rép.') : ''}</span></li>`).join('');
+    const firstNext = p.steps.findIndex(x => x.state === 'next');
+    const stp = p.steps.map((x, i) => `<li class="sk ${x.state}"><button class="link" type="button" data-act="skill-ex" data-key="${esc(x.key)}">${esc(x.name)}</button><span class="st">${x.state === 'next' && i > firstNext ? 'Ensuite' : lab[x.state]}${x.state === 'locked' ? ' · niveau ' + (x.unlock - 1) : ''}${x.best ? ' · record ' + x.best + (x.hold ? ' s' : ' rép.') : ''}</span></li>`).join('');
     const sup = p.support.map(x => `<li><button class="link" type="button" data-act="skill-ex" data-key="${esc(x.key)}">${esc(x.name)}</button><span class="st">environ ${x.exp}${x.hold ? ' s' : ' rép.'} pour toi</span></li>`).join('');
     return `<h2 id="sheet-t">Programme : ${esc(p.label)}</h2><p class="muted" style="margin:0 0 8px">${esc(p.tip)}</p>
       ${bases.some(x=>x.have<x.need) ? `<div class="notice">Base pas encore atteinte : ${esc(bases.filter(x => x.have < x.need).map(x => TI[x.key].name).join(', '))}. Ta séance commence par une préparation. Ces repères ne remplacent pas la maîtrise technique.</div>` : '<div class="notice ok">Bases déclarées ou enregistrées. Avance sans brûler les étapes techniques.</div>'}
       <ul class="skill-bases">${bases.map(x=>`<li><b>${esc(TI[x.key].name)}</b><span>${x.have >= x.need ? '✓ ' : ''}${x.have} / ${x.need}${TI[x.key].hold?' s':' rép.'} · ${x.have >= x.need ? 'validé' : 'à travailler'}</span><button type="button" class="link" data-act="skill-mymax" data-key="${esc(x.key)}" data-id="${p.id}">Indiquer mon niveau</button></li>`).join('')}</ul>
       <div class="lab">Les marches, de la plus facile à la plus dure</div><ol class="skl" id="skill-steps">${stp}</ol>
       <p class="hint" id="skill-unlock">${esc(p.unlock)}</p>
-      ${p.tech && p.tech.length ? `<div class="lab" style="margin-top:12px">La technique à pratiquer à chaque séance</div><ul class="techl" id="skill-tech">${p.tech.map(t => `<li><button class="link" type="button" data-act="skill-ex" data-key="${esc(t.key)}">${esc(t.name)}</button><span>${esc(t.text)}</span></li>`).join("")}</ul>` : ""}
+      ${p.tech && p.tech.length ? `<div class="lab" style="margin-top:12px">La technique à pratiquer à chaque séance</div><ul class="techl" id="skill-tech">${p.tech.map(t => `<li><button class="link" type="button" data-act="skill-ex" data-key="${esc(t.key)}">${esc(t.name)}</button><span>${esc(t.text)}${t.adv ? ' Seulement quand tes bases sont validées.' : ''}</span></li>`).join("")}</ul>` : ""}
       ${p.method.length ? `<div class="lab" style="margin-top:12px">La méthode d'apprentissage, étape par étape</div><ol class="lines num" id="skill-method">${p.method.map(t => `<li>${esc(t)}</li>`).join('')}</ol>` : ''}
       ${p.drills.length ? `<div class="lab" style="margin-top:12px">Exercices de progression de chaque séance</div><ul class="skl">${p.drills.map(x => `<li><button class="link" type="button" data-act="skill-ex" data-key="${esc(x.key)}">${esc(x.name)}</button><span class="st">${x.sets} × ${x.n}${x.hold ? ' s' : ''}</span></li>`).join('')}</ul>` : ''}
       <div class="lab" style="margin-top:12px">Les bases à avoir avant de t'y mettre</div><ul class="lines">${p.req.map(t => `<li>${esc(t)}</li>`).join('')}</ul>
