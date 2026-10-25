@@ -1,11 +1,11 @@
 /* Service worker : l'appli marche hors ligne apres la premiere ouverture.
    Page et manifeste: reseau d'abord (toujours la derniere version si on est en ligne), cache en secours.
    Icones: cache d'abord. Bibliotheque d'IA, modele et polices: cache d'abord (gros fichiers, ne changent pas). */
-const CACHE = 'ranked-fc16043aa4';
-const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png'];
+const CACHE = 'ranked-5aa4e32754';
+const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => {
-  e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim()));
+  e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k.startsWith('ranked-') && k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim()));
 });
 const FONT_HOSTS = ['fonts.googleapis.com', 'fonts.gstatic.com', 'cdn.jsdelivr.net', 'storage.googleapis.com'];
 self.addEventListener('fetch', e => {
