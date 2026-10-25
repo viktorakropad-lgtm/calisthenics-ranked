@@ -14,7 +14,7 @@
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>html,body{margin:0;background:#0b0d17}</style>
-<script>window.APP_VERSION = "0.10-de811a";</script>
+<script>window.APP_VERSION = "0.11-0b54d2";</script>
 </head>
 <body>
 <style>
@@ -1120,7 +1120,8 @@ const Core = (() => {
     { cat: 'legs', ex: 'squat_bulgare' }, { cat: 'core', ex: 'releves_de_jambes_tendues_suspendus' },
     { cat: 'skills', ex: 'handstand_libre' }
   ];
-  const ENTRY_CAP = 1399;
+  /* plus de plafond: le départ reflète les vrais maximums déclarés (affichés comme « déclarés, à confirmer ») */
+  const ENTRY_CAP = Infinity;
   function entryResult(inputs) {
     return ENTRY_TESTS.map(t => {
       const ex = EX[t.ex];
@@ -1254,7 +1255,7 @@ const Core = (() => {
     let s = newFreshState(now);
     let r = applyEntry(s, { push: { value: 30 }, pull: { value: 10 }, legs: { value: 20 }, core: { value: 20 }, skills: { value: 20 } }, now);
     eq('entree 30/10/20/20/20: ELO global 1003 (4 familles, les skills donnent un bonus à part)', rnd(r.d.global), 1003);
-    eq('entree: ELO plafonne a 1399', rnd(applyEntry(newFreshState(now), { push: { value: 400 }, pull: { value: 55 }, legs: { value: 140 }, core: { value: 110 }, skills: { value: 600 } }, now).d.global), 1399);
+    eq('entree: pas de plafond, 100 pompes et 20 tractions donnent leur vrai ELO (au-dessus d\'Argent)', entryResult({ push: { value: 100 }, pull: { value: 20 } }).slice(0, 2).every(r => r.elo === r.raw && r.elo > 1399), true);
     att(s, 'pompes_strictes', 70, now + 1000);
     let d = derive(s, now + 2000);
     eq('pompes 70 apres entree 860: +150 = 1010', rnd(d.ex.pompes_strictes.elo), 1010);
@@ -2080,7 +2081,7 @@ const Troph = (() => {
     days: [{ l: '2 jours', v: 2 }, { l: '3 jours', v: 3 }, { l: '4 jours', v: 4 }, { l: '5 jours ou plus', v: 5 }],
     dur: [{ l: '20 minutes', v: 20 }, { l: '40 minutes', v: 40 }, { l: '60 minutes', v: 60 }]
   };
-  const START_CAP = 3;
+  const START_CAP = 10;   // pas de plafond au départ: ton niveau = tes vrais maximums déclarés
   /** niveau le plus haut dont l'ancre est atteinte (1 si aucune ancre atteinte) */
   function levelFromReps(exId, reps) {
     let lv = 1;
@@ -2106,7 +2107,9 @@ const Troph = (() => {
       legs: { value: 0 }, core: { value: 0 }, skills: { value: 0 }
     }, now);
     S.attempts = S.attempts.filter(x=>x.source !== 'entry' || ['pompes_strictes','tractions_strictes'].includes(x.ex));
-    S.earned = rank;
+    /* le rang de départ = le rang de la moyenne de tes deux maximums (le même calcul que le Ranked, pour que tout concorde) */
+    const d0 = Core.derive(S, now);
+    S.earned = d0.rankFromElo || rank;
     S.onboarded = true;
     const g = Q.goals[a.goal] || Q.goals[0], sk = g.id === 'skills' ? (Q.skills[a.skill] || Q.skills[0]).id : null;
     const days = (Q.days[a.days] || Q.days[1]).v, dur = (Q.dur[a.dur] || Q.dur[1]).v;
@@ -2171,7 +2174,9 @@ const Troph = (() => {
     eq('jamais + 5 pompes + 0 traction -> Niveau 1', lv(5, 0).level, 1);
     eq('30 pompes + 12 tractions -> Niveau 2 (ancres Bronze 25 / 8)', lv(30, 12).level, 2);
     eq('50 pompes + 16 tractions -> Niveau 3', [lv(50, 16).raw, lv(50, 16).level, lv(50, 16).capped], [3, 3, false]);
-    eq('100 pompes + 16 tractions: brut 4, plafonne a 3', [lv(100, 16).raw, lv(100, 16).level, lv(100, 16).capped], [4, 3, true]);
+    eq('100 pompes + 16 tractions: niveau 4, sans plafond', [lv(100, 16).raw, lv(100, 16).level, lv(100, 16).capped], [4, 4, false]);
+    (() => { const T = startState({ time: 2, pu: 100, pl: 20, goal: 0, skill: 0, days: 1, dur: 1 }, now), d = Core.derive(T, now);
+      eq('départ 100 pompes + 20 tractions: rang = rang de la moyenne, et la barre vers le rang suivant n\'est pas bloquée à 100', [T.earned === d.rankFromElo, d.points < 100], [true, true]); })();
     eq('100 pompes + 0 traction: on prend le plus bas = 1', lv(100, 0).level, 1);
     eq('70 pompes + 12 tractions -> Niveau 3', lv(70, 12).level, 3);
     let S = startState(ans(30, 12), now);
@@ -3246,7 +3251,7 @@ const Coach = (() => {
     const groups = sorted.slice(0, size);
     if (st.goals.includes('skills') && st.skill && ['shoulders','arms','back'].every(x=>rec[x].ready) && !ss.slice(-2).some(x => groupsOf(x).includes('skill'))) groups.unshift('skill');
     const body = groups.filter(x => x !== 'skill'), known = body.filter(x => rec[x].gap != null).map(x => rec[x].gap);
-    const rested = !body.length ? '' : known.length === body.length ? ' Reposé' + (body.length > 1 ? 's' : '') + ' depuis ' + Math.min.apply(null, known) + ' jours au moins.' : !known.length ? ' Tu ne ' + (body.length > 1 ? 'les' : 'l\'') + 'as pas encore travaillé' + (body.length > 1 ? 's' : '') + '.' : '';
+    const rested = !body.length ? '' : known.length === body.length ? ' Reposé' + (body.length > 1 ? 's' : '') + ' depuis ' + Math.min.apply(null, known) + ' jours au moins.' : !known.length ? ' Tu ne ' + (body.length > 1 ? 'les ' : 'l\'') + 'as pas encore travaillé' + (body.length > 1 ? 's' : '') + '.' : '';
     const nm = joinFr(body.map(x => lc(GROUPS[x].label)));
     return { kind: 'suggested', groups, minutes: st.dur, goals: null, reason: lastTxt + 'Aujourd\'hui : ' + nm + (groups.includes('skill') ? (nm ? ' et ' : '') + 'ton skill' : '') + '.' + rested, notes };
   }
@@ -7707,7 +7712,9 @@ function intakeView() {
   const g = Troph.Q.goals.find(x => x.id === pl.goal);
   return `<section class="intake"><div>${dots}</div>
     <div class="res"><div class="emb">${emblem(S.earned, 230)}</div><div class="t1">Ton niveau : <b>${lv}</b></div><div class="muted" style="font-family:var(--f-display);font-size:26px;text-transform:uppercase;letter-spacing:.08em;margin-top:-6px">${esc(Core.rName(S.earned))}</div>
-      ${capped ? `<p class="dim" style="margin:0;font-size:15px">Plafonné au niveau ${Troph.START_CAP} pour commencer. Ton rang monte avec la moyenne de tes exercices.</p>` : ''}
+      ${it.pu != null ? (() => { const rk = ex => { const e = D.ex[ex]; return e && e.eff != null ? Core.rName(Core.rankOfElo(e.eff)) : 'non classé'; };
+        return `<div class="start-why" id="start-why"><p style="margin:0">Calculé avec ce que tu as déclaré :</p><ul class="lines"><li>${it.pu} pompes : <b>${esc(rk('pompes_strictes'))}</b></li><li>${it.pl} tractions : <b>${esc(rk('tractions_strictes'))}</b></li></ul>
+        <p class="dim" style="margin:0">Ton rang est la moyenne de tes exercices. C'est une estimation de départ : fais une série classée de chaque exercice pour la confirmer. Jambes et abdos ne sont pas encore classés : ils s'ajouteront à la moyenne dès ta première série.</p></div>`; })() : ''}
       ${g ? `<p class="muted" style="margin:0">Ton plan : <b style="color:var(--accent)">${esc(g.l)}</b> · ${pl.days} séances de ${pl.dur} min par semaine</p>` : ''}
       <div class="first"><div class="hd">À faire d'abord</div>${first.map(t => `<div class="it"><div class="md">${esc(medNumShort(t))}</div><div class="t">${esc(TI[t.key].name)}</div></div>`).join('')}</div></div>
     <div style="display:grid;gap:10px"><button class="btn primary block" type="button" id="btn-intake-plan" data-act="intake-plan">Créer ma première séance</button><button class="btn block" type="button" id="btn-intake-go" data-act="intake-go">Voir mes exercices</button></div></section>`;
