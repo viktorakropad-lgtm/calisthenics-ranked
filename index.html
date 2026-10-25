@@ -14,7 +14,7 @@
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>html,body{margin:0;background:#0b0d17}</style>
-<script>window.APP_VERSION = "0.11-0b54d2";</script>
+<script>window.APP_VERSION = "0.11-71cd86";</script>
 </head>
 <body>
 <style>
@@ -1000,9 +1000,10 @@ const Core = (() => {
       cats[c] = { ranked: true, elo, n: list.length, need, list, top, incomplete: list.length < need };
     }
     // les skills ne comptent pas dans la moyenne: ils donnent un bonus de rang (dictionnaire des skills, voir skills.js)
-    const ranked = CATS.filter(c => c !== 'skills' && cats[c].ranked);
-    const measured = ranked.flatMap(c => cats[c].list);
-    const global = measured.length ? measured.reduce((s,id) => s + effMap[id],0) / measured.length : null;
+    /* rang = moyenne des 4 familles (pousser, tirer, jambes, abdos), chacune = moyenne de ses exercices mesurés.
+       Une famille jamais mesurée compte 0: un seul exercice très fort ne suffit pas à monter (pas de triche par spécialisation). */
+    const fams = CATS.filter(c => c !== 'skills'), ranked = fams.filter(c => cats[c].ranked);
+    const global = ranked.length ? fams.reduce((s, c) => s + (cats[c].ranked ? cats[c].elo : 0), 0) / fams.length : null;
     return { cats, global, nRanked: ranked.length };
   }
 
@@ -1235,7 +1236,7 @@ const Core = (() => {
     eq('baisse bloquee pendant la protection', rnd(r.elo), 1500);
     const cg = computeCats({ pompes_strictes: 1000, dips_strictes: 1200, handstand_push_up_strict: 800, pompes_lentes: 600, tractions_strictes: 1500, squat_bulgare: 900 });
     eq('categorie push = moyenne de tous les exercices (900)', rnd(cg.cats.push.elo), 900);
-    eq('global: moyenne des exercices même avec 2 catégories', computeCats({ pompes_strictes: 1000, tractions_strictes: 1500 }).global, 1250);
+    eq('global: moyenne des 4 familles, une famille non mesurée compte 0 ((1000 + 1500 + 0 + 0) / 4)', computeCats({ pompes_strictes: 1000, tractions_strictes: 1500 }).global, 625);
     eq('points: ELO 1400 au rang Or = 0', pointsFor(1400, 'or'), 0);
     eq('points: ELO 1550 au rang Or = 50', pointsFor(1550, 'or'), 50);
     eq('points: plafonnes a 100', pointsFor(2500, 'or'), 100);
@@ -1270,24 +1271,24 @@ const Core = (() => {
     eq('mode essai: delai ignore', canAttempt(s, 'pompes_strictes', now + HOUR).ok, true);
     s = newFreshState(now); s.earned = 'bronze';
     att(s, 'pompes_strictes', 50, now); att(s, 'tractions_strictes', 12, now);
-    eq('2 familles mesurées: moyenne disponible', derive(s, now).global, 1100);
-    att(s, 'squat_bulgare', 25, now);
+    eq('2 familles mesurées sur 4: les 2 autres comptent 0 (1100 + 1100) / 4', derive(s, now).global, 550);
+    att(s, 'squat_bulgare', 25, now); att(s, 'releves_de_jambes_tendues_suspendus', 12, now);
     d = derive(s, now);
-    eq('3 familles: global 1100, porte ouverte', [rnd(d.global), d.gateOpen], [1100, true]);
+    eq('4 familles au même niveau: global = ce niveau', rnd(d.global) >= 1000 && rnd(d.global) <= 1200, true);
     // le rang suit la moyenne des exercices (pas de test de promotion)
     s = newFreshState(now); s.earned = 'bronze';
-    att(s, 'pompes_strictes', 100, now); att(s, 'tractions_strictes', 16, now); att(s, 'squat_bulgare', 40, now);
+    att(s, 'pompes_strictes', 100, now); att(s, 'tractions_strictes', 16, now); att(s, 'squat_bulgare', 40, now); att(s, 'releves_de_jambes_tendues_suspendus', 20, now);
     const sy = syncRank(s, now), g1 = derive(s, now).global;
     eq('rang = rang de l\'ELO global moyen', [sy && sy.up, s.earned === rankOfElo(g1), rIdx(s.earned) > rIdx('bronze')], [true, true, true]);
     eq('rang déjà à jour: aucun événement', syncRank(s, now), null);
     att(s, 'pompes_strictes', 10, now + 1); att(s, 'tractions_strictes', 2, now + 1); att(s, 'squat_bulgare', 5, now + 1);
-    const s2 = newFreshState(now); att(s2, 'pompes_strictes', 50, now);
-    eq('une famille mesurée: le rang suit cette performance partielle', [syncRank(s2, now).up, s2.earned], [true, 'argent']);
+    const s2 = newFreshState(now); att(s2, 'pompes_strictes', 300, now); syncRank(s2, now);
+    eq('anti-triche: un seul exercice au niveau Immortel ne donne pas un rang élevé (il ne compte que pour un quart)', [rIdx(derive(s2, now).ex.pompes_strictes.rank) >= rIdx('diamant'), rIdx(s2.earned) <= rIdx('argent')], [true, true]);
     const s3 = newFreshState(now); s3.earned = 'platine'; att(s3, 'pompes_strictes', 30, now); att(s3, 'tractions_strictes', 8, now); att(s3, 'squat_bulgare', 15, now);
     const sy3 = syncRank(s3, now);
     eq('rang trop haut pour la moyenne: il est recalculé (baisse)', [sy3 && sy3.up, s3.earned === rankOfElo(derive(s3, now).global)], [false, true]);
     s = newFreshState(now); s.earned = 'bronze';
-    for (const [ex, p] of [['pompes_strictes', 70], ['pompes_strictes', 70], ['tractions_strictes', 14], ['tractions_strictes', 14], ['squat_bulgare', 30], ['squat_bulgare', 30]]) att(s, ex, p, now);
+    for (const [ex, p] of [['pompes_strictes', 70], ['pompes_strictes', 70], ['tractions_strictes', 14], ['tractions_strictes', 14], ['squat_bulgare', 30], ['squat_bulgare', 30], ['releves_de_jambes_tendues_suspendus', 14]]) att(s, ex, p, now);
     d = derive(s, now);
     let pi = promotionInfo(s, d, now);
     eq('promotion: cible Argent, 3 familles eligibles', [pi.target, pi.nCats, pi.canStart], ['argent', 3, true]);
@@ -2104,16 +2105,18 @@ const Troph = (() => {
     const val = ex => (r.level >= 2 ? Math.ceil(Core.standardFor(ex, rank).value - 1e-9) : 0);
     Core.applyEntry(S, {
       push: { value: pu }, pull: { value: pl },
-      legs: { value: 0 }, core: { value: 0 }, skills: { value: 0 }
+      legs: { value: clampN(a.lg, 150) }, core: { value: clampN(a.ab, 100) }, skills: { value: 0 }
     }, now);
-    S.attempts = S.attempts.filter(x=>x.source !== 'entry' || ['pompes_strictes','tractions_strictes'].includes(x.ex));
+    /* jambes et abdos: comptés seulement si renseignés (sinon la famille vaut 0 dans le rang, comme toute famille non mesurée) */
+    const keep = ['pompes_strictes', 'tractions_strictes'].concat(a.lg > 0 ? ['squat_bulgare'] : [], a.ab > 0 ? ['releves_de_jambes_tendues_suspendus'] : []);
+    S.attempts = S.attempts.filter(x => x.source !== 'entry' || keep.includes(x.ex));
     /* le rang de départ = le rang de la moyenne de tes deux maximums (le même calcul que le Ranked, pour que tout concorde) */
     const d0 = Core.derive(S, now);
     S.earned = d0.rankFromElo || rank;
     S.onboarded = true;
     const g = Q.goals[a.goal] || Q.goals[0], sk = g.id === 'skills' ? (Q.skills[a.skill] || Q.skills[0]).id : null;
     const days = (Q.days[a.days] || Q.days[1]).v, dur = (Q.dur[a.dur] || Q.dur[1]).v;
-    S.intake = { time: a.time, pu: pu, pl: pl, goal: a.goal, days: a.days, level: r.level, raw: r.raw };
+    S.intake = { time: a.time, pu: pu, pl: pl, lg: clampN(a.lg, 150), ab: clampN(a.ab, 100), goal: a.goal, days: a.days, level: r.level, raw: r.raw };
     // le plan de coaching (objectif, skill visé, jours, durée, maximums déclarés) est modifiable ensuite dans l'onglet Programme
     S.plan = { goal: g.id, skill: sk, days: days, dur: dur, maxes: { pu: pu, pl: pl }, hist: {}, sessions: [] };
     return S;
@@ -2182,7 +2185,8 @@ const Troph = (() => {
     let S = startState(ans(30, 12), now);
     eq('plan de depart: objectif, jours, duree, maximums declares', [S.plan.goal, S.plan.days, S.plan.dur, S.plan.maxes.pu, S.plan.maxes.pl], ['force', 3, 40, 30, 12]);
     eq('objectif skills: skill choisi conserve', (() => { const T = startState({ time: 0, pu: 10, pl: 2, goal: 2, skill: 3, days: 0, dur: 0 }, now); return [T.plan.goal, T.plan.skill, T.plan.days, T.plan.dur]; })(), ['skills', 'muscle_up', 2, 20]);
-    eq('etat de depart: rang Bronze, ELO global classe', [S.earned, Core.derive(S, now).global != null], ['bronze', true]);
+    eq('etat de depart sans jambes ni abdos: rang bas (ces familles comptent 0), ELO global classe', [S.earned, Core.derive(S, now).global != null], ['rookie', true]);
+    eq('etat de depart avec les 4 familles: rang Bronze', startState(Object.assign(ans(30, 12), { lg: 20, ab: 8 }), now).earned, 'bronze');
     S = startState(ans(0, 0), now);
     eq('etat de depart Niveau 1: Rookie, 3 premiers trophees proposes', [S.earned, firstThings(S).length], ['rookie', 3]);
     // niveau et trophees
@@ -3385,7 +3389,8 @@ const Coach = (() => {
 
   function migrateState(S) {
     if (!S || !S.onboarded || S.coachVersion >= 1) return false;
-    if (S.intake) S.attempts=S.attempts.filter(a=>a.source!=='entry' || ['pompes_strictes','tractions_strictes'].includes(a.ex));
+    // valeurs inventées par l'ancien questionnaire: retirées, sauf jambes et abdos réellement déclarés (questionnaire v0.11 : intake.lg / intake.ab)
+    if (S.intake) S.attempts=S.attempts.filter(a=>a.source!=='entry' || ['pompes_strictes','tractions_strictes'].includes(a.ex) || (a.ex==='squat_bulgare' && S.intake.lg>0) || (a.ex==='releves_de_jambes_tendues_suspendus' && S.intake.ab>0));
     const p=S.plan || (S.plan={hist:{},sessions:[]});
     p.records=p.records || {};
     (p.sessions || []).forEach(s=>(s.items || []).forEach(i=>{if(i.sets && i.sets.length)p.records[i.key]=Math.max(p.records[i.key] || 0,...i.sets);}));
@@ -4795,10 +4800,10 @@ function renderSheet() {
     <button class="ibtn closeb" type="button" data-act="sheet-close" aria-label="Fermer">${icon('cross')}</button>${sh}</div></div>`;
 }
 const INFO = {
-  train: ['Ton rang va de 1 à 10 : c\'est la moyenne de tous tes exercices.', 'Chaque exercice a son propre rang, d\'après ton record.', 'L\'objectif affiché est le record du rang suivant.', 'Les exercices grisés s\'ouvrent plus tard.'],
+  train: ['Ton rang va de 1 à 10 : c\'est la moyenne des 4 familles (pousser, tirer, jambes, abdos). Une famille jamais mesurée compte 0.', 'Chaque exercice a son propre rang, d\'après ton record.', 'L\'objectif affiché est le record du rang suivant.', 'Les exercices grisés s\'ouvrent plus tard.'],
   family: ['Les exercices sont rangés par progression : dans chaque groupe, du plus facile au plus dur.', 'L\'objectif indique le record du rang suivant.', 'Le cadenas montre la prochaine étape du groupe et le niveau qui l\'ouvre. « Voir toutes les étapes au-dessus » montre toute la suite.', 'Sur la fiche d\'un exercice : ce qui est plus facile, plus dur, ce qui le complète et quand il devient peu utile.'],
   exercise: ['La caméra compte tes répétitions pendant la série.', 'Douleur vive, inhabituelle ou croissante : arrête cet exercice.', 'La fatigue des muscles ne compte pas.', 'Une série classée par exercice toutes les 48 h.'],
-  ranked: ['Ton rang est la moyenne de tous tes exercices. Chaque exercice a son rang d\'après ton record, comme au jeu : plus ton record est haut, plus l\'ELO est haut.', 'Chaque exercice mesuré de poussée, tirage, jambes et abdos compte autant dans la moyenne. Les exercices jamais mesurés ne comptent pas comme des zéros.', 'Le rang apparaît dès les premières performances. Il reste partiel tant que tu n’as pas mesuré toutes les familles.', 'Les skills (handstand, planche, front lever…) ne comptent pas dans la moyenne : chaque skill maîtrisé du dictionnaire ajoute un bonus.', 'Une série classée par exercice toutes les 48 h. Si tu arrêtes de t\'entraîner, ton ELO baisse lentement.', 'Il n\'y a aucun test à passer : le rang monte tout seul quand ta moyenne monte.'],
+  ranked: ['Ton rang est la moyenne de tous tes exercices. Chaque exercice a son rang d\'après ton record, comme au jeu : plus ton record est haut, plus l\'ELO est haut.', 'Ton rang est la moyenne des 4 familles : pousser, tirer, jambes et abdos. Chaque famille vaut la moyenne de ses exercices mesurés.', 'Une famille jamais mesurée compte 0 : être très fort dans un seul exercice ne suffit pas à monter. Mesure les 4 familles pour avoir ton vrai rang.', 'Les skills (handstand, planche, front lever…) ne comptent pas dans la moyenne : chaque skill maîtrisé du dictionnaire ajoute un bonus.', 'Une série classée par exercice toutes les 48 h. Si tu arrêtes de t\'entraîner, ton ELO baisse lentement.', 'Il n\'y a aucun test à passer : le rang monte tout seul quand ta moyenne monte.'],
   trophies: ['Cette page montre ton niveau sur chaque exercice. Ton rang est la moyenne de tous.', 'Les skills conseillés dépendent de ton niveau actuel : touche-en un pour apprendre à le maîtriser, puis ajoute-le à ta séance.', 'Chaque skill maîtrisé reste dans le dictionnaire et donne un bonus à ton rang.']
 };function infoSheet(kind) {
   return `<h2 id="sheet-t">Comment ça marche</h2><ul class="lines">${(INFO[kind] || INFO.train).map(l => `<li>${esc(l)}</li>`).join('')}</ul>
@@ -5148,7 +5153,7 @@ function howRankedHtml() {
 }
 function rankedView() {
   const pts = D.points == null ? 0 : D.points, nx = Core.nextRank(S.earned);
-  const avg = D.global == null ? '' : `<div class="avgl" id="avg-line">Moyenne de tes exercices : <b class="num">${fmt(D.global)}</b> ELO${D.bonus ? ` · dont <b class="num">+${fmt(D.bonus)}</b> de bonus skills` : ''}</div>`;
+  const avg = D.global == null ? '' : `<div class="avgl" id="avg-line">Moyenne des 4 familles : <b class="num">${fmt(D.global)}</b> ELO${D.bonus ? ` · dont <b class="num">+${fmt(D.bonus)}</b> de bonus skills` : ''}</div>`;
   const nl = D.global == null ? `<div class="avgl">Enregistre une première série classée pour obtenir ton rang.</div>` : nx ? `<div class="avgl">${fmt(pts)} / 100 points vers <b>${esc(Core.rName(nx))}</b></div>` : '';
   return `<section class="stack"><div class="hero"><div class="emb">${emblem(S.earned, 250)}</div>
       <div class="who" id="who-name">${esc(accName())}</div><div class="rn">${esc(Core.rName(S.earned))}</div><div class="nv">Niveau ${Troph.level(S)}</div>
@@ -7624,7 +7629,7 @@ function trophiesView() {
   const rid = S.earned, nx = Core.nextRank(rid), pts = D.points == null ? 0 : D.points, levels = Coach.allLevels(S, D);
   const nDone = Dict.count(S), bonus = Math.round(Dict.bonus(S));
   const hero = `<div class="lvhero" style="${WHEEL_VAR(rid)}"><div class="emb">${emblem(rid, 120)}</div><div class="bd"><div class="k">Ton niveau global</div><div class="v">${esc(Core.rName(rid))} · niveau ${Troph.level(S)}</div>
-    ${D.global == null ? `<p>Fais des séries classées dans au moins 3 familles pour obtenir ton rang.</p>` : `<p>Moyenne de tes exercices : <b class="num">${fmt(D.global)}</b> ELO${bonus ? ` (dont +${bonus} de bonus skills)` : ''}</p>${nx ? `<div class="bar" role="progressbar" aria-label="Progression vers ${esc(Core.rName(nx))}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(pts)}"><i style="width:${pts.toFixed(1)}%"></i></div><p class="dim">${fmt(pts)} / 100 points vers ${esc(Core.rName(nx))}</p>` : ''}`}</div></div>`;
+    ${D.global == null ? `<p>Fais des séries classées dans au moins 3 familles pour obtenir ton rang.</p>` : `<p>Moyenne des 4 familles : <b class="num">${fmt(D.global)}</b> ELO${bonus ? ` (dont +${bonus} de bonus skills)` : ''}</p>${nx ? `<div class="bar" role="progressbar" aria-label="Progression vers ${esc(Core.rName(nx))}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(pts)}"><i style="width:${pts.toFixed(1)}%"></i></div><p class="dim">${fmt(pts)} / 100 points vers ${esc(Core.rName(nx))}</p>` : ''}`}</div></div>`;
   const famAvg = Core.CATS.filter(c => c !== 'skills').map(c => { const ct = D.cats[c]; return ct && ct.ranked ? `<li><span class="nm">${esc(Core.CAT_LABEL[c])}</span><span class="rk">${emblem(Core.rankOfElo(ct.elo), 22)}${esc(Core.rName(Core.rankOfElo(ct.elo)))}</span></li>` : `<li class="off"><span class="nm">${esc(Core.CAT_LABEL[c])}</span><span class="rk">pas encore classé</span></li>`; }).join('');
   const groups = FAM_ORDER.map(f => { const list = levels.filter(x => x.fam === f); if (!list.length) return ''; return `<div class="lvfam"><h3>${esc(FAM[f].label)}</h3><ul class="lvl-list">${list.map(lvRow).join('')}</ul></div>`; }).join('');
   const done = new Set(levels.map(x => x.key));
@@ -7680,6 +7685,8 @@ const IQ_ALL = [
   { k: 'time', t: 'Tu t\'entraînes depuis combien de temps ?', o: () => Troph.Q.time },
   { k: 'pu', t: 'Combien de pompes d\'affilée, au maximum ?', num: { max: 300, zero: 'Je n\'en fais pas encore', hint: 'Poitrine près du sol, bras tendus en haut. Donne ton vrai maximum.' } },
   { k: 'pl', t: 'Combien de tractions d\'affilée, au maximum ?', num: { max: 80, zero: 'Je n\'en fais pas encore', hint: 'Menton au-dessus de la barre, sans élan. Donne ton vrai maximum.' } },
+  { k: 'lg', t: 'Combien de squats bulgares par jambe, au maximum ?', num: { max: 150, zero: 'Je n\'en fais pas encore', hint: 'Pied arrière sur un banc, genou arrière qui frôle le sol. Ton rang est la moyenne des 4 familles : pousser, tirer, jambes et abdos.' } },
+  { k: 'ab', t: 'Combien de relevés de jambes tendues, suspendu à une barre ?', num: { max: 100, zero: 'Je n\'en fais pas encore', hint: 'Jambes tendues jusqu\'à l\'horizontale, sans élan. Une famille non renseignée compterait 0 dans ton rang.' } },
   { k: 'goal', t: 'Quel est ton objectif principal ?', o: () => Troph.Q.goals.map(g => g.l), d: () => Troph.Q.goals.map(g => g.d) },
   { k: 'skill', t: 'Quel skill veux-tu apprendre en premier ?', o: () => Troph.Q.skills.map(s => s.l), when: a => a.goal === 2 },
   { k: 'days', t: 'Combien de jours par semaine peux-tu t\'entraîner ?', o: () => Troph.Q.days.map(d => d.l) },
@@ -7713,14 +7720,14 @@ function intakeView() {
   return `<section class="intake"><div>${dots}</div>
     <div class="res"><div class="emb">${emblem(S.earned, 230)}</div><div class="t1">Ton niveau : <b>${lv}</b></div><div class="muted" style="font-family:var(--f-display);font-size:26px;text-transform:uppercase;letter-spacing:.08em;margin-top:-6px">${esc(Core.rName(S.earned))}</div>
       ${it.pu != null ? (() => { const rk = ex => { const e = D.ex[ex]; return e && e.eff != null ? Core.rName(Core.rankOfElo(e.eff)) : 'non classé'; };
-        return `<div class="start-why" id="start-why"><p style="margin:0">Calculé avec ce que tu as déclaré :</p><ul class="lines"><li>${it.pu} pompes : <b>${esc(rk('pompes_strictes'))}</b></li><li>${it.pl} tractions : <b>${esc(rk('tractions_strictes'))}</b></li></ul>
-        <p class="dim" style="margin:0">Ton rang est la moyenne de tes exercices. C'est une estimation de départ : fais une série classée de chaque exercice pour la confirmer. Jambes et abdos ne sont pas encore classés : ils s'ajouteront à la moyenne dès ta première série.</p></div>`; })() : ''}
+        return `<div class="start-why" id="start-why"><p style="margin:0">Calculé avec ce que tu as déclaré :</p><ul class="lines"><li>${it.pu} pompes : <b>${esc(rk('pompes_strictes'))}</b></li><li>${it.pl} tractions : <b>${esc(rk('tractions_strictes'))}</b></li><li>${it.lg || 0} squats bulgares : <b>${esc(rk('squat_bulgare'))}</b></li><li>${it.ab || 0} relevés de jambes : <b>${esc(rk('releves_de_jambes_tendues_suspendus'))}</b></li></ul>
+        <p class="dim" style="margin:0">Ton rang est la moyenne des 4 familles (pousser, tirer, jambes, abdos) : être très fort dans une seule ne suffit pas. C'est une estimation de départ : fais une série classée de chaque exercice pour la confirmer.</p></div>`; })() : ''}
       ${g ? `<p class="muted" style="margin:0">Ton plan : <b style="color:var(--accent)">${esc(g.l)}</b> · ${pl.days} séances de ${pl.dur} min par semaine</p>` : ''}
       <div class="first"><div class="hd">À faire d'abord</div>${first.map(t => `<div class="it"><div class="md">${esc(medNumShort(t))}</div><div class="t">${esc(TI[t.key].name)}</div></div>`).join('')}</div></div>
     <div style="display:grid;gap:10px"><button class="btn primary block" type="button" id="btn-intake-plan" data-act="intake-plan">Créer ma première séance</button><button class="btn block" type="button" id="btn-intake-go" data-act="intake-go">Voir mes exercices</button></div></section>`;
 }
 function intakeFinish() {
-  const a = ui.intake.a, old = S, ns = Troph.startState({ time: a.time || 0, pu: a.pu || 0, pl: a.pl || 0, goal: a.goal || 0, skill: a.skill || 0, days: a.days == null ? 1 : a.days, dur: a.dur == null ? 1 : a.dur }, nowMs());
+  const a = ui.intake.a, old = S, ns = Troph.startState({ time: a.time || 0, pu: a.pu || 0, pl: a.pl || 0, lg: a.lg || 0, ab: a.ab || 0, goal: a.goal || 0, skill: a.skill || 0, days: a.days == null ? 1 : a.days, dur: a.dur == null ? 1 : a.dur }, nowMs());
   Core.setTrial(ns, old.trial !== false);
   ns.prefs = old.prefs || ns.prefs;
   S = ns; save();
