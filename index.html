@@ -14,7 +14,7 @@
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>html,body{margin:0;background:#0b0d17}</style>
-<script>window.APP_VERSION = "0.11-71cd86";</script>
+<script>window.APP_VERSION = "0.12-ad8134";</script>
 </head>
 <body>
 <style>
@@ -3388,13 +3388,20 @@ const Coach = (() => {
   }
 
   function migrateState(S) {
-    if (!S || !S.onboarded || S.coachVersion >= 1) return false;
+    if (!S || !S.onboarded) return false;
+    /* v0.11: les maximums du questionnaire n'ont plus de plafond (avant: 1399 ELO, haut d'Argent). On recalcule leur vrai ELO. */
+    let fixed = false;
+    if ((S.coachVersion || 0) < 2) {
+      (S.attempts || []).forEach(a => { if (a.source === 'entry' && Core.EX[a.ex] && a.note === 'cap') { a.eloPerf = Core.eloFromAnchors(Core.EX[a.ex].anchors, a.perf); a.note = 'ok'; fixed = true; } });
+      if ((S.coachVersion || 0) >= 1) { S.coachVersion = 2; return true; }
+    }
+    if (S.coachVersion >= 1) return fixed;
     // valeurs inventées par l'ancien questionnaire: retirées, sauf jambes et abdos réellement déclarés (questionnaire v0.11 : intake.lg / intake.ab)
     if (S.intake) S.attempts=S.attempts.filter(a=>a.source!=='entry' || ['pompes_strictes','tractions_strictes'].includes(a.ex) || (a.ex==='squat_bulgare' && S.intake.lg>0) || (a.ex==='releves_de_jambes_tendues_suspendus' && S.intake.ab>0));
     const p=S.plan || (S.plan={hist:{},sessions:[]});
     p.records=p.records || {};
     (p.sessions || []).forEach(s=>(s.items || []).forEach(i=>{if(i.sets && i.sets.length)p.records[i.key]=Math.max(p.records[i.key] || 0,...i.sets);}));
-    S.coachVersion=1;
+    S.coachVersion=2;
     return true;
   }
   function weeklyWork(S,now) {
@@ -5135,13 +5142,13 @@ function resultSheet() {
 const LB_PLAYERS = [['Alex', 3050], ['Sam', 2480], ['Noa', 2120], ['Lou', 1790], ['Max', 1520], ['Eli', 1290], ['Zoé', 1050], ['Tom', 870], ['Léa', 640], ['Ben', 420], ['Ana', 230]];
 function durText(ms) { const h = Math.ceil(ms / 3600000); return h < 48 ? h + ' h' : Math.ceil(h / 24) + ' j'; }
 const lbReal = () => typeof Cloud !== 'undefined' && Array.isArray(Cloud.lbRows) && Cloud.lbRows.length > 0;
-const lbLabel = () => (lbReal() ? 'classement en ligne' : 'joueurs d\'exemple');
+const lbLabel = () => (lbReal() ? 'classement en ligne' : 'vrais joueurs seulement');
 function leaderboard() {
   const me = D.global != null ? D.global : Core.rStart(S.earned);
   const myId = Account.get() ? Account.get().id : '';
-  const base = lbReal()
-    ? Cloud.lbRows.filter(p => p.public_id !== myId).map(p => ({ n: p.handle, e: p.elo_global, me: false }))
-    : LB_PLAYERS.map(p => ({ n: p[0] + ' · exemple', e: p[1], me: false }));
+  /* plus de faux joueurs: sans classement en ligne, on montre seulement toi et comment rejoindre le classement */
+  const base = lbReal() ? Cloud.lbRows.filter(p => p.public_id !== myId).map(p => ({ n: p.handle, e: p.elo_global, me: false })) : [];
+  if (!lbReal()) return `<li class="me"><span class="ps">–</span><span class="em">${emblem(S.earned, 28)}</span><span>${esc(accName())}</span><span class="el">${fmt(me)}</span></li><li class="lb-empty"><span></span><span></span><span class="dim">Crée un compte (Profil) pour te comparer aux vrais joueurs.</span><span></span></li>`;
   const rows = base.concat([{ n: accName(), e: me, me: true }]).sort((a, b) => b.e - a.e);
   const i = rows.findIndex(r => r.me);
   const from = Math.max(0, Math.min(rows.length - 5, i - 2));
