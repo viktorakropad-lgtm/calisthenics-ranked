@@ -14,7 +14,7 @@
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>html,body{margin:0;background:#0b0d17}</style>
-<script>window.APP_VERSION = "0.13-7e4ab2";</script>
+<script>window.APP_VERSION = "0.14-0aee60";</script>
 </head>
 <body>
 <style>
@@ -386,6 +386,8 @@ textarea.field { min-height: 0; font-size: 14px; line-height: 1.35; resize: vert
 .cam .cam-guide { position: absolute; left: 14px; right: 14px; top: 56px; z-index: 2; padding: 12px 14px; border-radius: 16px; background: var(--scrim); color: var(--text-2); font-size: 16px; line-height: 1.35; }
 .cam .cam-guide ul { margin: 6px 0 0; padding-left: 20px; display: grid; gap: 6px; }
 .cam .cam-guide b { color: var(--warn); }
+.camm .cam-guide { max-height: calc(100% - 76px); overflow-y: auto; box-sizing: border-box; }
+.camm .cam-guide:not([hidden]) ~ .reps, .camm .cam-guide:not([hidden]) ~ .fb { visibility: hidden; }
 .camm .btn.primary.ready { box-shadow: 0 0 0 3px color-mix(in srgb, var(--ok) 60%, transparent); }
 @media (orientation: landscape) and (max-height: 540px) {
   .live.camm .inner { width: 100%; grid-template-columns: minmax(0, 1fr) 230px; grid-template-rows: auto minmax(0, 1fr); column-gap: 14px; }
@@ -6017,6 +6019,15 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
     return out;
   }
 
+  function exerciseConfig(exercise, user) {
+    const cfg = mergeConfig(user);
+    if (EXERCISES[exercise] && EXERCISES[exercise].extended) {
+      if (!(user && user.common && user.common.minVisibility !== undefined)) cfg.common.minVisibility = .22;
+      cfg.common.smoothVisibility = cfg.common.minVisibility;
+    }
+    return cfg;
+  }
+
   /* ------------------------------------------------------------------ */
   /* 2. CONSTANTES MEDIAPIPE                                             */
   /* ------------------------------------------------------------------ */
@@ -6124,7 +6135,7 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
         ['x', 'y', 'z'].forEach(function (k) {
           if (typeof p[k] !== 'number') return;
           const fl = bank(key, i, k);
-          if (vis < 0.3) fl.reset(); else out[k] = fl.filter(p[k], tSec);
+          if (vis < (common.smoothVisibility || 0.3)) fl.reset(); else out[k] = fl.filter(p[k], tSec);
         });
         return out;
       });
@@ -6246,7 +6257,7 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
   }
 
   function framingStatus(exercise, frame, userCfg) {
-    const cfg = mergeConfig(userCfg);
+    const cfg = exerciseConfig(exercise, userCfg);
     if (!frame || !frame.lm) return { ok: false, missing: ['body'], message: 'Je ne te vois pas: place-toi devant la caméra, en entier.', quality: 0, needed: [] };
     const an = analyze(exercise, frame.lm ? { t: frame.t, aspect: frame.aspect, lm: frame.lm, wl: frame.wl } : frame, cfg, { side: null });
     return {
@@ -6361,6 +6372,15 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
   }
 
   const ADAPTERS = {};
+  const HOLD_MEASURES = {};
+  // Extension isolée : les profils pushup/pullup et leurs réglages restent intacts.
+  function registerExercise(id, spec, needs, adapter, holdMeasureFn) {
+    if (id === 'pushup' || id === 'pullup') throw new Error('Profil protégé: ' + id);
+    EXERCISES[id] = Object.assign({ extended: true }, spec);
+    NEEDS[id] = needs;
+    if (adapter) ADAPTERS[id] = adapter;
+    if (holdMeasureFn) HOLD_MEASURES[id] = holdMeasureFn;
+  }
 
   /* ---- Pompes (profil) ---- */
   ADAPTERS.pushup = function (cfg) {
@@ -6682,13 +6702,13 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
   function createCounter(exercise, userCfg) {
     const spec = EXERCISES[exercise];
     if (!spec) throw new Error('Exercice inconnu: ' + exercise);
-    const cfg = mergeConfig(userCfg);
+    const cfg = exerciseConfig(exercise, userCfg);
     const smoother = createSmoother(cfg.common);
     const ctx = { side: null };
     const isHold = spec.kind === 'hold';
     let engine = null, adapter = null, hold = null;
     if (isHold) hold = createHoldTracker(cfg.hold);
-    else { adapter = ADAPTERS[exercise](cfg); engine = createBendEngine(adapter.params, adapter.hooks); }
+    else { adapter = ADAPTERS[exercise](cfg); engine = adapter.createEngine ? adapter.createEngine() : createBendEngine(adapter.params, adapter.hooks); }
     let firstT = null, lastT = null, lastVisT = null, visibleFrames = 0, totalFrames = 0;
     const calib = { frames: 0, maxSeen: 0, done: false };
     let gateRun = 0;
@@ -6709,6 +6729,23 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
 
     function push(frame) {
       const t = frame.t;
+      if (spec.extended) {
+        if (!Number.isFinite(t) || (lastT !== null && t <= lastT)) {
+          const skipped = { t: lastT, exercise, visible: false, events: [], feedback: 'Image ignorée', tone: 'info', metricsText: '' };
+          fillCommon(skipped); return skipped;
+        }
+        if (lastT !== null && t - lastT > 350) {
+          smoother.reset();
+          if (isHold) hold.end(); else engine.abort();
+        }
+        if (frame.lm) frame = Object.assign({}, frame, { lm: Array.from({ length: 33 }, (_, i) => {
+          const p = frame.lm[i];
+          return p && Number.isFinite(p.x) && Number.isFinite(p.y) && Number.isFinite(p.visibility == null ? 1 : p.visibility)
+            ? p : { x: 0, y: 0, z: 0, visibility: 0 };
+        }) });
+        frame = Object.assign({}, frame, { aspect: Number.isFinite(frame.aspect) && frame.aspect > 0 ? frame.aspect : 1,
+          wl: frame.wl ? frame.wl.map(p => p && ['x','y','z'].every(k => Number.isFinite(p[k])) ? p : null) : null });
+      }
       if (firstT === null) firstT = t;
       lastT = t; totalFrames++;
       const out = { t: t, exercise: exercise, visible: false, missing: [], message: '', events: [], feedback: '', tone: 'info', metrics: null, metricsText: '' };
@@ -6719,14 +6756,14 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
         out.message = f ? missingMessage(exercise, an.missing) : 'Je ne te vois pas: place-toi devant la caméra, en entier.';
         out.feedback = out.message; out.tone = 'warn';
         if (isHold) hold.step(t, false);
-        else if (engine.phase() !== 'init' && lastVisT !== null && t - lastVisT > cfg.common.gapResetMs) engine.abort();
+        else if (engine.phase() !== 'init' && lastVisT !== null && t - lastVisT > (spec.extended ? 300 : cfg.common.gapResetMs)) engine.abort();
         fillCommon(out);
         return out;
       }
       lastVisT = t; visibleFrames++;
       out.visible = true;
       if (isHold) {
-        const hm = holdMeasure(exercise, cfg, f, an);
+        const hm = HOLD_MEASURES[exercise] ? HOLD_MEASURES[exercise](cfg, f, an) : holdMeasure(exercise, cfg, f, an);
         const snap = hold.step(t, hm.valid);
         out.metrics = { dev: hm.dev, axis: hm.axis, valid: hm.valid };
         out.metricsText = 'Ligne du corps ' + round(hm.dev) + '° · orientation ' + round(hm.axis) + '°';
@@ -6759,7 +6796,7 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
       // calibrage automatique : si la position "bras tendus" n'est jamais atteinte (caméra de face, 3D bruitée),
       // on abaisse le seuil "haut" au maximum réellement mesuré, sans jamais descendre sous "bas + 25°"
       let calibrated = null;
-      if (cfg.common.autoCalib && !calib.done) {
+      if (cfg.common.autoCalib && adapter.autoCalib !== false && !calib.done) {
         const p = adapter.params;
         if (engine.phase() !== 'init') calib.done = true;
         else {
@@ -6772,7 +6809,7 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
         }
       }
       out.events = engine.step(t, m.a, m.extra);
-      if (calibrated !== null) { out.calibrated = calibrated; out.events.push({ type: 'calib', up: calibrated }); }
+      if (calibrated !== null) { out.calibrated = calibrated; out.events.push({ type: 'calib', up: calibrated }); if (spec.extended) out.calibrationText = 'Position de départ adaptée à ton angle de vue.'; }
       if (adapter.after) adapter.after(engine.phase(), m);
       out.metrics = { a: m.a, extra: m.extra };
       out.metricsText = adapter.metricsText(m);
@@ -6829,8 +6866,423 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
     DEFAULT_CONFIG: DEFAULT_CONFIG, STRICT: STRICT, SETTINGS_UI: SETTINGS_UI, LM: LM, SIDES: SIDES, EXERCISES: EXERCISES, NEEDS: NEEDS,
     mergeConfig: mergeConfig, angleDeg: angleDeg, OneEuro: OneEuro, createSmoother: createSmoother,
     framingStatus: framingStatus, missingMessage: missingMessage, reasonLabel: reasonLabel,
-    createCounter: createCounter, runSequence: runSequence, createHoldTracker: createHoldTracker
+    createCounter: createCounter, runSequence: runSequence, createHoldTracker: createHoldTracker,
+    registerExercise: registerExercise
   };
+});
+
+/* Caméra étendue. Les profils historiques pushup/pullup restent dans repcore.js.
+   Les angles utilisent les points 3D quand ils sont exploitables ; les appuis
+   et la gravité utilisent l'image corrigée de son rapport largeur/hauteur.
+   Une caméra de pose ne certifie ni le contact avec un agrès ni une charge. */
+(function (root, factory) {
+  if (typeof module === 'object' && module.exports) module.exports = factory(require('./repcore.js'));
+  else root.RepMore = factory(root.RepCore);
+})(typeof self !== 'undefined' ? self : this, function (C) {
+  'use strict';
+  const profiles = {};
+  const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
+  const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+  const deg = (x, y) => Math.atan2(Math.abs(x), Math.abs(y)) * 180 / Math.PI;
+  const finitePoint = p => p && ['x', 'y', 'z'].every(k => Number.isFinite(p[k]));
+  const jointNames = { sh: 'épaules', el: 'coudes', wr: 'mains', hip: 'hanches', knee: 'genoux', ank: 'chevilles', heel: 'talons', toe: 'pointes des pieds' };
+  C.SIDES.L.heel = 29; C.SIDES.R.heel = 30;
+  C.SIDES.L.toe = 31; C.SIDES.R.toe = 32;
+
+  function body(f, side, cfg) {
+    const ix = C.SIDES[side], p = {};
+    Object.keys(ix).forEach(k => { const v = f.lm[ix[k]]; p[k] = { x: v.x * (f.aspect || 1), y: v.y, z: 0 }; });
+    const angle = (a, b, c) => {
+      const ids = [ix[a], ix[b], ix[c]];
+      return cfg.common.use3D && f.wl && ids.every(i => finitePoint(f.wl[i]))
+        ? C.angleDeg(...ids.map(i => f.wl[i])) : C.angleDeg(p[a], p[b], p[c]);
+    };
+    const scale = Math.max(.04, distance(p.sh, p.hip));
+    const seen = k => { const v = f.lm[ix[k]]; return (v.visibility == null ? 1 : v.visibility) >= cfg.common.minVisibility; };
+    let inclination = deg(p.sh.x - p.hip.x, p.sh.y - p.hip.y);
+    if (cfg.common.use3D && f.wl && [ix.sh, ix.hip].every(i => finitePoint(f.wl[i]))) {
+      const s = f.wl[ix.sh], h = f.wl[ix.hip];
+      if (Math.hypot(s.x-h.x,s.y-h.y,s.z-h.z) > .01) inclination = deg(Math.hypot(s.x-h.x,s.z-h.z),s.y-h.y);
+    }
+    return Object.assign(p, { side, scale, angle, elbow: angle('sh', 'el', 'wr'), kneeAngle: angle('hip', 'knee', 'ank'),
+      hipAngle: angle('sh', 'hip', 'knee'), line: angle('sh', 'hip', 'ank'),
+      inclination, seen,
+      upright: p.sh.y < p.hip.y, supported: p.wr.y > p.sh.y + .12 * scale,
+      hanging: p.wr.y < p.sh.y - .25 * scale });
+  }
+
+  const ARM = ['sh', 'el', 'wr', 'hip'];
+  const LEG = ['sh', 'hip', 'knee', 'ank'];
+  const FULL = ['sh', 'el', 'wr', 'hip', 'knee', 'ank'];
+  function define(keys, motion, options) {
+    keys.split('|').forEach(key => { profiles[key] = Object.assign({ key, motion, hold: false, joints: FULL, view: 'side', orient: 'tall' }, options); });
+  }
+  define('pompes_inclinees|pompes_diamant|pompes_declinees|pseudo_planche_pompes', 'push', { joints: FULL, orient: 'wide' });
+  define('pompes_archer|pompes_une_main', 'push', { unilateral: true, orient: 'wide' });
+  define('pompes_pike|pike_pieds_hauts', 'pike');
+  define('handstand_push_up_strict', 'hspu');
+  define('hspu_negatif', 'hspu', { negative: true });
+  define('dips_strictes|dips_banc', 'dip', { joints: ['sh', 'el', 'wr'] });
+  define('rowing_inverse|rowing_supination', 'row', { orient: 'wide' });
+  define('tractions_archer|traction_decalee|traction_une_main', 'pull', { unilateral: true });
+  define('tractions_explosives', 'pull', { explosive: true });
+  define('squat', 'squat', { joints: LEG });
+  define('squat_bulgare|pistol_assiste|pistol_squat|shrimp_squat|dragon_squat', 'squat', { joints: LEG, unilateral: true });
+  define('squat_cossack', 'squat', { joints: LEG, alternate: true, view: 'front' });
+  define('releves_de_genoux', 'raise');
+  define('releves_de_jambes_tendues_suspendus', 'raise', { straight: true });
+  define('toes_to_bar_strict', 'raise', { straight: true, high: true });
+  define('pont_fessier', 'bridge', { joints: LEG, orient: 'wide' });
+  define('pont_fessier_une_jambe', 'bridge', { joints: LEG, orient: 'wide', unilateral: true });
+  define('mollets', 'calf', { joints: ['hip', 'knee', 'ank', 'heel', 'toe'] });
+  define('mollets_une_jambe', 'calf', { joints: ['hip', 'knee', 'ank', 'heel', 'toe'], unilateral: true });
+  define('nordic_curl', 'nordic', { joints: LEG });
+  define('extension_dos', 'back', { joints: LEG, orient: 'wide' });
+  define('tractions_scapulaires', 'scap', { joints: ARM });
+  define('muscle_up_strict', 'muscle');
+  define('muscle_up_negatif', 'muscle', { negative: true });
+  define('dragon_flag', 'dragon', { orient: 'wide' });
+  define('dragon_flag_negatif', 'dragon', { orient: 'wide', negative: true });
+  define('front_lever_negatif', 'front_negative', { negative: true });
+  define('skin_the_cat', 'skin');
+  define('wall_walk', 'wall');
+  define('kickup', 'kick');
+  define('pompe_90', 'push90');
+  define('gainage', 'plank', { hold: true, orient: 'wide' });
+  define('planche_laterale', 'side_plank', { hold: true, orient: 'wide' });
+  define('handstand_mur|handstand_libre', 'handstand', { hold: true });
+  define('suspension', 'hang', { hold: true, joints: ARM });
+  define('tuck_sit|l_sit|v_sit', 'sit', { hold: true });
+  define('planche_lean', 'lean', { hold: true, orient: 'wide' });
+  define('back_lever_tuck|back_lever', 'back_lever', { hold: true, orient: 'wide' });
+  define('human_flag_tuck|human_flag', 'flag', { hold: true, view: 'front', orient: 'wide', both: true });
+  ['tuck', 'adv tuck', 'straddle', 'full', 'maltese'].forEach(variant => define('planche:' + variant, 'planche', { hold: true, variant, orient: 'wide' }));
+  ['tuck', 'adv tuck', 'une jambe', 'straddle', 'half lay', 'full'].forEach(variant => define('front_lever:' + variant, 'front_lever', { hold: true, variant, orient: 'wide' }));
+
+  function select(f, an, cfg, p, state) {
+    const quality = side => Math.min(...p.joints.map(j => f.lm[C.SIDES[side][j]].visibility == null ? 1 : f.lm[C.SIDES[side][j]].visibility));
+    let all = an.sides.slice().sort((a,b)=>quality(b)-quality(a)).map(s => body(f, s, cfg));
+    if (!p.unilateral && !p.alternate && state.side && quality(state.side) >= .7 * quality(all[0].side)) {
+      const i = all.findIndex(b => b.side === state.side); if (i > 0) all.unshift(all.splice(i,1)[0]);
+    }
+    if (p.unilateral && ['pull', 'push'].includes(p.motion)) {
+      all = all.filter(b => p.motion === 'pull' ? b.hanging : b.supported);
+      if (!all.length) return null;
+      if (state.side) return all.find(b => b.side === state.side) || null;
+      const active = all.reduce((a, b) => a.elbow < b.elbow ? a : b);
+      if (active.elbow < 140) state.side = active.side;
+      return active;
+    }
+    if (p.unilateral && ['squat', 'bridge', 'calf'].includes(p.motion)) {
+      if (!state.side) state.side = all.reduce((a, b) => a.ank.y >= b.ank.y ? a : b).side;
+      return all.find(b => b.side === state.side) || null;
+    }
+    if (p.unilateral || p.alternate) return all.reduce((a, b) =>
+      (p.motion === 'squat' ? a.kneeAngle < b.kneeAngle : a.elbow < b.elbow) ? a : b);
+    state.side = all[0].side;
+    return all[0];
+  }
+
+  function posture(p, b, all) {
+    const fail = msg => msg;
+    switch (p.motion) {
+      case 'push':
+        if (!b.supported || b.inclination < (p.key === 'pompes_inclinees' ? 18 : 40)) return fail('Place les mains en appui et garde le corps incliné.');
+        if (b.line < 145 || b.kneeAngle < 140) return fail('Garde le corps aligné et les jambes tendues.');
+        break;
+      case 'pike': if (!b.supported || b.hip.y >= b.sh.y || b.hipAngle > 135) return fail('Garde les hanches hautes, en V inversé.'); break;
+      case 'hspu': case 'push90':
+        if (!b.supported || b.hip.y >= b.sh.y || b.ank.y >= b.sh.y) return fail('Mets-toi à l’envers, mains en appui sous les épaules.');
+        if (p.motion === 'hspu' && b.inclination > 40) return fail('Garde le corps proche de la verticale.');
+        break;
+      case 'dip': if (!b.supported || (b.seen('hip') && (!b.upright || b.inclination > 75))) return fail('Mets les mains en appui sous les épaules, buste redressé.'); break;
+      case 'row': if (!b.hanging || b.inclination < 35 || b.line < 145) return fail('Sous la barre, garde le corps incliné et aligné.'); break;
+      case 'pull': case 'raise': case 'scap':
+        if ((!b.hanging && !(p.motion === 'pull' && b.elbow < 145 && b.wr.y < b.sh.y + .5 * b.scale)) || !b.upright) return fail('Suspends-toi, les mains au-dessus des épaules.');
+        if (p.motion === 'raise' && (b.elbow < 145 || (p.straight && b.kneeAngle < 145))) return fail(p.straight ? 'Garde les bras et les jambes tendus.' : 'Garde les bras tendus pendant le relevé.');
+        if (p.motion === 'scap' && b.elbow < 150) return fail('Bouge les épaules en gardant les bras tendus.');
+        break;
+      case 'squat': if (!b.upright || b.inclination > 75) return fail('Tiens-toi sur tes pieds, buste redressé.'); break;
+      case 'bridge': if (b.inclination < 45 || b.ank.y < b.hip.y || b.knee.y > b.hip.y + .15 * b.scale) return fail('Allonge-toi sur le dos, pied en appui et genou plié.'); break;
+      case 'calf': if (b.kneeAngle < 150 || b.hip.y >= b.knee.y) return fail('Reste debout, jambe d’appui tendue, pied visible de profil.'); break;
+      case 'nordic': if (!b.upright || b.hipAngle < 150 || b.ank.y < b.knee.y - .2 * b.scale) return fail('Garde épaules, hanches et genoux alignés, genoux au sol.'); break;
+      case 'back': if (b.inclination < 60) return fail('Allonge-toi sur le ventre, de profil.'); break;
+      case 'muscle': if (b.inclination > 60) return fail('Garde le buste redressé pendant le passage de la barre.'); break;
+      case 'dragon': if (b.hip.y > b.sh.y + .2 * b.scale || b.line < 150) return fail('Garde le corps droit et les hanches décollées.'); break;
+      case 'front_negative': if (!b.hanging || b.elbow < 145) return fail('Garde les mains au-dessus des épaules et les bras tendus.'); break;
+      case 'skin': if (distance(b.wr, b.sh) < .25 * b.scale) return fail('Montre les bras et le passage des jambes, de profil.'); break;
+      case 'wall': case 'kick': if (!b.supported || b.elbow < 145) return fail('Garde les mains en appui et les bras tendus.'); break;
+    }
+    return '';
+  }
+
+  // Progression 0 = départ, 1 = amplitude visée. Le moteur de pompes fournit
+  // la succession départ -> amplitude -> retour, les durées et l'anti-rebond.
+  function progress(p, b, state, t) {
+    switch (p.motion) {
+      case 'push': case 'pike': case 'hspu': case 'dip': case 'row': case 'pull': return (160 - b.elbow) / 45;
+      case 'squat': return (175 - b.kneeAngle) / 80;
+      case 'raise': return (175 - b.hipAngle) / (p.high ? 145 : 90);
+      case 'bridge': return (b.hipAngle - 130) / 40;
+      case 'calf': return (b.angle('knee', 'ank', 'toe') - 95) / 35;
+      case 'nordic': return b.inclination / 65;
+      case 'back': return (180 - b.line) / 28;
+      case 'scap': {
+        const d = distance(b.wr, b.hip) / Math.max(.04, distance(b.sh, b.el) + distance(b.el, b.wr));
+        if (state.base == null) { state.base = d; state.baseT = t; }
+        if (t - state.baseT < 500) { state.base = Math.max(state.base, d); return 0; }
+        return (state.base - d) / .16;
+      }
+      case 'muscle': return clamp(((b.wr.y - b.sh.y) / b.scale + 1.1) / 2.2, 0, 1.3);
+      case 'dragon': return (90 - deg(b.ank.x - b.sh.x, b.ank.y - b.sh.y)) / 70;
+      case 'front_negative': return b.inclination / 85;
+      case 'skin': return (b.sh.y - b.hip.y) / b.scale;
+      case 'wall': return (90 - b.inclination) / 85;
+      case 'kick': return clamp((b.sh.y - b.ank.y) / b.scale, 0, 1);
+      case 'push90': return b.inclination / 85;
+      default: return NaN;
+    }
+  }
+
+  function makeAdapter(p, cfg) {
+    const state = {};
+    let measured;
+    return {
+      createEngine: p.negative ? () => negativeEngine(p) : p.motion === 'skin' ? () => rotationEngine() : null,
+      autoCalib: ['push','pike','hspu','dip','row','pull','squat'].includes(p.motion) && !p.negative,
+      params: { up: ['push','pike','hspu','dip','row','pull'].includes(p.motion) ? 150 : 160, down: 100, attempt: 135, hyst: 10, reversal: 25, minRepMs: p.negative ? 900 : 400, minPhaseMs: 120 },
+      labels: { init: 'position de départ', extended: 'prêt', flexing: 'mouvement', flexed: 'amplitude atteinte', extending: 'retour' },
+      measure(f, an) {
+        const b = select(f, an, cfg, p, state);
+        if (!b) { measured = { a: 180, extra: { error: 'Montre le côté qui travaille jusqu’à la fin de la série.', progress: 0 } }; return measured; }
+        let error = posture(p, b, an.sides.map(s => body(f, s, cfg)));
+        let value = progress(p, b, state, f.t);
+        if (p.motion === 'muscle' && !p.negative && value >= .8 && b.elbow < 135) value = .7;
+        if (p.high && value >= .8 && b.ank.y > b.wr.y + .25 * b.scale) value = .7;
+        if (p.explosive && value >= .8 && b.sh.y > b.wr.y + .2 * b.scale) value = .7;
+        if (p.negative && (p.motion === 'muscle' || p.motion === 'dragon')) value = 1 - value;
+        measured = { a: 180 - 100 * clamp(value, -.2, 1.5), extra: { error, side: b.side, progress: value,
+          rotation: Math.atan2(b.hip.y-b.sh.y,b.hip.x-b.sh.x)*180/Math.PI, hanging: b.hanging && b.hip.y > b.sh.y } };
+        return measured;
+      },
+      gate() { return measured && measured.extra.error ? { all: true, msg: measured.extra.error } : null; },
+      hooks: {
+        newRep() { return { bad: 0, frames: 0 }; },
+        track(r, t, a, e) { r.frames++; if (e.error) r.bad++; },
+        evaluate(r) {
+          const out = [];
+          if (r.minA > 100) out.push({ code: 'depth', text: 'Amplitude incomplète : va jusqu’à la position indiquée.' });
+          if (r.bad > 2) out.push({ code: 'position', text: 'Reprends une position stable et contrôlée.' });
+          return out;
+        },
+        lockoutText() { return 'Reviens complètement à la position de départ.'; }
+      },
+      feedback(phase) {
+        if (phase === 'init') return [p.start || 'Prends la position de départ, puis fais un mouvement complet.', 'info'];
+        if (phase === 'flexed') return ['Amplitude atteinte : reviens en contrôle.', 'ok'];
+        if (phase === 'extending') return ['Termine le retour avant de recommencer.', 'info'];
+        return [phase === 'extended' ? 'Prêt : commence le mouvement.' : 'Continue le mouvement en contrôle.', 'info'];
+      },
+      metricsText(m) { return 'Amplitude ' + Math.round(clamp(m.extra.progress || 0, 0, 1) * 100) + ' %'; }
+    };
+  }
+
+  // Les négatifs sont enregistrés en fin de descente, sans exiger une remontée.
+  // Une nouvelle descente exige un retour stable au départ ; ce retour ne compte pas.
+  function negativeEngine(p) {
+    const res = { valid: 0, rejected: 0, glitches: 0, aborted: 0, reps: [] };
+    let phase = 'init', readyT = null, endT = null, rep = null, departureT = null;
+    function finish(t, valid, reason) {
+      const reasons = valid ? [] : [{ code: 'control', text: reason }];
+      if (valid) res.valid++; else res.rejected++;
+      const r = { n: res.valid + res.rejected, valid, reasons, tStart: rep.tStart, tEnd: t,
+        durMs: t - rep.tStart, downMs: t - rep.tStart, upMs: 0, minA: rep.minA };
+      res.reps.push(r); rep = null; endT = null;
+      return [{ type: 'rep', valid, count: res.valid, n: r.n, reasons, durMs: r.durMs }];
+    }
+    return {
+      res, phase: () => phase, currentRep: () => rep,
+      abort() { if (rep) res.aborted++; rep = null; phase = 'init'; readyT = endT = departureT = null; },
+      step(t, a, extra) {
+        if (extra.error) return [];
+        if (phase === 'init' || phase === 'flexed') {
+          if (a >= 160) {
+            if (readyT === null) readyT = t;
+            if (t - readyT >= 200) phase = 'extended';
+          } else readyT = null;
+          return [];
+        }
+        if (phase === 'extended') {
+          if (a < 177 && departureT === null) departureT = t;
+          if (a >= 180) departureT = null;
+          if (a < 150) { phase = 'flexing'; rep = { tStart: departureT === null ? t : departureT, minA: a }; readyT = departureT = null; }
+          return [];
+        }
+        rep.minA = Math.min(rep.minA, a);
+        if (a <= 100) {
+          if (endT === null) endT = t;
+          if (t - endT >= 120) {
+            const duration = endT - rep.tStart;
+            phase = 'flexed';
+            return finish(t, duration >= 900, 'Descente trop rapide : ralentis le mouvement.');
+          }
+        } else endT = null;
+        if (a >= 160) {
+          phase = 'extended';
+          if (rep.minA < 135) return finish(t, false, 'Descente incomplète : va jusqu’à la position finale.');
+          res.glitches++; rep = null;
+        }
+        return [];
+      }
+    };
+  }
+
+  function rotationEngine() {
+    const res = { valid: 0, rejected: 0, glitches: 0, aborted: 0, reps: [] };
+    let phase = 'init', previous = null, total = 0, maximum = 0, rep = null;
+    return {
+      res, phase: () => phase, currentRep: () => rep,
+      abort() { if (rep) res.aborted++; phase = 'init'; previous = null; total = maximum = 0; rep = null; },
+      step(t, a, e) {
+        if (e.error || !Number.isFinite(e.rotation)) return [];
+        if (phase === 'init') {
+          if (e.hanging) { previous = e.rotation; total = maximum = 0; phase = 'extended'; }
+          return [];
+        }
+        let delta = e.rotation - previous;
+        while (delta > 180) delta -= 360;
+        while (delta < -180) delta += 360;
+        previous = e.rotation;
+        if (Math.abs(delta) > 65) { this.abort(); return []; }
+        total += delta; maximum = Math.max(maximum, Math.abs(total));
+        if (!rep && maximum > 35) { rep = { tStart: t }; phase = 'flexing'; }
+        if (maximum >= 210) phase = 'flexed';
+        if (rep && Math.abs(total) < 25 && e.hanging) {
+          const valid = maximum >= 210 && t-rep.tStart >= 1200;
+          const reasons = valid ? [] : [{ code: 'rotation', text: 'Passe derrière la barre puis reviens en suspension, en contrôle.' }];
+          if (valid) res.valid++; else res.rejected++;
+          const r = { n: res.valid+res.rejected, valid, reasons, tStart: rep.tStart, tEnd: t, durMs: t-rep.tStart, downMs: (t-rep.tStart)/2, upMs: (t-rep.tStart)/2, minA: 0 };
+          res.reps.push(r); rep = null; maximum = Math.abs(total); phase = 'extended';
+          return [{ type: 'rep', valid, count: res.valid, n: r.n, reasons, durMs: r.durMs }];
+        }
+        return [];
+      }
+    };
+  }
+
+  function holdMeasure(p, cfg, f, an) {
+    const all = an.sides.map(s => body(f, s, cfg));
+    const b = p.motion === 'side_plank' ? all.reduce((a, v) =>
+      (v.el.y - v.sh.y > a.el.y - a.sh.y ? v : a)) : all[0];
+    let msg = '', axis = Math.abs(90 - b.inclination), dev = 180 - b.line;
+    const check = (ok, text) => { if (!ok && !msg) msg = text; };
+    const aligned = () => check(dev <= 30, 'Aligne les épaules, les hanches et les chevilles.');
+    const horizontal = () => check(axis <= 40, 'Garde le buste proche de l’horizontale.');
+    const support = () => check(b.supported, 'Garde les mains en appui sous les épaules.');
+    const straightArms = () => check(b.elbow >= 135, 'Tends les bras.');
+    const variant = p.variant || (p.key.includes('tuck') ? 'tuck' : 'full');
+    switch (p.motion) {
+      case 'plank': case 'side_plank':
+        horizontal(); aligned();
+        check(b.el.y > b.sh.y + .12 * b.scale || b.supported, 'Place les mains ou les avant-bras en appui sous les épaules.');
+        check(b.kneeAngle >= 145, 'Tends les jambes.');
+        if (p.motion === 'side_plank') {
+          const other = body(f, b.side === 'L' ? 'R' : 'L', cfg);
+          const ix = C.SIDES[other.side];
+          check([ix.sh, ix.hip].every(i => (f.lm[i].visibility == null ? 1 : f.lm[i].visibility) >= cfg.common.minVisibility), 'Montre les deux épaules et les deux hanches.');
+          check(Math.abs(other.sh.y - b.sh.y) > .18 * b.scale && Math.abs(other.hip.y - b.hip.y) > .1 * b.scale, 'Tourne-toi sur le côté, épaules et hanches superposées.');
+        }
+        break;
+      case 'handstand':
+        axis = b.inclination;
+        check(b.hip.y < b.sh.y && b.ank.y < b.hip.y && axis < 45, 'Monte les hanches et les pieds au-dessus des épaules.');
+        support(); straightArms(); aligned(); break;
+      case 'hang':
+        axis = b.inclination; dev = 180 - b.elbow;
+        check(b.hanging && b.upright && axis < 35, 'Suspends-toi, les mains au-dessus des épaules.');
+        straightArms(); break;
+      case 'sit':
+        axis = b.inclination; dev = 0;
+        support(); straightArms(); check(b.upright, 'Redresse le buste.');
+        check(b.hip.y < b.wr.y - .08 * b.scale, 'Décolle les hanches de ton appui.');
+        check(b.hipAngle < (p.key === 'v_sit' ? 65 : 110), 'Monte les jambes devant toi.');
+        if (p.key !== 'tuck_sit') check(all.every(x => x.kneeAngle >= 150 && x.hipAngle < (p.key === 'v_sit' ? 65 : 110)), 'Monte et tends les deux jambes.');
+        else check(b.kneeAngle < 125, 'Replie les genoux vers la poitrine.');
+        break;
+      case 'lean':
+        horizontal(); aligned(); support(); straightArms();
+        check((b.sh.x - b.wr.x) * Math.sign(b.sh.x - b.hip.x) > .12 * b.scale, 'Avance les épaules devant les mains.');
+        break;
+      case 'planche': case 'front_lever': case 'back_lever':
+        horizontal(); straightArms();
+        if (p.motion === 'planche') support(); else check(b.hanging, 'Garde les mains à la barre, au-dessus du buste.');
+        if (variant === 'tuck' || variant === 'adv tuck') {
+          dev = 0;
+          check(b.kneeAngle < 135 && b.hipAngle < (variant === 'tuck' ? 100 : 140), 'Replie les genoux et garde le buste horizontal.');
+          if (variant === 'adv tuck') check(b.hipAngle >= 70, 'Éloigne un peu les genoux de la poitrine.');
+        } else if (variant === 'une jambe' || variant === 'half lay') {
+          check(all.length === 2, 'Montre les deux jambes, de trois quarts.');
+          check(all.some(x => x.kneeAngle >= 145 && x.line >= 150) && all.some(x => x.kneeAngle < 140 || x.hipAngle < 140), 'Garde une jambe tendue et l’autre repliée.');
+        } else {
+          aligned(); check(all.every(x => x.kneeAngle >= 145 && x.line >= 150), 'Tends et aligne les deux jambes.');
+          if (variant === 'straddle') {
+            check(all.length === 2, 'Montre tes deux jambes écartées, de trois quarts.');
+            if (all.length === 2) check(distance(all[0].ank, all[1].ank) > .45 * b.scale, 'Écarte les jambes.');
+          }
+        }
+        if (p.motion === 'planche') check(b.ank.y < b.wr.y - .08 * b.scale, 'Décolle les pieds au-dessus de l’appui des mains.');
+        break;
+      case 'flag':
+        horizontal();
+        check(all.length === 2, 'Montre les deux bras et les mains sur le poteau.');
+        if (all.length === 2) {
+          check(all.every(x => x.elbow > 145), 'Tends les deux bras.');
+          check(all.some(x => x.hanging) && all.some(x => x.supported), 'Place une main en haut et une main en bas.');
+        }
+        if (variant === 'tuck') { dev = 0; check(b.kneeAngle < 135, 'Replie les jambes.'); } else aligned();
+        break;
+    }
+    check(Number.isFinite(dev) && Number.isFinite(axis) && Number.isFinite(b.elbow), 'Position pas assez visible.');
+    return { valid: !msg, msg, dev, axis };
+  }
+
+  const directions = {
+    push: ['Commence bras tendus, puis descends et remonte complètement.', 'Garde le corps aligné.'],
+    pike: ['Garde les hanches hautes en V inversé.', 'Descends la tête entre les mains, puis tends les bras.'],
+    hspu: ['Commence en poirier, mains en appui et bras tendus.', 'Descends puis retrouve les bras tendus.'],
+    dip: ['Commence en appui, mains sous les épaules et bras tendus.', 'Descends en pliant les coudes puis remonte complètement.'],
+    row: ['Montre ton corps incliné sous la barre.', 'Pars bras tendus, tire la poitrine vers la barre puis redescends.'],
+    pull: ['Montre la barre, les bras et tout le buste.', 'Pars en suspension, tire puis tends les bras en redescendant.'],
+    squat: ['Montre les hanches, les genoux et les pieds.', 'Pars debout, descends suffisamment puis redresse la jambe.'],
+    raise: ['Montre les mains à la barre, les hanches et les pieds.', 'Pars jambes basses, relève-les puis redescends sans élan.'],
+    bridge: ['Montre épaules, hanches, genoux et pieds de profil.', 'Pars bassin bas, monte jusqu’à aligner épaules-hanches-genoux puis redescends.'],
+    calf: ['Cadre de près la jambe et le pied entier, de profil.', 'Pars talon bas, monte sur la pointe puis redescends complètement.'],
+    scap: ['Reste immobile une seconde en suspension pour le repère de départ.', 'Monte le buste en abaissant les épaules, bras tendus, puis relâche.'],
+    nordic: ['Cadre tout le corps de profil, chevilles bloquées.', 'Pars à genoux, descends le corps aligné puis reviens.'],
+    back: ['Cadre tout le corps au sol, de profil.', 'Lève ensemble la poitrine et les jambes, puis repose-les.'],
+    muscle: ['Montre la barre, les poignets et tout le buste.', 'Passe de la suspension à l’appui au-dessus de la barre, bras tendus.'],
+    dragon: ['Montre le banc et tout le corps de profil.', 'Passe du corps presque horizontal à la verticale et reviens en contrôle.'],
+    front_negative: ['Commence en suspension inversée, hanches au-dessus des épaules.', 'Descends lentement jusqu’au buste horizontal, puis replace-toi.'],
+    skin: ['Montre tout le corps et la barre de profil.', 'Passe les jambes entre les bras et reviens en suspension.'],
+    wall: ['Montre le mur et tout le corps de profil.', 'Monte jusqu’au poirier puis reviens en position de pompe.'],
+    kick: ['Commence mains au sol, hanches hautes.', 'Monte au poirier puis reviens au départ en contrôle.'],
+    push90: ['Commence en poirier, corps tendu.', 'Descends vers l’horizontale puis remonte au poirier.']
+  };
+  function guideFor(key) {
+    const p = profiles[key]; if (!p) return [];
+    const tips = [p.view === 'front' ? 'Pose le téléphone à 2 à 3 m, face à toi, corps entier visible.' : 'Pose le téléphone à environ 2 m, de profil ou légèrement de trois quarts.'];
+    tips.push(...(directions[p.motion] || ['Montre les bras, les hanches et les pieds.', 'Le chrono démarre quand la position est reconnue.']));
+    if (p.unilateral) tips.push('Travaille un seul côté par série, du côté de la caméra. Fais ensuite l’autre côté séparément.');
+    if (p.negative) tips.push('La descente doit rester lente et contrôlée.');
+    tips.push('Comptage estimé : la caméra ne vérifie pas la prise ni le contact avec le sol ou la barre.');
+    return tips;
+  }
+  Object.values(profiles).forEach(p => {
+    const needs = { mode: 'mean', joints: p.joints, hint: 'montre ' + p.joints.map(k => jointNames[k]).join(', ') + ', de profil' };
+    C.registerExercise(p.key, { label: p.key.replace(/_/g, ' '), kind: p.hold ? 'hold' : 'reps', view: p.view, orient: p.orient }, needs,
+      p.hold ? null : cfg => makeAdapter(p, cfg), p.hold ? (cfg, f, an) => holdMeasure(p, cfg, f, an) : null);
+  });
+  return { profiles, guideFor };
 });
 
 /* ============================================================
@@ -6842,8 +7294,7 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
 const LiveCam = (() => {
   const RC = window.RepCore;
   const EXMAP = {
-    pompes_strictes: 'pushup', dips_strictes: 'dip', tractions_strictes: 'pullup', tractions_supination: 'pullup', squat: 'squat',
-    gainage: 'hold_plank', handstand_mur: 'hold_handstand', handstand_libre: 'hold_handstand'
+    pompes_strictes: 'pushup', tractions_strictes: 'pullup', tractions_supination: 'pullup'
   };
   const GUIDE = {
     pushup: ['Pose le téléphone au sol, à environ 2 m. De profil, de trois quarts ou de face : montre bien tes bras.', 'Le mieux : tout le corps dans l\'image. Même sans les jambes, je compte avec tes bras.', 'Bonne lumière devant toi, pas de fenêtre derrière.'],
@@ -6863,9 +7314,9 @@ const LiveCam = (() => {
   let voice = true;
   try { voice = localStorage.getItem('ranked.voice') !== '0'; } catch (e) { /* stockage indisponible */ }
 
-  const supports = key => EXMAP[key] || null;
+  const supports = key => EXMAP[key] || (window.RepMore && window.RepMore.profiles[key] ? key : null);
   const available = () => !!(window.RepCore && navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
-  const guideFor = ex => GUIDE[ex] || [];
+  const guideFor = ex => window.RepMore && window.RepMore.profiles[ex] ? window.RepMore.guideFor(ex) : GUIDE[ex] || [];
   const isVoice = () => voice;
   function setVoice(v) { voice = !!v; try { localStorage.setItem('ranked.voice', voice ? '1' : '0'); } catch (e) { /* ignore */ } }
 
@@ -6917,7 +7368,8 @@ const LiveCam = (() => {
 
   /* open(box, key, hooks): box = element .cam ; hooks = {setup(st), count(out), countdown(n), error(info)} */
   function open(box, key, hooks) {
-    const ex = EXMAP[key];
+    const ex = supports(key);
+    if (!ex) throw new Error('Exercice caméra inconnu : ' + key);
     const isHold = RC.EXERCISES[ex].kind === 'hold';
     let stream = null, loop = false, mode = 'idle', counter = null, facing = 'user', mirror = true, lastT = 0, lastFrame = null, cdTimer = 0;
     let okRun = 0, badRun = 0, shown = false, closed = false;
@@ -7021,7 +7473,7 @@ const LiveCam = (() => {
         g.beginPath(); g.moveTo(x + rad, y); g.arcTo(x + w, y, x + w, y + h, rad); g.arcTo(x + w, y + h, x, y + h, rad); g.arcTo(x, y + h, x, y, rad); g.arcTo(x, y, x + w, y, rad); g.closePath(); g.stroke(); g.restore();
       }
       if (!frame || !frame.lm) return;
-      const minV = RC.mergeConfig({}).common.minVisibility, lm = frame.lm;
+      const minV = RC.EXERCISES[ex].extended ? .22 : RC.mergeConfig({}).common.minVisibility, lm = frame.lm;
       g.lineWidth = 4 * d; g.lineCap = 'round';
       CONN.forEach(c => {
         const a = lm[c[0]], b = lm[c[1]]; if (!a || !b) return;
@@ -7176,7 +7628,7 @@ function camCountdown(L, n) {
 function camCount(L, out) {
   if (ui.live !== L || L.cam.mode !== 'live') return;
   const c = L.cam, cnt = $('#live-cnt');
-  if (L.hold) cnt.textContent = (out.hold.currentMs / 1000).toFixed(1).replace('.', ',');
+  if (L.hold) cnt.textContent = (Math.floor(out.hold.currentMs / 100) / 10).toFixed(1).replace('.', ',');
   else {
     cnt.textContent = String(out.reps);
     if (out.reps !== c.lastReps) { c.lastReps = out.reps; if (!reducedMotion()) { cnt.classList.remove('pop'); void cnt.offsetWidth; cnt.classList.add('pop'); } }
@@ -7185,7 +7637,7 @@ function camCount(L, out) {
   out.events.forEach(ev => { if (ev.type === 'rep' && !ev.valid) { c.rejText = ev.reasons.map(r => r.text).join(' · '); c.rejUntil = now + 2600; } });
   if (c.rejText && now < c.rejUntil) liveFb(c.rejText, 'warn');
   else liveFb(out.feedback || '…', out.tone === 'ok' ? 'good' : out.tone === 'warn' ? 'warn' : '');
-  if (out.calibrated) { toast('Seuil « bras tendus » adapté à ' + out.calibrated + '°'); }
+  if (out.calibrated) { toast(out.calibrationText || ('Seuil « bras tendus » adapté à ' + out.calibrated + '°')); }
   // ligne d'état : phase, rejets et angle mesuré (sert à régler le compteur)
   camStatus(out.label + (!L.hold && out.rejected ? ' · ' + out.rejected + (out.rejected > 1 ? ' rejetées' : ' rejetée') : '') + (out.metricsText ? ' · ' + out.metricsText : ''), out.visible);
 }
