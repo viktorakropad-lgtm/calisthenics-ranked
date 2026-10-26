@@ -14,7 +14,7 @@
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>html,body{margin:0;background:#0b0d17}</style>
-<script>window.APP_VERSION = "0.14-0aee60";</script>
+<script>window.APP_VERSION = "0.15-7b1c02";</script>
 </head>
 <body>
 <style>
@@ -6357,7 +6357,8 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
     kip: 'Balancement (kipping)',
     shrug: 'Épaules haussées',
     line: 'Ligne du corps',
-    axis: 'Orientation du corps'
+    axis: 'Orientation du corps',
+    knees: 'Appui sur les genoux à la remontée'
   };
   function reasonLabel(exercise, code) {
     if (exercise === 'pullup' && code === 'lockout') return 'Bras pas tendus en bas';
@@ -6383,17 +6384,78 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
   }
 
   /* ---- Pompes (profil) ---- */
+  // Repère propre au cadrage : ligne des appuis mains/pieds dans l'image.
+  // On la conserve pendant une occultation, sans inventer de genou invisible.
+  function createPushupSupport(cfg) {
+    const refs = {};
+    let lastT = null;
+    return function (f, phase) {
+      if (lastT !== null && (f.t-lastT>1000 || f.t<lastT)) Object.keys(refs).forEach(k=>delete refs[k]);
+      lastT=f.t;
+      let grounded=false;
+      for (const side of ['L','R']) {
+        const ix=SIDES[side];
+        const seen=k=>{const p=f.lm[ix[k]];return p && visOf(p)>=Math.max(.35,cfg.common.minVisibility) && p.x>=0 && p.x<=1 && p.y>=0 && p.y<=1;};
+        if (!['sh','hip','wr','knee'].every(seen)) continue;
+        let S=pt(f,ix.sh),H=pt(f,ix.hip),W=pt(f,ix.wr),K=pt(f,ix.knee),A=seen('ank')?pt(f,ix.ank):null;
+        const anchor={x:W.x,y:W.y,scale:dist(S,H)};
+        let r=refs[side], axis=r && r.axis;
+        const worldOK=keys=>cfg.common.use3D && f.wl && keys.every(k=>f.wl[ix[k]] && ['x','y','z'].every(c=>Number.isFinite(f.wl[ix[k]][c])));
+        // Si la caméra est de face, utiliser la profondeur seulement quand
+        // un repère mains/pieds 3D a effectivement été observé.
+        if(!axis && A && Math.abs(A.x-W.x)<=.65*anchor.scale && worldOK(['sh','hip','wr','knee','ank'])) {
+          const w=f.wl[ix.wr],a=f.wl[ix.ank],d=Math.hypot(a.x-w.x,a.z-w.z);
+          if(d>.3)axis={x:(a.x-w.x)/d,z:(a.z-w.z)/d};
+        }
+        if(axis) {
+          if(!worldOK(['sh','hip','wr','knee']))continue;
+          const project=k=>{const p=f.wl[ix[k]];return {x:p.x*axis.x+p.z*axis.z,y:p.y,z:0};};
+          S=project('sh');H=project('hip');W=project('wr');K=project('knee');
+          A=seen('ank') && worldOK(['ank'])?project('ank'):null;
+        }
+        const scale=dist(S,H);
+        if(scale<.025)continue;
+        // De face, la ligne 2D des appuis peut se réduire à un point : aucune
+        // conclusion de contact dans ce cas. Une jambe pliée ne suffit jamais.
+        if(A) {
+          const span=A.x-W.x;
+          if(Math.abs(span)>.65*scale) {
+            const slope=(A.y-W.y)/span;
+            const clearance=(W.y+slope*(K.x-W.x)-K.y)/scale;
+            if(!r || ((phase==='init'||phase==='extended') && clearance>.1)) {
+              r={slope,scale,anchor,clearance,axis}; refs[side]=r;
+            }
+          }
+        }
+        if(!r || Math.hypot(anchor.x-r.anchor.x,anchor.y-r.anchor.y)>.4*r.anchor.scale || scale/r.scale<.6 || scale/r.scale>1.6) {delete refs[side];continue;}
+        const clearance=(W.y+r.slope*(K.x-W.x)-K.y)/scale;
+        const folded=seen('ank') && jointAngle(f,ix.hip,ix.knee,ix.ank,cfg.common.use3D)<150;
+        if(clearance<=.055 && clearance>=-.15 && (r.clearance-clearance>.1 || folded)) grounded=true;
+      }
+      return grounded;
+    };
+  }
+  function trackKneeSupport(rep,t,a,extra,phase) {
+    // La descente n'est pas un contrôle de contact. Exiger plusieurs images
+    // consécutives en remontée évite qu'un point mal détecté rejette une rep.
+    if((phase==='extending' || phase==='flexed') && a>rep.minA+12 && extra.kneesGrounded) {
+      if(rep.kneeSince==null)rep.kneeSince=t;
+      if(t-rep.kneeSince>=120)rep.kneeSupported=true;
+    } else rep.kneeSince=null;
+  }
   ADAPTERS.pushup = function (cfg) {
     const c = cfg.pushup;
+    const support=createPushupSupport(cfg);
+    let currentPhase='init';
     return {
       params: engineParams(c, cfg.common),
       labels: LABELS.std,
       // position : on ne compte que si la personne n'est pas flagrante debout (torse proche de la verticale)
-      gate: function (f) {
+      gate: function (f, an, phase) {
         const i = torsoIncl(f, cfg.common.minVisibility, cfg.common.use3D);
         if (i !== null && i < c.minIncl) return { all: true, msg: 'Je te vois debout: mets-toi en position de pompe (corps à l\'horizontale).' };
         // accroupi / squat : torse pas couché ET genoux franchement pliés (en pompe sur les pieds, les jambes restent tendues)
-        if (i !== null && i < 75) {
+        if ((phase==='init' || phase==='extended') && i !== null && i < 75) {
           const ks = [];
           ['L', 'R'].forEach(function (s) {
             const m = SIDES[s];
@@ -6416,16 +6478,20 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
           const S = pt(f, m.sh), H = pt(f, m.hip), A = pt(f, m.ank);
           extra.dev = 180 - angleDeg(S, H, A); extra.sag = sagSign(S, H, A);
         }
+        extra.kneesGrounded=support(f,currentPhase);
         return { a: a, extra: extra };
       },
+      after: function(phase) {currentPhase=phase;},
       hooks: {
         newRep: function () { return { maxDev: 0, devSign: 1, minDrop: Infinity }; },
-        track: function (rep, t, a, e) {
+        track: function (rep, t, a, e, phase) {
+          trackKneeSupport(rep,t,a,e,phase);
           if (e.dev !== null && e.dev > rep.maxDev) { rep.maxDev = e.dev; rep.devSign = e.sag; }
           if (e.drop < rep.minDrop) rep.minDrop = e.drop;
         },
         evaluate: function (r, p) {
           const out = [];
+          if(r.kneeSupported)out.push({code:'knees',text:'Appui sur les genoux détecté pendant la remontée : garde-les décollés.'});
           if (r.minA > c.down) out.push({ code: 'depth', text: 'Pas assez bas: coude à ' + round(r.minA) + '° (objectif sous ' + c.down + '°)' });
           else if (c.useShoulderHeight && r.minDrop > c.shoulderDropMax) out.push({ code: 'shoulders', text: 'Épaules pas assez descendues vers les mains' });
           if (r.maxDev > c.bodyTol) {
@@ -6867,7 +6933,7 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
     mergeConfig: mergeConfig, angleDeg: angleDeg, OneEuro: OneEuro, createSmoother: createSmoother,
     framingStatus: framingStatus, missingMessage: missingMessage, reasonLabel: reasonLabel,
     createCounter: createCounter, runSequence: runSequence, createHoldTracker: createHoldTracker,
-    registerExercise: registerExercise
+    registerExercise: registerExercise, createPushupSupport: createPushupSupport, trackKneeSupport: trackKneeSupport
   };
 });
 
@@ -6891,21 +6957,23 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
 
   function body(f, side, cfg) {
     const ix = C.SIDES[side], p = {};
-    Object.keys(ix).forEach(k => { const v = f.lm[ix[k]]; p[k] = { x: v.x * (f.aspect || 1), y: v.y, z: 0 }; });
+    const seen = k => { const v = f.lm[ix[k]]; return v && Number.isFinite(v.x) && Number.isFinite(v.y) && v.x >= -.03 && v.x <= 1.03 && v.y >= -.03 && v.y <= 1.03 && (v.visibility == null ? 1 : v.visibility) >= cfg.common.minVisibility; };
+    Object.keys(ix).forEach(k => { const v = f.lm[ix[k]]; p[k] = seen(k) ? { x: v.x * (f.aspect || 1), y: v.y, z: 0 } : {x:NaN,y:NaN,z:0}; });
     const angle = (a, b, c) => {
+      if (![a,b,c].every(seen)) return NaN;
       const ids = [ix[a], ix[b], ix[c]];
       return cfg.common.use3D && f.wl && ids.every(i => finitePoint(f.wl[i]))
         ? C.angleDeg(...ids.map(i => f.wl[i])) : C.angleDeg(p[a], p[b], p[c]);
     };
-    const scale = Math.max(.04, distance(p.sh, p.hip));
-    const seen = k => { const v = f.lm[ix[k]]; return (v.visibility == null ? 1 : v.visibility) >= cfg.common.minVisibility; };
+    const scale = Math.max(.04, distance(p.sh, p.hip) || distance(p.sh,p.wr) || .2);
     let inclination = deg(p.sh.x - p.hip.x, p.sh.y - p.hip.y);
-    if (cfg.common.use3D && f.wl && [ix.sh, ix.hip].every(i => finitePoint(f.wl[i]))) {
+    if (seen('sh') && seen('hip') && cfg.common.use3D && f.wl && [ix.sh, ix.hip].every(i => finitePoint(f.wl[i]))) {
       const s = f.wl[ix.sh], h = f.wl[ix.hip];
       if (Math.hypot(s.x-h.x,s.y-h.y,s.z-h.z) > .01) inclination = deg(Math.hypot(s.x-h.x,s.z-h.z),s.y-h.y);
     }
     return Object.assign(p, { side, scale, angle, elbow: angle('sh', 'el', 'wr'), kneeAngle: angle('hip', 'knee', 'ank'),
-      hipAngle: angle('sh', 'hip', 'knee'), line: angle('sh', 'hip', 'ank'),
+      hipAngle: angle('sh', 'hip', 'knee'), line: angle('sh', 'hip', seen('ank') ? 'ank' : 'knee'), thighLine: angle('sh','hip','knee'),
+      elbow2d: C.angleDeg(p.sh,p.el,p.wr), thighIncl: deg(p.knee.x-p.hip.x,p.knee.y-p.hip.y),
       inclination, seen,
       upright: p.sh.y < p.hip.y, supported: p.wr.y > p.sh.y + .12 * scale,
       hanging: p.wr.y < p.sh.y - .25 * scale });
@@ -6959,6 +7027,21 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
   ['tuck', 'adv tuck', 'straddle', 'full', 'maltese'].forEach(variant => define('planche:' + variant, 'planche', { hold: true, variant, orient: 'wide' }));
   ['tuck', 'adv tuck', 'une jambe', 'straddle', 'half lay', 'full'].forEach(variant => define('front_lever:' + variant, 'front_lever', { hold: true, variant, orient: 'wide' }));
 
+  // Une articulation ne bloque que si elle mesure le mouvement lui-même.
+  // Les autres points sont contrôlés lorsqu'ils sont réellement visibles.
+  const REQUIRED = {
+    push:['sh','el','wr'], row:['sh','el','wr'], dip:['sh','el','wr'], pull:['sh','el','wr'],
+    pike:ARM, hspu:ARM, push90:ARM, muscle:ARM, scap:ARM,
+    squat:['hip','knee'], bridge:['sh','hip','knee'], raise:['sh','hip','knee'],
+    nordic:['sh','hip','knee'], back:['sh','hip','knee'], dragon:['sh','hip','knee'],
+    front_negative:ARM, skin:ARM, wall:ARM, kick:['sh','el','wr','hip','knee'],
+    plank:['sh','hip','knee'], side_plank:['sh','hip','knee'], handstand:['sh','wr','hip'],
+    hang:['sh','el','wr'], sit:['sh','wr','hip','knee'], lean:ARM,
+    planche:['sh','el','wr','hip','knee'], front_lever:['sh','el','wr','hip','knee'],
+    back_lever:['sh','el','wr','hip','knee'], flag:['sh','el','wr','hip','knee']
+  };
+  Object.values(profiles).forEach(p=>{if(REQUIRED[p.motion])p.joints=REQUIRED[p.motion];});
+
   function select(f, an, cfg, p, state) {
     const quality = side => Math.min(...p.joints.map(j => f.lm[C.SIDES[side][j]].visibility == null ? 1 : f.lm[C.SIDES[side][j]].visibility));
     let all = an.sides.slice().sort((a,b)=>quality(b)-quality(a)).map(s => body(f, s, cfg));
@@ -6974,38 +7057,42 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
       return active;
     }
     if (p.unilateral && ['squat', 'bridge', 'calf'].includes(p.motion)) {
-      if (!state.side) state.side = all.reduce((a, b) => a.ank.y >= b.ank.y ? a : b).side;
+      if (!state.side) state.side = all.reduce((a, b) =>
+        (a.seen('ank') && b.seen('ank') ? a.ank.y >= b.ank.y : a.knee.y >= b.knee.y) ? a : b).side;
       return all.find(b => b.side === state.side) || null;
     }
     if (p.unilateral || p.alternate) return all.reduce((a, b) =>
-      (p.motion === 'squat' ? a.kneeAngle < b.kneeAngle : a.elbow < b.elbow) ? a : b);
+      (p.motion === 'squat' ? (Number.isFinite(a.kneeAngle) && Number.isFinite(b.kneeAngle) ? a.kneeAngle < b.kneeAngle : a.thighIncl > b.thighIncl) : a.elbow < b.elbow) ? a : b);
     state.side = all[0].side;
     return all[0];
   }
 
-  function posture(p, b, all) {
+  function posture(p, b, all, reference, phase) {
     const fail = msg => msg;
     switch (p.motion) {
       case 'push':
-        if (!b.supported || b.inclination < (p.key === 'pompes_inclinees' ? 18 : 40)) return fail('Place les mains en appui et garde le corps incliné.');
-        if (b.line < 145 || b.kneeAngle < 140) return fail('Garde le corps aligné et les jambes tendues.');
+        if (!b.supported || (b.seen('hip') && b.inclination < (p.key === 'pompes_inclinees' ? 15 : 25) && !(reference && phase !== 'init' && distance(b.wr,reference.wrist)<.35*reference.scale))) return fail('Place les mains en appui et garde le corps incliné.');
         break;
-      case 'pike': if (!b.supported || b.hip.y >= b.sh.y || b.hipAngle > 135) return fail('Garde les hanches hautes, en V inversé.'); break;
+      case 'pike': if (!b.supported || b.hip.y >= b.sh.y || (b.seen('knee') && b.hipAngle > 150)) return fail('Garde les hanches hautes, en V inversé.'); break;
       case 'hspu': case 'push90':
-        if (!b.supported || b.hip.y >= b.sh.y || b.ank.y >= b.sh.y) return fail('Mets-toi à l’envers, mains en appui sous les épaules.');
+        if (!b.supported || b.hip.y >= b.sh.y || (b.seen('ank') && b.ank.y >= b.sh.y)) return fail('Mets-toi à l’envers, mains en appui sous les épaules.');
         if (p.motion === 'hspu' && b.inclination > 40) return fail('Garde le corps proche de la verticale.');
         break;
       case 'dip': if (!b.supported || (b.seen('hip') && (!b.upright || b.inclination > 75))) return fail('Mets les mains en appui sous les épaules, buste redressé.'); break;
-      case 'row': if (!b.hanging || b.inclination < 35 || b.line < 145) return fail('Sous la barre, garde le corps incliné et aligné.'); break;
+      case 'row': {
+        const nearBar = b.wr.y < b.sh.y + .5*b.scale;
+        if ((!b.hanging && !(reference && nearBar)) || (b.seen('hip') && b.inclination < 20)) return fail('Place-toi sous la barre, le buste incliné.');
+        break;
+      }
       case 'pull': case 'raise': case 'scap':
-        if ((!b.hanging && !(p.motion === 'pull' && b.elbow < 145 && b.wr.y < b.sh.y + .5 * b.scale)) || !b.upright) return fail('Suspends-toi, les mains au-dessus des épaules.');
-        if (p.motion === 'raise' && (b.elbow < 145 || (p.straight && b.kneeAngle < 145))) return fail(p.straight ? 'Garde les bras et les jambes tendus.' : 'Garde les bras tendus pendant le relevé.');
+        if ((b.seen('wr') && !b.hanging && !(p.motion === 'pull' && b.elbow < 145 && b.wr.y < b.sh.y + .5 * b.scale)) || (b.seen('hip') && !b.upright)) return fail('Suspends-toi, les mains au-dessus des épaules.');
+        if (p.motion === 'raise' && ((b.seen('el') && b.elbow < 135) || (p.straight && b.seen('ank') && b.kneeAngle < 135))) return fail(p.straight ? 'Garde les bras et les jambes tendus.' : 'Garde les bras tendus pendant le relevé.');
         if (p.motion === 'scap' && b.elbow < 150) return fail('Bouge les épaules en gardant les bras tendus.');
         break;
-      case 'squat': if (!b.upright || b.inclination > 75) return fail('Tiens-toi sur tes pieds, buste redressé.'); break;
-      case 'bridge': if (b.inclination < 45 || b.ank.y < b.hip.y || b.knee.y > b.hip.y + .15 * b.scale) return fail('Allonge-toi sur le dos, pied en appui et genou plié.'); break;
+      case 'squat': if ((b.seen('sh') && !b.upright) || b.inclination > 80) return fail('Tiens-toi sur tes pieds, buste redressé.'); break;
+      case 'bridge': if (b.inclination < 45 || (b.seen('ank') && b.ank.y < b.hip.y) || b.knee.y > b.hip.y + .15 * b.scale) return fail('Allonge-toi sur le dos, pied en appui et genou plié.'); break;
       case 'calf': if (b.kneeAngle < 150 || b.hip.y >= b.knee.y) return fail('Reste debout, jambe d’appui tendue, pied visible de profil.'); break;
-      case 'nordic': if (!b.upright || b.hipAngle < 150 || b.ank.y < b.knee.y - .2 * b.scale) return fail('Garde épaules, hanches et genoux alignés, genoux au sol.'); break;
+      case 'nordic': if (!b.upright || b.hipAngle < 145 || (b.seen('ank') && b.ank.y < b.knee.y - .2 * b.scale)) return fail('Garde épaules, hanches et genoux alignés, genoux au sol.'); break;
       case 'back': if (b.inclination < 60) return fail('Allonge-toi sur le ventre, de profil.'); break;
       case 'muscle': if (b.inclination > 60) return fail('Garde le buste redressé pendant le passage de la barre.'); break;
       case 'dragon': if (b.hip.y > b.sh.y + .2 * b.scale || b.line < 150) return fail('Garde le corps droit et les hanches décollées.'); break;
@@ -7021,7 +7108,7 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
   function progress(p, b, state, t) {
     switch (p.motion) {
       case 'push': case 'pike': case 'hspu': case 'dip': case 'row': case 'pull': return (160 - b.elbow) / 45;
-      case 'squat': return (175 - b.kneeAngle) / 80;
+      case 'squat': return b.seen('ank') ? (175 - b.kneeAngle) / 80 : b.thighIncl/80;
       case 'raise': return (175 - b.hipAngle) / (p.high ? 145 : 90);
       case 'bridge': return (b.hipAngle - 130) / 40;
       case 'calf': return (b.angle('knee', 'ank', 'toe') - 95) / 35;
@@ -7034,11 +7121,11 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
         return (state.base - d) / .16;
       }
       case 'muscle': return clamp(((b.wr.y - b.sh.y) / b.scale + 1.1) / 2.2, 0, 1.3);
-      case 'dragon': return (90 - deg(b.ank.x - b.sh.x, b.ank.y - b.sh.y)) / 70;
+      case 'dragon': { const end=b.seen('ank')?b.ank:b.knee; return (90-deg(end.x-b.sh.x,end.y-b.sh.y))/70; }
       case 'front_negative': return b.inclination / 85;
       case 'skin': return (b.sh.y - b.hip.y) / b.scale;
       case 'wall': return (90 - b.inclination) / 85;
-      case 'kick': return clamp((b.sh.y - b.ank.y) / b.scale, 0, 1);
+      case 'kick': return clamp((b.sh.y - (b.seen('ank')?b.ank.y:b.knee.y)) / b.scale, 0, 1);
       case 'push90': return b.inclination / 85;
       default: return NaN;
     }
@@ -7046,31 +7133,47 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
 
   function makeAdapter(p, cfg) {
     const state = {};
+    const support=p.motion==='push' && p.key!=='pompes_inclinees' ? C.createPushupSupport(cfg) : null;
     let measured;
     return {
       createEngine: p.negative ? () => negativeEngine(p) : p.motion === 'skin' ? () => rotationEngine() : null,
       autoCalib: ['push','pike','hspu','dip','row','pull','squat'].includes(p.motion) && !p.negative,
-      params: { up: ['push','pike','hspu','dip','row','pull'].includes(p.motion) ? 150 : 160, down: 100, attempt: 135, hyst: 10, reversal: 25, minRepMs: p.negative ? 900 : 400, minPhaseMs: 120 },
+      params: { up: p.motion==='row'?140:['push','pike','hspu','dip','pull'].includes(p.motion) ? 150 : 160, down: 100, attempt: 135, hyst: 10, reversal: 25, minRepMs: p.negative ? 900 : 400, minPhaseMs: 120 },
       labels: { init: 'position de départ', extended: 'prêt', flexing: 'mouvement', flexed: 'amplitude atteinte', extending: 'retour' },
       measure(f, an) {
+        if(state.lastT!=null && f.t-state.lastT>350){state.reference=null;state.phase='init';}
+        state.lastT=f.t;
         const b = select(f, an, cfg, p, state);
         if (!b) { measured = { a: 180, extra: { error: 'Montre le côté qui travaille jusqu’à la fin de la série.', progress: 0 } }; return measured; }
-        let error = posture(p, b, an.sides.map(s => body(f, s, cfg)));
+        let error = posture(p, b, an.sides.map(s => body(f, s, cfg)), state.reference, state.phase || 'init');
+        // Une extension clairement visible en 2D confirme le retour même si la
+        // profondeur 3D du coude fluctue. Les seuils de flexion restent inchangés.
+        if(p.motion==='row' && b.elbow2d>=160 && b.elbow>=130) b.elbow=Math.max(b.elbow,b.elbow2d);
+        if(['row','push'].includes(p.motion)) {
+          if(!state.angles || f.t-state.angleT>250)state.angles=[];
+          state.angleT=f.t;state.angles.push(b.elbow);
+          if(state.angles.length>3)state.angles.shift();
+          b.elbow=state.angles.slice().sort((a,b)=>a-b)[Math.floor(state.angles.length/2)];
+        }
         let value = progress(p, b, state, f.t);
+        if(!error && value<=.3 && b.seen('hip') && (!state.reference || state.phase==='extended'))
+          state.reference={inclination:b.inclination,line:b.thighLine,wrist:b.wr,scale:b.scale,t:f.t};
         if (p.motion === 'muscle' && !p.negative && value >= .8 && b.elbow < 135) value = .7;
         if (p.high && value >= .8 && b.ank.y > b.wr.y + .25 * b.scale) value = .7;
         if (p.explosive && value >= .8 && b.sh.y > b.wr.y + .2 * b.scale) value = .7;
         if (p.negative && (p.motion === 'muscle' || p.motion === 'dragon')) value = 1 - value;
-        measured = { a: 180 - 100 * clamp(value, -.2, 1.5), extra: { error, side: b.side, progress: value,
+        measured = { a: 180 - 100 * clamp(value, -.2, 1.5), extra: { error, side: b.side, progress: value, kneesGrounded: support ? support(f,state.phase || 'init') : false,
           rotation: Math.atan2(b.hip.y-b.sh.y,b.hip.x-b.sh.x)*180/Math.PI, hanging: b.hanging && b.hip.y > b.sh.y } };
         return measured;
       },
       gate() { return measured && measured.extra.error ? { all: true, msg: measured.extra.error } : null; },
+      after(phase) { state.phase=phase; },
       hooks: {
         newRep() { return { bad: 0, frames: 0 }; },
-        track(r, t, a, e) { r.frames++; if (e.error) r.bad++; },
+        track(r, t, a, e, phase) { r.frames++; if (e.error) r.bad++; if(support)C.trackKneeSupport(r,t,a,e,phase); },
         evaluate(r) {
           const out = [];
+          if(r.kneeSupported)out.push({code:'knees',text:'Appui sur les genoux détecté pendant la remontée : garde-les décollés.'});
           if (r.minA > 100) out.push({ code: 'depth', text: 'Amplitude incomplète : va jusqu’à la position indiquée.' });
           if (r.bad > 2) out.push({ code: 'position', text: 'Reprends une position stable et contrôlée.' });
           return out;
@@ -7176,16 +7279,16 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
       (v.el.y - v.sh.y > a.el.y - a.sh.y ? v : a)) : all[0];
     let msg = '', axis = Math.abs(90 - b.inclination), dev = 180 - b.line;
     const check = (ok, text) => { if (!ok && !msg) msg = text; };
-    const aligned = () => check(dev <= 30, 'Aligne les épaules, les hanches et les chevilles.');
+    const aligned = () => check(!Number.isFinite(dev) || dev <= 35, 'Aligne les épaules, les hanches et les jambes visibles.');
     const horizontal = () => check(axis <= 40, 'Garde le buste proche de l’horizontale.');
     const support = () => check(b.supported, 'Garde les mains en appui sous les épaules.');
-    const straightArms = () => check(b.elbow >= 135, 'Tends les bras.');
+    const straightArms = () => check(!b.seen('el') || b.elbow >= 135, 'Tends les bras.');
     const variant = p.variant || (p.key.includes('tuck') ? 'tuck' : 'full');
     switch (p.motion) {
       case 'plank': case 'side_plank':
         horizontal(); aligned();
         check(b.el.y > b.sh.y + .12 * b.scale || b.supported, 'Place les mains ou les avant-bras en appui sous les épaules.');
-        check(b.kneeAngle >= 145, 'Tends les jambes.');
+        check(!b.seen('ank') || b.kneeAngle >= 145, 'Tends les jambes.');
         if (p.motion === 'side_plank') {
           const other = body(f, b.side === 'L' ? 'R' : 'L', cfg);
           const ix = C.SIDES[other.side];
@@ -7195,19 +7298,19 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
         break;
       case 'handstand':
         axis = b.inclination;
-        check(b.hip.y < b.sh.y && b.ank.y < b.hip.y && axis < 45, 'Monte les hanches et les pieds au-dessus des épaules.');
+        check(b.hip.y < b.sh.y && (!b.seen('ank') || b.ank.y < b.hip.y) && (!b.seen('knee') || b.knee.y < b.hip.y) && axis < 45, 'Monte les hanches et les jambes au-dessus des épaules.');
         support(); straightArms(); aligned(); break;
       case 'hang':
-        axis = b.inclination; dev = 180 - b.elbow;
-        check(b.hanging && b.upright && axis < 35, 'Suspends-toi, les mains au-dessus des épaules.');
+        axis = b.seen('hip') ? b.inclination : 0; dev = 180 - b.elbow;
+        check(b.hanging && (!b.seen('hip') || (b.upright && axis < 35)), 'Suspends-toi, les mains au-dessus des épaules.');
         straightArms(); break;
       case 'sit':
         axis = b.inclination; dev = 0;
         support(); straightArms(); check(b.upright, 'Redresse le buste.');
         check(b.hip.y < b.wr.y - .08 * b.scale, 'Décolle les hanches de ton appui.');
         check(b.hipAngle < (p.key === 'v_sit' ? 65 : 110), 'Monte les jambes devant toi.');
-        if (p.key !== 'tuck_sit') check(all.every(x => x.kneeAngle >= 150 && x.hipAngle < (p.key === 'v_sit' ? 65 : 110)), 'Monte et tends les deux jambes.');
-        else check(b.kneeAngle < 125, 'Replie les genoux vers la poitrine.');
+        if (p.key !== 'tuck_sit') check(all.every(x => (!x.seen('ank') || x.kneeAngle >= 150) && x.hipAngle < (p.key === 'v_sit' ? 65 : 110)), 'Monte et tends les deux jambes.');
+        else check(!b.seen('ank') || b.kneeAngle < 125, 'Replie les genoux vers la poitrine.');
         break;
       case 'lean':
         horizontal(); aligned(); support(); straightArms();
@@ -7218,19 +7321,19 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
         if (p.motion === 'planche') support(); else check(b.hanging, 'Garde les mains à la barre, au-dessus du buste.');
         if (variant === 'tuck' || variant === 'adv tuck') {
           dev = 0;
-          check(b.kneeAngle < 135 && b.hipAngle < (variant === 'tuck' ? 100 : 140), 'Replie les genoux et garde le buste horizontal.');
+          check((!b.seen('ank') || b.kneeAngle < 135) && b.hipAngle < (variant === 'tuck' ? 100 : 140), 'Replie les genoux et garde le buste horizontal.');
           if (variant === 'adv tuck') check(b.hipAngle >= 70, 'Éloigne un peu les genoux de la poitrine.');
         } else if (variant === 'une jambe' || variant === 'half lay') {
           check(all.length === 2, 'Montre les deux jambes, de trois quarts.');
-          check(all.some(x => x.kneeAngle >= 145 && x.line >= 150) && all.some(x => x.kneeAngle < 140 || x.hipAngle < 140), 'Garde une jambe tendue et l’autre repliée.');
+          check(all.some(x => (!x.seen('ank') || x.kneeAngle >= 145) && x.line >= 150) && all.some(x => x.kneeAngle < 140 || x.hipAngle < 140), 'Garde une jambe tendue et l’autre repliée.');
         } else {
-          aligned(); check(all.every(x => x.kneeAngle >= 145 && x.line >= 150), 'Tends et aligne les deux jambes.');
+          aligned(); check(all.every(x => (!x.seen('ank') || x.kneeAngle >= 145) && x.line >= 150), 'Tends et aligne les deux jambes.');
           if (variant === 'straddle') {
             check(all.length === 2, 'Montre tes deux jambes écartées, de trois quarts.');
-            if (all.length === 2) check(distance(all[0].ank, all[1].ank) > .45 * b.scale, 'Écarte les jambes.');
+            if (all.length === 2) check(all.every(x=>x.seen('ank')) ? distance(all[0].ank, all[1].ank) > .45 * b.scale : distance(all[0].knee, all[1].knee) > .25 * b.scale, 'Écarte les jambes.');
           }
         }
-        if (p.motion === 'planche') check(b.ank.y < b.wr.y - .08 * b.scale, 'Décolle les pieds au-dessus de l’appui des mains.');
+        if (p.motion === 'planche') check((b.seen('ank')?b.ank:b.knee).y < b.wr.y - .08 * b.scale, 'Décolle les jambes au-dessus de l’appui des mains.');
         break;
       case 'flag':
         horizontal();
@@ -7239,11 +7342,11 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
           check(all.every(x => x.elbow > 145), 'Tends les deux bras.');
           check(all.some(x => x.hanging) && all.some(x => x.supported), 'Place une main en haut et une main en bas.');
         }
-        if (variant === 'tuck') { dev = 0; check(b.kneeAngle < 135, 'Replie les jambes.'); } else aligned();
+        if (variant === 'tuck') { dev = 0; check(b.seen('ank') ? b.kneeAngle < 135 : b.hipAngle < 140, 'Replie les jambes.'); } else aligned();
         break;
     }
-    check(Number.isFinite(dev) && Number.isFinite(axis) && Number.isFinite(b.elbow), 'Position pas assez visible.');
-    return { valid: !msg, msg, dev, axis };
+    check(Number.isFinite(axis), 'Position pas assez visible.');
+    return { valid: !msg, msg, dev: Number.isFinite(dev) ? dev : 0, axis };
   }
 
   const directions = {
@@ -7253,7 +7356,7 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
     dip: ['Commence en appui, mains sous les épaules et bras tendus.', 'Descends en pliant les coudes puis remonte complètement.'],
     row: ['Montre ton corps incliné sous la barre.', 'Pars bras tendus, tire la poitrine vers la barre puis redescends.'],
     pull: ['Montre la barre, les bras et tout le buste.', 'Pars en suspension, tire puis tends les bras en redescendant.'],
-    squat: ['Montre les hanches, les genoux et les pieds.', 'Pars debout, descends suffisamment puis redresse la jambe.'],
+    squat: ['Montre surtout les hanches et les genoux.', 'Pars debout, descends suffisamment puis redresse la jambe.'],
     raise: ['Montre les mains à la barre, les hanches et les pieds.', 'Pars jambes basses, relève-les puis redescends sans élan.'],
     bridge: ['Montre épaules, hanches, genoux et pieds de profil.', 'Pars bassin bas, monte jusqu’à aligner épaules-hanches-genoux puis redescends.'],
     calf: ['Cadre de près la jambe et le pied entier, de profil.', 'Pars talon bas, monte sur la pointe puis redescends complètement.'],
@@ -7272,6 +7375,7 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
     const p = profiles[key]; if (!p) return [];
     const tips = [p.view === 'front' ? 'Pose le téléphone à 2 à 3 m, face à toi, corps entier visible.' : 'Pose le téléphone à environ 2 m, de profil ou légèrement de trois quarts.'];
     tips.push(...(directions[p.motion] || ['Montre les bras, les hanches et les pieds.', 'Le chrono démarre quand la position est reconnue.']));
+    if(p.motion!=='calf')tips.push('Montre les jambes au départ si possible. Les chevilles peuvent ensuite sortir du cadre ; garde visibles les articulations qui font le mouvement.');
     if (p.unilateral) tips.push('Travaille un seul côté par série, du côté de la caméra. Fais ensuite l’autre côté séparément.');
     if (p.negative) tips.push('La descente doit rester lente et contrôlée.');
     tips.push('Comptage estimé : la caméra ne vérifie pas la prise ni le contact avec le sol ou la barre.');
