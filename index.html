@@ -14,7 +14,7 @@
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>html,body{margin:0;background:#0b0d17}</style>
-<script>window.APP_VERSION = "0.15-7b1c02";</script>
+<script>window.APP_VERSION = "0.16-2aba8f";</script>
 </head>
 <body>
 <style>
@@ -383,6 +383,9 @@ textarea.field { min-height: 0; font-size: 14px; line-height: 1.35; resize: vert
 .cam .cam-v.mirror { transform: scaleX(-1); }
 .camm .cam .sim { background: var(--scrim); color: var(--text); padding: 6px 10px; border-radius: 12px; width: fit-content; max-width: calc(100% - 24px); }
 .camm .cam .sim[data-ok="true"] { color: var(--ok); }
+.camm .cam { display: flex; flex-direction: column; justify-content: flex-end; gap: 8px; padding: 12px; box-sizing: border-box; }
+.camm .cam .reps { position: relative; left: auto; right: auto; bottom: auto; flex: 0 0 auto; }
+.camm .cam .fb { position: relative; left: auto; right: auto; bottom: auto; flex: 0 0 auto; font-size: 20px; line-height: 1.25; letter-spacing: .02em; border-radius: 16px; }
 .cam .cam-guide { position: absolute; left: 14px; right: 14px; top: 56px; z-index: 2; padding: 12px 14px; border-radius: 16px; background: var(--scrim); color: var(--text-2); font-size: 16px; line-height: 1.35; }
 .cam .cam-guide ul { margin: 6px 0 0; padding-left: 20px; display: grid; gap: 6px; }
 .cam .cam-guide b { color: var(--warn); }
@@ -6143,7 +6146,9 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
     return {
       apply: function (frame) {
         const tSec = frame.t / 1000;
-        return { t: frame.t, aspect: frame.aspect || 1, lm: smoothArr(frame.lm, 'lm', tSec), wl: smoothArr(frame.wl, 'wl', tSec) };
+        const out={ t: frame.t, aspect: frame.aspect || 1, lm: smoothArr(frame.lm, 'lm', tSec), wl: smoothArr(frame.wl, 'wl', tSec) };
+        if(frame.hands!==undefined){out.hands=frame.hands;out.handsT=frame.handsT;}
+        return out;
       },
       reset: function () { banks.lm = {}; banks.wl = {}; }
     };
@@ -6272,6 +6277,7 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
   /* ------------------------------------------------------------------ */
   function createBendEngine(p, hooks) {
     let phase = 'init', rep = null;
+    let highSince=null,lowSince=null;
     const res = { valid: 0, rejected: 0, glitches: 0, aborted: 0, reps: [] };
 
     function newRep(t, a, startedExtended) {
@@ -6288,6 +6294,7 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
       if (r.minA > p.attempt) { res.glitches++; return; } // simple rebond en haut : ignoré (ni valide, ni rejeté)
       if (dur < p.minRepMs || (r.tMin - r.tStart) < p.minPhaseMs || (t - r.tMin) < p.minPhaseMs) { if (!lockoutFail) { res.glitches++; return; } }
       let reasons = hooks.evaluate(r, p) || [];
+      if(p.depthStableMs && !r.depthConfirmed && !reasons.some(x=>x.code==='depth'))reasons.push({code:'depth',text:'Amplitude non confirmée : descends en contrôle.'});
       if (lockoutFail) reasons = [{ code: 'lockout', text: hooks.lockoutText(r, p) }].concat(reasons);
       r.reasons = reasons; r.valid = reasons.length === 0;
       r.durMs = dur; r.downMs = r.tMin - r.tStart; r.upMs = t - r.tMin;
@@ -6301,20 +6308,25 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
       res: res,
       phase: function () { return phase; },
       currentRep: function () { return rep; },
-      abort: function () { if (rep) { rep = null; res.aborted++; } phase = 'init'; },
+      abort: function () { if (rep) { rep = null; res.aborted++; } phase = 'init'; highSince=lowSince=null; },
       step: function (t, a, extra) {
         const events = [];
+        if(a>=p.up){if(highSince===null)highSince=t;}else if(!p.finishStableMs || a<p.up-p.hyst)highSince=null;
+        if(a<=p.down){if(lowSince===null)lowSince=t;}else if(!p.depthStableMs || a>p.down+p.hyst)lowSince=null;
+        const highReady=ms=>highSince!==null && t-highSince>=(ms||0);
+        const lowReady=lowSince!==null && t-lowSince>=(p.depthStableMs||0);
+        if(rep && lowReady)rep.depthConfirmed=true;
         switch (phase) {
           case 'init':
-            if (a >= p.up) phase = 'extended';
+            if (a >= p.up && highReady(p.initialStableMs)) phase = 'extended';
             break;
           case 'extended':
             if (a < p.up - p.hyst) { phase = 'flexing'; newRep(t, a, true); track(t, a, extra); }
             break;
           case 'flexing':
             track(t, a, extra);
-            if (a >= p.up) { finish(t, events, false); phase = 'extended'; }
-            else if (a <= p.down) phase = 'flexed';
+            if ((a >= p.up || (p.finishStableMs && a>=p.up-p.hyst)) && highReady(p.finishStableMs)) { finish(t, events, false); phase = 'extended'; }
+            else if (a <= p.down && lowReady) phase = 'flexed';
             break;
           case 'flexed':
             track(t, a, extra);
@@ -6323,7 +6335,7 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
           case 'extending':
             track(t, a, extra);
             rep.maxSince = Math.max(rep.maxSince, a);
-            if (a >= p.up) { finish(t, events, false); phase = 'extended'; }
+            if ((a >= p.up || (p.finishStableMs && a>=p.up-p.hyst)) && highReady(p.finishStableMs)) { finish(t, events, false); phase = 'extended'; }
             else if (rep.maxSince - a >= p.reversal && a < p.up - p.hyst) {
               // il redescend avant d'avoir verrouillé : la répétition précédente est rejetée
               rep.maxAtEnd = rep.maxSince;
@@ -6447,15 +6459,34 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
     const c = cfg.pushup;
     const support=createPushupSupport(cfg);
     let currentPhase='init';
+    let groundReference=null,referenceT=null,lastAngle=null,movedSince=null;
     return {
       params: engineParams(c, cfg.common),
       labels: LABELS.std,
       // position : on ne compte que si la personne n'est pas flagrante debout (torse proche de la verticale)
       gate: function (f, an, phase) {
         const i = torsoIncl(f, cfg.common.minVisibility, cfg.common.use3D);
-        if (i !== null && i < c.minIncl) return { all: true, msg: 'Je te vois debout: mets-toi en position de pompe (corps à l\'horizontale).' };
+        const m=SIDES[an.sides[0]],w=pt(f,m.wr),s=pt(f,m.sh),e=pt(f,m.el),scale=dist(s,e)+dist(e,w);
+        if(referenceT!==null && f.t-referenceT>1000)groundReference=null;
+        referenceT=f.t;
+        const anchor=groundReference && groundReference.wrists[an.sides[0]];
+        if(groundReference && !anchor)groundReference=null;
+        if(groundReference && dist(w,anchor)>.3*groundReference.scale){
+          if(movedSince===null)movedSince=f.t;
+          const confirmed=f.t-movedSince>=200;
+          if(confirmed){groundReference=null;movedSince=null;}
+          return {all:confirmed,immediate:true,msg:'Appuis déplacés : reprends la position haute avant de continuer.'};
+        }
+        movedSince=null;
+        if(!groundReference && i!==null && i>=c.minIncl && lastAngle>=c.up && w.y>s.y+.15*scale){
+          const wrists={},heights={};for(const side of ['L','R'])if(visOf(f.lm[SIDES[side].wr])>=cfg.common.minVisibility){wrists[side]=pt(f,SIDES[side].wr);heights[side]=wrists[side].y-pt(f,SIDES[side].sh).y;}
+          groundReference={wrists,heights,scale};
+        }
+        // La profondeur des hanches peut basculer pendant une vue de face.
+        // Les mains restées sur l'appui observé conservent le repère au sol.
+        if (!groundReference && i !== null && i < c.minIncl) return { all: true, msg: 'Je te vois debout: mets-toi en position de pompe (corps à l\'horizontale).' };
         // accroupi / squat : torse pas couché ET genoux franchement pliés (en pompe sur les pieds, les jambes restent tendues)
-        if ((phase==='init' || phase==='extended') && i !== null && i < 75) {
+        if (!groundReference && (phase==='init' || phase==='extended') && i !== null && i < 75) {
           const ks = [];
           ['L', 'R'].forEach(function (s) {
             const m = SIDES[s];
@@ -6468,10 +6499,13 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
       measure: function (f, an) {
         // angle du coude : moyenne des côtés bien vus (de face ou de trois quarts, les deux bras comptent)
         const a = mean(an.sides.map(function (s) { const m = SIDES[s]; return jointAngle(f, m.sh, m.el, m.wr, cfg.common.use3D); }));
+        lastAngle=a;
         const m0 = SIDES[an.sides[0]];
         const S0 = pt(f, m0.sh), E0 = pt(f, m0.el), W0 = pt(f, m0.wr);
         const armLen = dist(S0, E0) + dist(E0, W0);
         const extra = { dev: null, sag: 1, drop: armLen > 1e-6 ? (W0.y - S0.y) / armLen : 1 };
+        const referenceHeight=groundReference && groundReference.heights[an.sides[0]];
+        extra.chestHeightRatio=referenceHeight>.04?(W0.y-S0.y)/referenceHeight:null;
         // forme du corps : seulement si les hanches et les chevilles sont visibles
         if (an.optSide) {
           const m = SIDES[an.optSide];
@@ -6483,16 +6517,21 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
       },
       after: function(phase) {currentPhase=phase;},
       hooks: {
-        newRep: function () { return { maxDev: 0, devSign: 1, minDrop: Infinity }; },
+        newRep: function () { return { maxDev: 0, devSign: 1, minDrop: Infinity, minChestRatio:Infinity }; },
         track: function (rep, t, a, e, phase) {
           trackKneeSupport(rep,t,a,e,phase);
           if (e.dev !== null && e.dev > rep.maxDev) { rep.maxDev = e.dev; rep.devSign = e.sag; }
           if (e.drop < rep.minDrop) rep.minDrop = e.drop;
+          if(e.chestHeightRatio!==null)rep.minChestRatio=Math.min(rep.minChestRatio,e.chestHeightRatio);
         },
         evaluate: function (r, p) {
           const out = [];
           if(r.kneeSupported)out.push({code:'knees',text:'Appui sur les genoux détecté pendant la remontée : garde-les décollés.'});
-          if (r.minA > c.down) out.push({ code: 'depth', text: 'Pas assez bas: coude à ' + round(r.minA) + '° (objectif sous ' + c.down + '°)' });
+          // Tolérance limitée à 5° en 3D, et seulement si la poitrine est
+          // descendue d'au moins 30% par rapport au départ observé. Le profil
+          // strict en 2D conserve son seuil sans cette compensation.
+          const corroborated=cfg.common.use3D && c.down>=110 && r.minA<=c.down+5 && r.minChestRatio<=.7;
+          if (r.minA > c.down && !corroborated) out.push({ code: 'depth', text: 'Pas assez bas: coude à ' + round(r.minA) + '° (objectif sous ' + c.down + '°)' });
           else if (c.useShoulderHeight && r.minDrop > c.shoulderDropMax) out.push({ code: 'shoulders', text: 'Épaules pas assez descendues vers les mains' });
           if (r.maxDev > c.bodyTol) {
             out.push(r.devSign > 0
@@ -6849,7 +6888,7 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
         const gt = adapter.gate(f, an, engine.phase());
         if (gt) {
           gateRun++;
-          if (gateRun >= 3) {
+          if (gt.immediate || gateRun >= 3) {
             if (gt.all && engine.phase() !== 'init') engine.abort();
             out.metrics = { a: m.a, extra: m.extra };
             out.metricsText = adapter.metricsText(m);
@@ -6937,14 +6976,55 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
   };
 });
 
+/* Vérification de variante indépendante du comptage. Unknown n'est pas valid.
+   Les distances sont normalisées par l'anatomie observée, jamais en pixels. */
+(function(root,factory){
+  if(typeof module==='object' && module.exports)module.exports=factory();
+  else root.RepVerify=factory();
+})(typeof self!=='undefined'?self:this,function(){
+  'use strict';
+  const result=(status,message)=>({status,message});
+  const inFrame=p=>p && Number.isFinite(p.x) && Number.isFinite(p.y) && p.x>=0 && p.x<=1 && p.y>=0 && p.y<=1;
+  const visible=p=>inFrame(p) && (p.visibility==null || p.visibility>=.4);
+  function diamond(f){
+    const unknown=()=>result('unknown','Montre les deux mains et les doigts, de face ou de trois quarts.');
+    if(!f || !f.lm || ![11,12,15,16].every(i=>visible(f.lm[i])))return unknown();
+    const aspect=f.aspect||1;
+    const distance=(a,b)=>Math.hypot((a.x-b.x)*aspect,a.y-b.y);
+    const shoulders=distance(f.lm[11],f.lm[12]);
+    // Une vue strictement de profil ne distingue pas deux mains superposées.
+    if(shoulders<.045)return unknown();
+    const wrists=distance(f.lm[15],f.lm[16])/shoulders;
+    if(wrists>1.05)return result('invalid','Mains trop écartées pour une pompe diamant : rapproche pouces et index.');
+    if(!Array.isArray(f.hands) || f.hands.length!==2 || !Number.isFinite(f.handsT) || f.t-f.handsT>450 || f.handsT>f.t)return unknown();
+    const [a,b]=f.hands;
+    // HandLandmarker returns zero in the unused per-point visibility field.
+    // Its detection/presence thresholds are applied by the model itself.
+    if(!Array.isArray(a) || !Array.isArray(b) || a.length!==21 || b.length!==21 || !a.every(inFrame) || !b.every(inFrame))return unknown();
+    // Le suivi des mains doit correspondre aux poignets de cette personne.
+    const direct=distance(a[0],f.lm[15])+distance(b[0],f.lm[16]);
+    const reverse=distance(a[0],f.lm[16])+distance(b[0],f.lm[15]);
+    if(Math.min(direct,reverse)>.55*shoulders)return unknown();
+    const palms=(distance(a[0],a[9])+distance(b[0],b[9]))/2;
+    if(palms<.012)return unknown();
+    if(distance(a[0],b[0])<.25*palms)return unknown();
+    const extended=h=>distance(h[5],h[8])/(distance(h[5],h[6])+distance(h[6],h[7])+distance(h[7],h[8])||1)>.72;
+    if(!extended(a)||!extended(b))return result('invalid','Pose les mains ouvertes, pouces et index rapprochés en diamant.');
+    if(distance(a[4],b[4])>.85*palms || distance(a[8],b[8])>.85*palms)
+      return result('invalid','Rapproche les pouces et les index pour former le diamant.');
+    return result('valid','Position diamant reconnue.');
+  }
+  return {diamond};
+});
+
 /* Caméra étendue. Les profils historiques pushup/pullup restent dans repcore.js.
    Les angles utilisent les points 3D quand ils sont exploitables ; les appuis
    et la gravité utilisent l'image corrigée de son rapport largeur/hauteur.
    Une caméra de pose ne certifie ni le contact avec un agrès ni une charge. */
 (function (root, factory) {
-  if (typeof module === 'object' && module.exports) module.exports = factory(require('./repcore.js'));
-  else root.RepMore = factory(root.RepCore);
-})(typeof self !== 'undefined' ? self : this, function (C) {
+  if (typeof module === 'object' && module.exports) module.exports = factory(require('./repcore.js'),require('./repverify.js'));
+  else root.RepMore = factory(root.RepCore,root.RepVerify);
+})(typeof self !== 'undefined' ? self : this, function (C,V) {
   'use strict';
   const profiles = {};
   const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
@@ -7138,7 +7218,7 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
     return {
       createEngine: p.negative ? () => negativeEngine(p) : p.motion === 'skin' ? () => rotationEngine() : null,
       autoCalib: ['push','pike','hspu','dip','row','pull','squat'].includes(p.motion) && !p.negative,
-      params: { up: p.motion==='row'?140:['push','pike','hspu','dip','pull'].includes(p.motion) ? 150 : 160, down: 100, attempt: 135, hyst: 10, reversal: 25, minRepMs: p.negative ? 900 : 400, minPhaseMs: 120 },
+      params: { up: p.motion==='row'?140:['push','pike','hspu','dip','pull'].includes(p.motion) ? 150 : 160, down: 100, attempt: 135, hyst: 10, reversal: 25, minRepMs: p.negative ? 900 : 400, minPhaseMs: 120, initialStableMs:250,depthStableMs:50,finishStableMs:66 },
       labels: { init: 'position de départ', extended: 'prêt', flexing: 'mouvement', flexed: 'amplitude atteinte', extending: 'retour' },
       measure(f, an) {
         if(state.lastT!=null && f.t-state.lastT>350){state.reference=null;state.phase='init';}
@@ -7156,17 +7236,27 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
           b.elbow=state.angles.slice().sort((a,b)=>a-b)[Math.floor(state.angles.length/2)];
         }
         let value = progress(p, b, state, f.t);
+        let identity=null;
+        if(p.key==='pompes_diamant') {
+          identity=V.diamond(f);
+          if(identity.status==='valid')state.identityT=f.t;
+          const inMotion=['flexing','flexed','extending'].includes(state.phase);
+          // Les doigts peuvent être masqués en bas. Une position reconnue
+          // avant la descente est nécessaire et le retour doit la confirmer.
+          const briefOcclusion=identity.status==='unknown' && inMotion && value>.3 && state.identityT!=null && f.t-state.identityT<5000;
+          if(identity.status!=='valid' && !briefOcclusion)error=identity.message;
+        }
         if(!error && value<=.3 && b.seen('hip') && (!state.reference || state.phase==='extended'))
           state.reference={inclination:b.inclination,line:b.thighLine,wrist:b.wr,scale:b.scale,t:f.t};
         if (p.motion === 'muscle' && !p.negative && value >= .8 && b.elbow < 135) value = .7;
         if (p.high && value >= .8 && b.ank.y > b.wr.y + .25 * b.scale) value = .7;
         if (p.explosive && value >= .8 && b.sh.y > b.wr.y + .2 * b.scale) value = .7;
         if (p.negative && (p.motion === 'muscle' || p.motion === 'dragon')) value = 1 - value;
-        measured = { a: 180 - 100 * clamp(value, -.2, 1.5), extra: { error, side: b.side, progress: value, kneesGrounded: support ? support(f,state.phase || 'init') : false,
+        measured = { a: 180 - 100 * clamp(value, -.2, 1.5), extra: { error, identity, side: b.side, progress: value, kneesGrounded: support ? support(f,state.phase || 'init') : false,
           rotation: Math.atan2(b.hip.y-b.sh.y,b.hip.x-b.sh.x)*180/Math.PI, hanging: b.hanging && b.hip.y > b.sh.y } };
         return measured;
       },
-      gate() { return measured && measured.extra.error ? { all: true, msg: measured.extra.error } : null; },
+      gate() { return measured && measured.extra.error ? { all: true, immediate: p.key==='pompes_diamant', msg: measured.extra.error } : null; },
       after(phase) { state.phase=phase; },
       hooks: {
         newRep() { return { bad: 0, frames: 0 }; },
@@ -7375,6 +7465,7 @@ document.addEventListener('submit', e => { if (e.target && e.target.id === 'acc-
     const p = profiles[key]; if (!p) return [];
     const tips = [p.view === 'front' ? 'Pose le téléphone à 2 à 3 m, face à toi, corps entier visible.' : 'Pose le téléphone à environ 2 m, de profil ou légèrement de trois quarts.'];
     tips.push(...(directions[p.motion] || ['Montre les bras, les hanches et les pieds.', 'Le chrono démarre quand la position est reconnue.']));
+    if(key==='pompes_diamant')tips.splice(0,1,'Pose le téléphone de face ou de trois quarts. Montre les deux mains ouvertes, pouces et index rapprochés. Le suivi des doigts vérifie la variante avant de compter.');
     if(p.motion!=='calf')tips.push('Montre les jambes au départ si possible. Les chevilles peuvent ensuite sortir du cadre ; garde visibles les articulations qui font le mouvement.');
     if (p.unilateral) tips.push('Travaille un seul côté par série, du côté de la caméra. Fais ensuite l’autre côté séparément.');
     if (p.negative) tips.push('La descente doit rester lente et contrôlée.');
@@ -7411,10 +7502,12 @@ const LiveCam = (() => {
   const VISION = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14';
   // modèle "full" (9 Mo) : nettement plus fiable que "lite" sur les poses couchées ou de face
   const MODEL = 'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_full/float16/1/pose_landmarker_full.task';
+  const HAND_MODEL = 'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/latest/hand_landmarker.task';
   const CONN = [[11, 12], [11, 13], [13, 15], [12, 14], [14, 16], [11, 23], [12, 24], [23, 24], [23, 25], [25, 27], [24, 26], [26, 28], [27, 29], [29, 31], [28, 30], [30, 32], [0, 11], [0, 12]];
   const JOINTS = [0, 11, 12, 13, 14, 15, 16, 23, 24, 25, 26, 27, 28];
 
   let landmarker = null, modelP = null, delegate = '', audioCtx = null;
+  let handmarker=null, handModelP=null;
   let voice = true;
   try { voice = localStorage.getItem('ranked.voice') !== '0'; } catch (e) { /* stockage indisponible */ }
 
@@ -7452,7 +7545,7 @@ const LiveCam = (() => {
   }
   function modelError(e) {
     const offline = navigator.onLine === false;
-    return { title: offline ? 'Pas d\'internet pour charger l\'IA' : 'L\'IA n\'a pas pu être chargée', steps: ['Le modèle (environ 6 Mo) se télécharge à la première utilisation, puis reste en cache : connecte-toi au Wi-Fi une fois.', 'Touche « Activer la caméra » pour réessayer.', 'Tu peux compter à la main en attendant.'] };
+    return { title: offline ? 'Pas d\'internet pour charger l\'IA' : 'L\'IA n\'a pas pu être chargée', steps: ['Les modèles se téléchargent à la première utilisation, puis restent en cache : connecte-toi au Wi-Fi une fois.', 'Touche « Activer la caméra » pour réessayer.', 'Tu peux compter à la main en attendant.'] };
   }
 
   function loadModel() {
@@ -7470,6 +7563,18 @@ const LiveCam = (() => {
     return modelP;
   }
 
+  function loadHandModel(){
+    if(handModelP)return handModelP;
+    handModelP=(async()=>{
+      const mod=await import(VISION+'/vision_bundle.mjs');
+      const fileset=await mod.FilesetResolver.forVisionTasks(VISION+'/wasm');
+      const make=d=>mod.HandLandmarker.createFromOptions(fileset,{baseOptions:{modelAssetPath:HAND_MODEL,delegate:d},runningMode:'VIDEO',numHands:2,minHandDetectionConfidence:.4,minHandPresenceConfidence:.4,minTrackingConfidence:.3});
+      try{handmarker=await make('GPU');}catch(e){handmarker=await make('CPU');}
+    })();
+    handModelP.catch(()=>{handModelP=null;});
+    return handModelP;
+  }
+
   /* open(box, key, hooks): box = element .cam ; hooks = {setup(st), count(out), countdown(n), error(info)} */
   function open(box, key, hooks) {
     const ex = supports(key);
@@ -7477,6 +7582,7 @@ const LiveCam = (() => {
     const isHold = RC.EXERCISES[ex].kind === 'hold';
     let stream = null, loop = false, mode = 'idle', counter = null, facing = 'user', mirror = true, lastT = 0, lastFrame = null, cdTimer = 0;
     let okRun = 0, badRun = 0, shown = false, closed = false;
+    let hands=[],handsT=-Infinity;
     const video = document.createElement('video');
     video.setAttribute('playsinline', ''); video.setAttribute('webkit-playsinline', ''); video.muted = true; video.autoplay = true; video.className = 'cam-v';
     const canvas = document.createElement('canvas'); canvas.className = 'cam-c';
@@ -7524,8 +7630,15 @@ const LiveCam = (() => {
             lastVT = video.currentTime;
             const t = Math.max(performance.now(), lastT + 1); lastT = t;
             const res = landmarker.detectForVideo(video, t);
+            // Only this variant needs finger recognition. Bound the extra
+            // inference to 5 Hz so it does not run on every pose frame.
+            if(ex==='pompes_diamant' && handmarker && t-handsT>=200){
+              handsT=t;
+              try{hands=handmarker.detectForVideo(video,t).landmarks||[];}catch(e){hands=[];}
+            }
             onPose({
               t, aspect: video.videoWidth / video.videoHeight,
+              hands:ex==='pompes_diamant'?hands:undefined,handsT,
               lm: res && res.landmarks && res.landmarks[0] ? res.landmarks[0].map(p => ({ x: p.x, y: p.y, z: p.z, visibility: p.visibility })) : null,
               wl: res && res.worldLandmarks && res.worldLandmarks[0] ? res.worldLandmarks[0] : null
             });
@@ -7545,15 +7658,19 @@ const LiveCam = (() => {
           if (ev.type !== 'rep') return;
           if (ev.valid) { beep(880, 140); say(ev.count); } else beep(220, 220);
         });
-        draw(frame, { outline: !out.visible });
+        draw(frame, { outline: !out.visible || out.gated, ok:out.visible && !out.gated, invalid:out.gated });
         hooks.count(out);
       } else if (mode === 'setup' || mode === 'countdown') {
         const st = RC.framingStatus(ex, frame, {});
+        if(st.ok && ex==='pompes_diamant'){
+          const identity=window.RepVerify.diamond(frame);
+          st.ok=identity.status==='valid';st.message=identity.message;
+        }
         if (st.ok) { okRun++; badRun = 0; } else { badRun++; okRun = 0; }
         if (okRun >= 5) shown = true;
         if (badRun >= 5) shown = false;
         draw(frame, { outline: true, ok: shown, needed: st.needed });
-        hooks.setup({ ok: shown, message: shown ? 'Cadrage correct : tu peux commencer.' : st.message });
+        hooks.setup({ ok: shown, message: shown ? (ex==='pompes_diamant'?'Diamant reconnu : garde cette position des mains.':'Cadrage correct : tu peux commencer.') : st.message });
       }
     }
 
@@ -7582,7 +7699,7 @@ const LiveCam = (() => {
       CONN.forEach(c => {
         const a = lm[c[0]], b = lm[c[1]]; if (!a || !b) return;
         const ok = (a.visibility === undefined || a.visibility >= minV) && (b.visibility === undefined || b.visibility >= minV);
-        g.strokeStyle = ok ? 'rgba(34,197,94,.9)' : 'rgba(160,170,190,.35)'; g.setLineDash(ok ? [] : [6 * d, 8 * d]);
+        g.strokeStyle = ok ? (o.invalid?'rgba(245,158,11,.9)':'rgba(34,197,94,.9)') : 'rgba(160,170,190,.35)'; g.setLineDash(ok ? [] : [6 * d, 8 * d]);
         g.beginPath(); g.moveTo(X(a.x), Y(a.y)); g.lineTo(X(b.x), Y(b.y)); g.stroke();
       });
       g.setLineDash([]);
@@ -7592,6 +7709,12 @@ const LiveCam = (() => {
         g.fillStyle = ok ? '#eaffef' : 'rgba(160,170,190,.5)';
         g.beginPath(); g.arc(X(p.x), Y(p.y), (ok ? 5 : 4) * d, 0, Math.PI * 2); g.fill();
       });
+      if(ex==='pompes_diamant' && frame.hands && frame.t-frame.handsT<=450){
+        g.strokeStyle=o.invalid?'#f59e0b':'#22c55e';g.lineWidth=2*d;
+        for(const hand of frame.hands)for(const chain of [[0,1,2,3,4],[0,5,6,7,8],[0,9,10,11,12],[0,13,14,15,16],[0,17,18,19,20]]){
+          g.beginPath();chain.forEach((i,n)=>{const p=hand[i];if(p){if(n===0)g.moveTo(X(p.x),Y(p.y));else g.lineTo(X(p.x),Y(p.y));}});g.stroke();
+        }
+      }
       if (o && o.needed) o.needed.forEach(n => {
         const p = lm[n.idx]; if (!p) return;
         g.strokeStyle = n.ok ? '#22c55e' : '#ef4444'; g.lineWidth = 3 * d;
@@ -7604,7 +7727,8 @@ const LiveCam = (() => {
       async enable() {
         try { await startStream(); } catch (e) { const i = camError(e); i.stage = 'camera'; throw i; }
         mode = 'loading';
-        try { await loadModel(); } catch (e) { const i = modelError(e); i.stage = 'model'; throw i; }
+        try { await loadModel(); if(ex==='pompes_diamant')await loadHandModel(); } catch (e) { const i = modelError(e); i.stage = 'model'; throw i; }
+        if(closed){stopStream();return {delegate};}
         mode = 'setup'; okRun = badRun = 0; shown = false;
         lastT = Math.max(lastT, performance.now());
         startLoop();
@@ -7612,6 +7736,7 @@ const LiveCam = (() => {
       },
       async flip() {
         facing = facing === 'user' ? 'environment' : 'user';
+        hands=[];handsT=-Infinity;
         loop = false;
         try { await startStream(); } catch (e) { const i = camError(e); i.stage = 'camera'; throw i; }
         startLoop();
@@ -7708,7 +7833,7 @@ async function camEnable(L) {
   });
   try {
     liveFb('Chargement de l\'IA…');
-    camStatus('Chargement de l\'IA (première fois : environ 6 Mo)…', false);
+    camStatus(L.key==='pompes_diamant'?'Chargement du suivi du corps et des mains…':'Chargement du suivi du corps…', false);
     await c.ctl.enable();
   } catch (e) { camFail(L, e); return; }
   if (ui.live !== L || !c.ctl) { return; }
@@ -7743,7 +7868,7 @@ function camCount(L, out) {
   else liveFb(out.feedback || '…', out.tone === 'ok' ? 'good' : out.tone === 'warn' ? 'warn' : '');
   if (out.calibrated) { toast(out.calibrationText || ('Seuil « bras tendus » adapté à ' + out.calibrated + '°')); }
   // ligne d'état : phase, rejets et angle mesuré (sert à régler le compteur)
-  camStatus(out.label + (!L.hold && out.rejected ? ' · ' + out.rejected + (out.rejected > 1 ? ' rejetées' : ' rejetée') : '') + (out.metricsText ? ' · ' + out.metricsText : ''), out.visible);
+  camStatus(out.label + (!L.hold && out.rejected ? ' · ' + out.rejected + (out.rejected > 1 ? ' rejetées' : ' rejetée') : '') + (out.metricsText ? ' · ' + out.metricsText : ''), out.visible && !out.gated);
 }
 async function camFlip(L) {
   const b = $('#btn-cam-flip');
